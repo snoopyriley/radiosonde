@@ -851,11 +851,6 @@ function stringToDateUTC(text) {
     return new Date(convert_time(text));
 }
 
-function twoZeroPad(n){
-    n = String(n);
-    return (n.length<2) ? '0'+n : n;
-}
-
 function formatDate(date,utc) {
     var a,b,c,d,e,f,g,z;
 

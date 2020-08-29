@@ -255,14 +255,19 @@ function trackerInit() {
 var initTimer = setTimeout(trackerInit, 3000);
 
 var cache = window.applicationCache;
-cache.addEventListener('noupdate', loadComplete, false);
-cache.addEventListener('updateready', loadComplete, false);
-cache.addEventListener('cached', loadComplete, false);
-cache.addEventListener('error', loadComplete, false);
+// TEMPORARILY DISABLED - MJ 2020-08-29
+// Application Cache is broken in recent chrome versions/
+// Disabling these addEventListener calls at least makes the rest of the page load.
+// Unsure what the implications of disabling these are.
+
+//cache.addEventListener('noupdate', loadComplete, false);
+//cache.addEventListener('updateready', loadComplete, false);
+//cache.addEventListener('cached', loadComplete, false);
+//cache.addEventListener('error', loadComplete, false);
 
 // if the browser supports progress events, display a loading bar
-cache.addEventListener('checking', function() { if(map && !force_check_cache) return; force_check_cache = false; clearTimeout(initTimer); $('#loading .bar,#loading').show(); $('#loading .complete').css({width: 0}); }, false);
-cache.addEventListener('progress', function(e) { $('#loading .complete').stop(true,true).animate({width: (200/e.total)*e.loaded}); }, false);
+//cache.addEventListener('checking', function() { if(map && !force_check_cache) return; force_check_cache = false; clearTimeout(initTimer); $('#loading .bar,#loading').show(); $('#loading .complete').css({width: 0}); }, false);
+//cache.addEventListener('progress', function(e) { $('#loading .complete').stop(true,true).animate({width: (200/e.total)*e.loaded}); }, false);
 
 var listScroll;
 var GPS_ts = null;
