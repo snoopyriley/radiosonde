@@ -1656,6 +1656,12 @@ function addPosition(position) {
                 },
                 title: vcallsign,
             });
+
+            google.maps.event.addDomListener(marker, 'click', function() {
+                $(".row.active").removeClass('active');
+                $(".vehicle"+vehicles[marker.title].uuid).addClass('active');
+            });
+
             gmaps_elements.push(marker);
             marker.shadow = marker_shadow;
             marker.balloonColor = (vcallsign == "PIE") ? "rpi" : balloon_colors_name[color_index];
