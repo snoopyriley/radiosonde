@@ -1,4 +1,6 @@
-# Habhub tracker
+# SondeHub tracker
+
+A fork of [habitat-mobile-tracker](https://github.com/rossengeorgiev/habitat-mobile-tracker) for use with the [SondeHub v2 ElasticSearch](https://github.com/projecthorus/sondehub-infra/wiki/ElasticSearch-Kibana-access) database.
 
 ![mobile tracker screenshot](resources/mobiletracker-screencap.png "mobile tracker screenshot")
 
@@ -51,7 +53,7 @@ Pull requests are welcome.
 
 Requirements: __Java__ and (Linux or Cygwin environment)
 
-    $ git clone git://github.com/rossengeorgiev/habitat-mobile-tracker.git
+    $ git clone https://github.com/projecthorus/sondehub-tracker.git
     $ ./build.sh
 
 For __applicationCache__ to work your server needs to send the correct MIME type.
