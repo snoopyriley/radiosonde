@@ -49,7 +49,7 @@ var modeList = [
     "3 days",
     "All",
 ];
-var modeDefault = "1 day";
+var modeDefault = "6 hours";
 var modeDefaultMobile = "1 hour";
 
 // order of map elements

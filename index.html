@@ -2,10 +2,10 @@
 <html lang="en" manifest="cache.manifest">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>habhub tracker (high altitude balloons)</title>
-        <meta name="description" content="Live tracking of high altitude balloon. Data via habhub and APRS. Includes weather overlay, predictions, and access to historic hab fligts on habhub." />
-        <meta name="author" content="Rossen Georgiev" />
-        <link rel="search" type="application/opensearchdescription+xml" href="opensearchspec.xml" title="Search on Habhub Tracker">
+        <title>SondeHub Tracker</title>
+        <meta name="description" content="Live tracking of radiosonde flights. Data via SondeHub v2. Includes weather overlay, predictions, and access to historic radiosonde flights on sondehub." />
+        <meta name="author" content="Rossen Georgiev / Mark Jessop / Michaela Wheeler" />
+        <link rel="search" type="application/opensearchdescription+xml" href="opensearchspec.xml" title="Search on Sondebhub Tracker">
         <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1"/>
         <meta name="apple-mobile-web-app-title" content="Habhub Tracker">
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -87,17 +87,24 @@
         <div class="slimContainer">
             <h2><i class="icon-question rfloat"></i>Welcome</h2>
             <hr/>
-            <div id='motd'><img style='display:block;margin:0 auto;width:90px;height:30px' src="img/hab-spinner.gif" /></div>
+            <div id="motda">
+                <h3>Radiosondes?</h3>
+
+                                To learn more check out our 
+                <a href="https://www.youtube.com/watch?v=YBy-bXEWZeM">Linux.conf.au video</a>
+                .
+                                
+                <h3>Want to setup a receive station?</h3>
+
+                                    The receiving software can be found at 
+                <a href="https://github.com/projecthorus/radiosonde_auto_rx">https://github.com/projecthorus/radiosonde_auto_rx</a>
+            </div>
             <br/>
-<iframe data-src="https://www.google.com/calendar/embed?title=Habhub%20Calendar&amp;showTitle=0&amp;showNav=0&amp;showPrint=0&amp;showTabs=0&amp;showCalendars=0&amp;mode=AGENDA&amp;height=450&amp;wkst=2&amp;bgcolor=%23ffffff&amp;src=5m4629p2h0esfojq1elep31einvu2q0v%40import.calendar.google.com&amp;color=%2300a3d3&amp;hl=en_GB" style=" border-width:0 " width="290" height="450" frameborder="0" scrolling="no"></iframe>
-            <p>
-                Want to track with <b>Google Earth</b> instead?<br/> <a href="track.kml">Just click here</a>
-            </p>
             <h2>Contribute</h2>
             <hr/>
             <p>
                 Did you know the tracker is open-source? Check it out on
-                <a href="https://github.com/rossengeorgiev/habitat-mobile-tracker">github/habitat-mobile-tracker</a>.
+                <a href="https://github.com/projechorus/sondehub-tracker">github/sondehub-tracker</a>.
                 Bug reports, suggestions and pull requests are welcome. You can also
                 find us on IRC in <a href="http://webchat.freenode.net/?channels=highaltitude">#highaltitude</a> at <b>irc.freenode.org</b>.
             </p>

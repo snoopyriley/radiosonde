@@ -62,7 +62,7 @@ var wvar = {
     focus: "",
     mode: (is_mobile) ? modeDefaultMobile : modeDefault,
     zoom: true,
-    query: "!RS_*;",
+    query: "",
     nyan: false,
 };
 
@@ -688,17 +688,17 @@ $(window).ready(function() {
             $('.flatpage, #homebox').hide();
             box.show().scrollTop(0);
 
-            if(name == 'about' && !$('#motd').hasClass('inited')) {
-                $('#motd').addClass('inited');
+            // if(name == 'about' && !$('#motd').hasClass('inited')) {
+            //     $('#motd').addClass('inited');
 
-                $.getJSON("//spacenear.us/tracker/datanew.php?type=info", function(data) {
-                    if('html' in data) $('#motd').html(data.html.replace(/\\/g,''));
-                });
+            //     $.getJSON("//spacenear.us/tracker/datanew.php?type=info", function(data) {
+            //         if('html' in data) $('#motd').html(data.html.replace(/\\/g,''));
+            //     });
 
-                var iframe = box.find('iframe');
-                var src = iframe.attr('data-src');
-                iframe.attr('src', src);
-            }
+            //     var iframe = box.find('iframe');
+            //     var src = iframe.attr('data-src');
+            //     iframe.attr('src', src);
+            // }
 
             // analytics
             var pretty_name;
