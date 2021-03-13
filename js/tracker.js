@@ -43,13 +43,12 @@ var notamOverlay = null;
 var modeList = [
 //    "Position",
     "1 hour",
+    "3 hours",
     "6 hours",
     "12 hours",
-    "1 day",
-    "3 days",
-    "All",
+    "1 day"
 ];
-var modeDefault = "6 hours";
+var modeDefault = "3 hours";
 var modeDefaultMobile = "1 hour";
 
 // order of map elements
