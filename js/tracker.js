@@ -2634,7 +2634,7 @@ function habitat_doc_step(hab_docs) {
 
 var periodical, periodical_receivers;
 var periodical_predictions = null;
-var timer_seconds = 15;
+var timer_seconds = 1;
 
 function startAjax() {
     // prevent insane clicks to start numerous requests
