@@ -574,19 +574,29 @@ function habitat_data(jsondata, alternative) {
     "uplink_rssi": "Uplink RSSI",
     "light_intensity": "Light Intensity",
     "pred_lat": "Onboard Prediction (Lat)",
-    "pred_lon": "Onboard Prediction (Lon)"
+    "pred_lon": "Onboard Prediction (Lon)",
+    "batt": "Battery Voltage",
+    "sats": "GNSS SVs Used",
+    "humidity": "Relative Humidity",
+    "subtype": "Sonde Sub-type",
+    "frequency": "TX Frequency",
+    "manufacturer": "Manufacturer",
+    "type": "Sonde Type",
+    "burst_timer": "Burst Timer"
   };
 
   var hide_keys = {
     "spam": true,
     "battery_millivolts": true,
     "temperature_internal_x10": true,
-    "uplink_rssi_raw": true
+    "uplink_rssi_raw": true,
+    "xdata": true
   };
 
   var suffixes = {
     "current": " A",
     "battery": " V",
+    "batt": " V",
     "solar_panel": " V",
     "temperature": "&deg;C",
     "temperature_internal": "&deg;C",
@@ -603,6 +613,8 @@ function habitat_data(jsondata, alternative) {
     "iss_azimuth": "&deg;",
     "iss_elevation": "&deg;",
     "light_intensity": " lx",
+    "humidity": " %",
+    "frequency": " MHz",
     "spam": ""
   };
 
@@ -1015,8 +1027,14 @@ function updateVehicleInfo(vcallsign, newPosition) {
 
 
   // start
+  // TABLE STUFF HERE
+
+  // TODO: Use type / subtype fields instead of this hack.
+  var sonde_type = newPosition.data.comment.split(' ')[0];
+
   var a    = '<div class="header">' +
-           '<span>' + vcallsign + ' <i class="icon-target"></i></span>' +
+           '<span>' + sonde_type + " " + vcallsign + ' <i class="icon-target"></i></span>' +
+           //'<span>' + vcallsign + ' <i class="icon-target"></i></span>' +
            '<canvas class="graph"></canvas>' +
            '<i class="arrow"></i></div>' +
            '<div class="data">' +

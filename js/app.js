@@ -309,7 +309,7 @@ function checkSize() {
 
     $("#mapscreen,.flatpage").height(h-hh-5);
 
-    sw = (wvar.vlist) ? 200 : 0;
+    sw = (wvar.vlist) ? 260 : 0;
 
     $('.container').width(w-20);
 
