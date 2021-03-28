@@ -1,19 +1,17 @@
-# SondeHub tracker
+# SondeHub Tracker
 
-A fork of [habitat-mobile-tracker](https://github.com/rossengeorgiev/habitat-mobile-tracker) for use with the [SondeHub v2 ElasticSearch](https://github.com/projecthorus/sondehub-infra/wiki/ElasticSearch-Kibana-access) database.
+A fork of [habitat-mobile-tracker](https://github.com/rossengeorgiev/habitat-mobile-tracker) for use with the [SondeHub v2 ElasticSearch](https://github.com/projecthorus/sondehub-infra/wiki/ElasticSearch-Kibana-access) database. Huge credits to [Rossen Georgiev](https://github.com/rossengeorgiev/) for developing the mobile-tracker.
 
 ![mobile tracker screenshot](resources/mobiletracker-screencap.png "mobile tracker screenshot")
 
-A webapp for tracking high altitude balloons. Works an desktop and mobile devices.
+A webapp for tracking radiosondes. Works an desktop and mobile devices.
 The habhub tracker is a continuation of [spacenear.us/tracker](http://spacenear.us/tracker).
-
-Checkout the [Live version](http://habhub.org/mt/)
 
 ## Features
 
-* HAB tracking with [Habitat](http://habitat.habhub.org/) ([@github/ukhas/habitat](https://github.com/ukhas/habitat))
+* Radiosonde Tracking using [SondeHub V2](https://github.com/projecthorus/sondehub-infra/wiki/ElasticSearch-Kibana-access) data. 
 * Telemetry graph for each balloon
-* Chase Car functionality
+* Chase Car functionality (TODO for SondeHub)
 * Near realtime weather overlays
 * [Daylight cycle overlay](https://github.com/rossengeorgiev/nite-overlay), for long flights
 * Available to embed on any website
@@ -45,7 +43,7 @@ This is also true for mobile, some build-in browsers may not work.
 
 ## Contribute
 
-Don't hesitate to report any issues, or suggest improvements. Just visit the [issues page](https://github.com/rossengeorgiev/habitat-mobile-tracker/issues).
+Don't hesitate to report any issues, or suggest improvements. Just visit the [issues page](https://github.com/projecthorus/sondehub-tracker/issues).
 Pull requests are welcome.
 
 
