@@ -1690,7 +1690,7 @@ function addPosition(position) {
                     size: image_src_size,
                     scaledSize: image_src_size,
                 },
-                title: vcallsign,
+                title: position.type + ' ' + vcallsign,
             });
 
             google.maps.event.addDomListener(marker, 'click', function() {
