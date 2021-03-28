@@ -659,6 +659,22 @@ function habitat_data(jsondata, alternative) {
              .replace(/'/g, "&#039;");
       }
 
+      // Handle Burst timer data.
+      if(k === "burst_timer"){
+          if(typeof v === "number"){
+            if(v === 65535){
+                v = "Inactive";
+            } else {
+                // Convert value to countdown.
+                burst_temp = new Date(0);
+                burst_temp.setSeconds(v);
+                v = burst_temp.toISOString().substr(11,8);
+            }
+          } else {
+              v = "Unknown";
+          }
+      }
+
       if(typeof alternative == 'boolean' && alternative) {
           output += "<div><b>" + name + ":&nbsp;</b>" + v + suffix + "</div>";
       } else {
@@ -1029,11 +1045,14 @@ function updateVehicleInfo(vcallsign, newPosition) {
   // start
   // TABLE STUFF HERE
 
-  // TODO: Use type / subtype fields instead of this hack.
-  var sonde_type = newPosition.data.comment.split(' ')[0];
+  if (newPosition.hasOwnProperty("type")){
+      var sonde_type = newPosition.type + " ";
+  } else {
+      var sonde_type = "";
+  }
 
   var a    = '<div class="header">' +
-           '<span>' + sonde_type + " " + vcallsign + ' <i class="icon-target"></i></span>' +
+           '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
            //'<span>' + vcallsign + ' <i class="icon-target"></i></span>' +
            '<canvas class="graph"></canvas>' +
            '<i class="arrow"></i></div>' +
@@ -2117,6 +2136,10 @@ function addPosition(position) {
     return;
 }
 
+// Graph Stuff
+
+var graph_inhibited_fields = ['frequency', 'burst_timer'];
+
 function updateGraph(vcallsign, reset_selection) {
     if(!plot || !plot_open) return;
 
@@ -2291,6 +2314,8 @@ function graphAddPosition(vcallsign, new_data) {
         vehicle.graph_yaxes[1].max = vehicle.graph_yaxes[0].max;
     }
 
+
+
     // we don't record extra data, if there is no telemetry graph loaded
     // altitude is used for altitude profile
     if(plot && new_data.data !== "") {
@@ -2307,6 +2332,12 @@ function graphAddPosition(vcallsign, new_data) {
             if(isNaN(v) || v==="") return;        // only take data that is numerical
 
             i = (k in vehicle.graph_data_map) ? vehicle.graph_data_map[k] : data.length;
+
+            // Disable plotting of a few fields.
+            if (graph_inhibited_fields.includes(k)){
+                return;
+            }
+
 
             if(i >= 8) return;  // up to 7 seperate data plots only, 1 taken by alt, 1 by prediction
 
