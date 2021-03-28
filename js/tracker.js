@@ -1695,7 +1695,12 @@ function addPosition(position) {
 
             google.maps.event.addDomListener(marker, 'click', function() {
                 $(".row.active").removeClass('active');
-                $(".vehicle"+vehicles[marker.title].uuid).addClass('active');
+                _vehicle_id = marker.title.split(' ')[1];
+                _vehicle_idname = ".vehicle"+vehicles[_vehicle_id].uuid;
+                $(_vehicle_idname).addClass('active');
+                listScroll.scrollToElement(_vehicle_idname);
+                followVehicle($(_vehicle_idname).attr('data-vcallsign'));
+
             });
 
             gmaps_elements.push(marker);
