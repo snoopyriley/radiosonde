@@ -3,6 +3,7 @@ var position_id = 0;
 var data_url = "https://api.v2.sondehub.org/datanew";
 var receivers_url = "https://api.v2.sondehub.org/listeners";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
+var recovered_sondes_url = "https://api.v2.sondehub.org/recoveries";
 
 var habitat_max = 400;
 //var habitat_url = "//habitat.habhub.org/habitat/";
@@ -1698,9 +1699,8 @@ function addPosition(position) {
                 _vehicle_id = marker.title.split(' ')[1];
                 _vehicle_idname = ".vehicle"+vehicles[_vehicle_id].uuid;
                 $(_vehicle_idname).addClass('active');
-                listScroll.scrollToElement(_vehicle_idname);
+                listScroll.scrollToElement(_vehicle_idname, null, true);
                 followVehicle($(_vehicle_idname).attr('data-vcallsign'));
-
             });
 
             gmaps_elements.push(marker);
