@@ -2987,7 +2987,8 @@ function update(response) {
           offline.set('positions', ctx.lastPositions);
 
           if (got_positions && !zoomed_in && Object.keys(vehicles).length) {
-              zoom_on_payload();
+            // Disable for now.  
+            //zoom_on_payload();
           }
 
           if(periodical_predictions === null) refreshPredictions();
