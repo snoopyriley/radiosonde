@@ -1058,27 +1058,32 @@ function updateVehicleInfo(vcallsign, newPosition) {
   }
 
   var callsign_list = [];
-
-  for(var rxcall in newPosition.callsign){
-      if(newPosition.callsign.hasOwnProperty(rxcall)) {
-        _new_call = rxcall;
-        if(newPosition.callsign[rxcall].hasOwnProperty('snr')){
-            if(newPosition.callsign[rxcall].snr){
-                _new_call += " (" + newPosition.callsign[rxcall].snr.toFixed(0) + " dB)";
-                callsign_list.push(_new_call)
-                continue;
+  if($.type(newPosition.callsign) === "string"){
+      // Single callsign entry, as a string (chase cars)
+      callsign_list = newPosition.callsign;
+  } else {
+    // Multiple callsigns, as an object
+    for(var rxcall in newPosition.callsign){
+        if(newPosition.callsign.hasOwnProperty(rxcall)) {
+            _new_call = rxcall;
+            if(newPosition.callsign[rxcall].hasOwnProperty('snr')){
+                if(newPosition.callsign[rxcall].snr){
+                    _new_call += " (" + newPosition.callsign[rxcall].snr.toFixed(0) + " dB)";
+                    callsign_list.push(_new_call)
+                    continue;
+                }
+            }
+            if(newPosition.callsign[rxcall].hasOwnProperty('rssi')){
+                if(newPosition.callsign[rxcall].rssi){
+                    _new_call += " (" + newPosition.callsign[rxcall].snr.toFixed(0) + " dBm)";
+                    callsign_list.push(_new_call)
+                    continue;
+                }
             }
         }
-        if(newPosition.callsign[rxcall].hasOwnProperty('rssi')){
-            if(newPosition.callsign[rxcall].rssi){
-                _new_call += " (" + newPosition.callsign[rxcall].snr.toFixed(0) + " dBm)";
-                callsign_list.push(_new_call)
-                continue;
-            }
-        }
-      }
+    }
+    callsign_list = callsign_list.join(", ");
   }
-  callsign_list = callsign_list.join(", ");
 
   var a    = '<div class="header">' +
            '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
