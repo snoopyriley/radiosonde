@@ -745,7 +745,12 @@ function drawLOSPaths(vcallsign) {
 
     if(vehicle === undefined || vehicle.vehicle_type !== "balloon") return;
 
-    var callsigns = vehicle.curr_position.callsign.split(',');
+    var callsigns = [];
+    for (var rxcall in vehicle.curr_position.callsign){
+        if (vehicle.curr_position.callsign.hasOwnProperty(rxcall)){
+            callsigns.push(rxcall);
+        }
+    }
 
     callsigns.forEach(function(callsign) {
         callsign = callsign.trim(' ');
@@ -1052,6 +1057,29 @@ function updateVehicleInfo(vcallsign, newPosition) {
       var sonde_type = "";
   }
 
+  var callsign_list = [];
+
+  for(var rxcall in newPosition.callsign){
+      if(newPosition.callsign.hasOwnProperty(rxcall)) {
+        _new_call = rxcall;
+        if(newPosition.callsign[rxcall].hasOwnProperty('snr')){
+            if(newPosition.callsign[rxcall].snr){
+                _new_call += " (" + newPosition.callsign[rxcall].snr.toFixed(0) + " dB)";
+                callsign_list.push(_new_call)
+                continue;
+            }
+        }
+        if(newPosition.callsign[rxcall].hasOwnProperty('rssi')){
+            if(newPosition.callsign[rxcall].rssi){
+                _new_call += " (" + newPosition.callsign[rxcall].snr.toFixed(0) + " dBm)";
+                callsign_list.push(_new_call)
+                continue;
+            }
+        }
+      }
+  }
+  callsign_list = callsign_list.join(", ");
+
   var a    = '<div class="header">' +
            '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
            //'<span>' + vcallsign + ' <i class="icon-target"></i></span>' +
@@ -1073,7 +1101,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '</div>' + // data
            '';
   var c    = '<dt class="receivers">Received <i class="friendly-dtime" data-timestamp='+(convert_time(newPosition.server_time))+'></i> via:</dt><dd class="receivers">' +
-           newPosition.callsign.split(",").join(", ") + '</dd>';
+           callsign_list + '</dd>';
 
   if(!newPosition.callsign) c = '';
 
@@ -2047,10 +2075,17 @@ function addPosition(position) {
     var dt = (new_ts - curr_ts) / 1000; // convert to seconds
 
     if(dt === 0 && vehicle.num_positions) {
-        var callsigns = vehicle.curr_position.callsign.split(', ');
-        var newcalls = callsigns.concat(position.callsign.split(', '));
+        // Removed the below. Don't think its needed anymore.
+        // var callsigns = [];
+        // for (var rxcall in vehicle.curr_position.callsign){
+        //     if (vehicle.curr_position.callsign.hasOwnProperty(rxcall)){
+        //         callsigns.push(rxcall);
+        //     }
+        // }
+        // console.log(position);
+        // var newcalls = callsigns.concat(position.callsign.split(', '));
 
-        vehicle.curr_position.callsign = array_unique(callsigns).join(', ');
+        // vehicle.curr_position.callsign = array_unique(callsigns).join(', ');
     }
     else if(dt >= 0) {
         if(vehicle.num_positions > 0) {
