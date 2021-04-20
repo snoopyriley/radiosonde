@@ -1473,7 +1473,7 @@ var mapInfoBox_handle_path_fetch = function(id,vehicle) {
         html += "<img style='position:absolute;top:"+vehicle.image_src_offset.y+"px;left:"+vehicle.image_src_offset.x+"px;" +
                 "width:"+vehicle.image_src_size.width+"px;height:"+vehicle.image_src_size.height+"px'" +
                 " src='"+vehicle.image_src+"' />";
-        html += "<div>"+data.vehicle+"<span style='position:absolute;right:0px;'>("+data.position_id+")</span></div>";
+        html += "<div>"+data.vehicle+"<span style=''>("+data.position_id+")</span></div>";
         html += "<hr style='margin:5px 0px'>";
         html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.gps_lat, 5) + ',&nbsp;' + roundNumber(data.gps_lon, 5)+"</div>";
 
@@ -1504,7 +1504,30 @@ var mapInfoBox_handle_path_fetch = function(id,vehicle) {
 
         if(data.vehicle.search(/(chase)/i) == -1) {
             html += "<hr style='margin:0px;margin-top:5px'>";
-            html += "<div style='font-size:11px;'><b>Received via:&nbsp;</b>"+data.callsign.replace(/,/g,', ')+"</div>";
+            html += "<div style='font-size:11px;'>"
+            var callsign_list = []
+            for(var rxcall in data.callsign){
+                if(data.callsign.hasOwnProperty(rxcall)) {
+                    _new_call += "<b>Received via:&nbsp;</b> ";
+                    _new_call = rxcall;
+                    if(data.callsign[rxcall].hasOwnProperty('snr')){
+                        if(data.callsign[rxcall].snr){
+                            _new_call += " (" + data.callsign[rxcall].snr.toFixed(0) + " dB)";
+                            callsign_list.push(_new_call)
+                            continue;
+                        }
+                    }
+                    if(data.callsign[rxcall].hasOwnProperty('rssi')){
+                        if(data.callsign[rxcall].rssi){
+                            _new_call += " (" + data.callsign[rxcall].snr.toFixed(0) + " dBm)";
+                            callsign_list.push(_new_call)
+                            continue;
+                        }
+                    }
+                }
+            }
+            callsign_list = callsign_list.join("<br /> ");
+            html += callsign_list + "</div>";
         }
 
         div.innerHTML = html;
@@ -2972,7 +2995,14 @@ function update(response) {
             for (; i < max ; i++) {
                 var row = ctx.positions[i];
 
-                if(row.position_id > position_id) { position_id = row.position_id; }
+                // set the position based on the last record (oldest) returned from the server. Only provide minute accuracy to allow better hit rate with cloudfront
+                this_position_id = new Date(row.gps_time);
+                this_position_id.setSeconds(0)
+                this_position_id.setMilliseconds(0)
+
+                if (new Date(position_id) < this_position_id || position_id == 0){
+                    position_id = this_position_id.toISOString()
+                }
 
                 if (!row.picture) {
                     addPosition(row);
