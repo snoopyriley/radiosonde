@@ -2972,7 +2972,14 @@ function update(response) {
             for (; i < max ; i++) {
                 var row = ctx.positions[i];
 
-                if(row.position_id > position_id) { position_id = row.position_id; }
+                // set the position based on the last record (oldest) returned from the server. Only provide minute accuracy to allow better hit rate with cloudfront
+                this_position_id = new Date(row.gps_time);
+                this_position_id.setSeconds(0)
+                this_position_id.setMilliseconds(0)
+
+                if (new Date(position_id) < this_position_id || position_id == 0){
+                    position_id = this_position_id.toISOString()
+                }
 
                 if (!row.picture) {
                     addPosition(row);
