@@ -243,8 +243,8 @@ function trackerInit() {
         if(wvar.graph) $('#telemetry_graph').attr('style','');
 
         // fetch hysplit jobs
-        setInterval(refresh_hysplit, 60 * 1000);
-        refresh_hysplit();
+        // setInterval(refresh_hysplit, 60 * 1000);
+        // refresh_hysplit();
 
         return;
     }
