@@ -2118,6 +2118,7 @@ function addPosition(position) {
     else if(dt >= 0) {
         if(vehicle.num_positions > 0) {
             // calculate vertical rate
+            // TODO - Make this average over more points rather than use a FIR.
             var rate = (position.gps_alt - vehicle.curr_position.gps_alt) / dt;
             vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
 
@@ -3057,8 +3058,10 @@ function update(response) {
           offline.set('positions', ctx.lastPositions);
 
           if (got_positions && !zoomed_in && Object.keys(vehicles).length) {
-            // Disable for now.  
-            //zoom_on_payload();
+            // Enable zooming when we only have a single payload filtered. 
+            if(Object.keys(vehicles).length == 1){
+                zoom_on_payload();
+            }
           }
 
           if(periodical_predictions === null) refreshPredictions();
