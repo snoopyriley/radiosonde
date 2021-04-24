@@ -1750,12 +1750,14 @@ function addPosition(position) {
                 title: position.type + ' ' + vcallsign,
             });
 
+            // Scroll list stuff here.
             google.maps.event.addDomListener(marker, 'click', function() {
                 $(".row.active").removeClass('active');
                 _vehicle_id = marker.title.split(' ')[1];
                 _vehicle_idname = ".vehicle"+vehicles[_vehicle_id].uuid;
                 $(_vehicle_idname).addClass('active');
-                listScroll.scrollToElement(_vehicle_idname, null, true);
+                listScroll.refresh();
+                listScroll.scrollToElement(_vehicle_idname);
                 followVehicle($(_vehicle_idname).attr('data-vcallsign'));
             });
 
