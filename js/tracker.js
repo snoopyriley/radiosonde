@@ -583,15 +583,15 @@ function habitat_data(jsondata, alternative) {
     "frequency": "TX Frequency",
     "manufacturer": "Manufacturer",
     "type": "Sonde Type",
-    "burst_timer": "Burst Timer"
+    "burst_timer": "Burst Timer",
+    "xdata": "XDATA"
   };
 
   var hide_keys = {
     "spam": true,
     "battery_millivolts": true,
     "temperature_internal_x10": true,
-    "uplink_rssi_raw": true,
-    "xdata": true
+    "uplink_rssi_raw": true
   };
 
   var suffixes = {
