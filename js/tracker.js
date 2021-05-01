@@ -1080,6 +1080,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
                     continue;
                 }
             }
+            callsign_list.push(_new_call); // catch cases where there is no SNR or RSSI
         }
     }
     callsign_list = callsign_list.join(", ");
@@ -1524,6 +1525,7 @@ var mapInfoBox_handle_path_fetch = function(id,vehicle) {
                             continue;
                         }
                     }
+                    callsign_list.push(_new_call) // catch cases where there is no SNR or RSSI
                 }
             }
             callsign_list = callsign_list.join("<br /> ");
