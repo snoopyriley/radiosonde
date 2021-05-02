@@ -901,8 +901,10 @@ $(window).ready(function() {
     //setTimeout(function() {updateCurrentPosition(50.27533, 3.335166);}, 5000);
     if(navigator.geolocation) {
         // if we have geolocation services, show the locate me button
-        // the button pants the map to the user current location
-        if(is_mobile && !wvar.enabled) $(".chasecar").show();
+        // the button pans the map to the user current location
+        //if(is_mobile && !wvar.enabled) $(".chasecar").show();
+        // Enable the chase-car option for all browsers, not just mobile ones.
+        $(".chasecar").show();
         $("#locate-me,#app_name").attr('style','').click(function() {
             if(map && currentPosition) {
                 // disable following of vehicles
