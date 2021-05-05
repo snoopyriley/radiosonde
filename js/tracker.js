@@ -3062,10 +3062,12 @@ function update(response) {
           offline.set('positions', ctx.lastPositions);
 
           if (got_positions && !zoomed_in && Object.keys(vehicles).length) {
-            // Enable zooming when we only have a single payload filtered. 
-            if(Object.keys(vehicles).length == 1){
+            // Enable zooming when we only have a single payload filtered.
+            if(wvar.query !== "") {
                 zoom_on_payload();
             }
+            // TODO: Zoom to geolocation position
+
           }
 
           if(periodical_predictions === null) refreshPredictions();
