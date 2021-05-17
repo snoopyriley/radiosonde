@@ -1075,7 +1075,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
             }
             if(newPosition.callsign[rxcall].hasOwnProperty('rssi')){
                 if(newPosition.callsign[rxcall].rssi){
-                    _new_call += " (" + newPosition.callsign[rxcall].snr.toFixed(0) + " dBm)";
+                    _new_call += " (" + newPosition.callsign[rxcall].rssi.toFixed(0) + " dBm)";
                     callsign_list.push(_new_call)
                     continue;
                 }
