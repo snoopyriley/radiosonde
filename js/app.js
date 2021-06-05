@@ -766,6 +766,32 @@ $(window).ready(function() {
         }
     });
 
+    // Functions for the payload recovery feature
+    // Logic to switch the recovery OK button
+    $("#sw_recovery_ok").click(function() {
+        var e = $(this);
+
+        // turning the switch off
+        if(e.hasClass('on')) {
+            e.removeClass('on').addClass('off');
+        // turning the switch on
+        } else {
+            e.removeClass('off').addClass('on');
+        }
+    });
+    // Logic to switch the use car position button
+    $("#sw_use_car_pos").click(function() {
+        var e = $(this);
+
+        // turning the switch off
+        if(e.hasClass('on')) {
+            e.removeClass('on').addClass('off');
+        // turning the switch on
+        } else {
+            e.removeClass('off').addClass('on');
+        }
+    });
+
     // remember callsign as a cookie
     $("#cc_callsign").on('change keyup', function() {
         callsign = $(this).val().trim();
@@ -788,6 +814,7 @@ $(window).ready(function() {
         "#sw_haxis_hours",
         "#sw_daylight",
         "#sw_hide_receivers",
+        "#sw_hide_recoveries",
         "#sw_hide_timebox",
         "#sw_hilight_vehicle",
         '#sw_hide_horizon',
@@ -841,6 +868,15 @@ $(window).ready(function() {
                     refreshReceivers();
                 }
                 break;
+            case "opt_hide_recoveries":
+                    if(on) {
+                        updateRecoveries([]);
+                        clearTimeout(periodical_recoveries);
+                    }
+                    else {
+                        refreshRecoveries();
+                    }
+                    break;
             case "opt_hide_timebox":
                 var elm = $("#timebox");
                 if(on) {

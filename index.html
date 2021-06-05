@@ -185,6 +185,13 @@
                 </div>
             </div>
             <div class="row option">
+                <span><b>Hide recovered sondes from the map</b></span>
+                <div class="switch off" id="sw_hide_recoveries">
+                    <span class="thumb"></span>
+                    <input type="checkbox" id="opt_hide_recoveries">
+                </div>
+            </div>
+            <div class="row option">
                 <span><b>Highlight selected vehicle</b></span>
                 <div class="switch off" id="sw_hilight_vehicle">
                     <span class="thumb"></span>
@@ -298,6 +305,44 @@
                 <span>Speed</span>
                 <span class="r" id="cc_speed">none</span>
             </div>
+            <h3>Payload Recovery</h3>
+            <hr>
+            <div class="row">
+                <span><b>Under Testing - Not Yet Functional!</b></span>
+            </div>
+            <div class="row">
+            <span>You can mark a sonde as recovered using the following fields. Enter the serial number (manually, as a check), tick recovered/not recovered, and add some notes. You must have location enabled and be within 5km of the radiosonde position.</span>
+            </div>
+            <div class="row">
+                <span><b>Serial</b></span>
+                <span class="r"><input type="text" id="pr_serial" style="width: 140px;"/></span>
+            </div>
+            <div class="row option">
+                <span><b>Recovery Success</b></span>
+                <div class="switchyn on" id="sw_recovery_ok">
+                    <span class="thumb"></span>
+                    <input type="checkbox" id="recovery_ok">
+                </div>
+            </div>
+            <div class="row option">
+                <span><b>Use Car Position</b></span>
+                <div class="switch off" id="sw_use_car_pos">
+                    <span class="thumb"></span>
+                    <input type="checkbox" id="use_car_pos">
+                </div>
+            </div>
+            <div class="row">
+                <span><b>Notes</b></span>
+                <span class="r"><input type="text" id="pr_notes" style="width: 140px;"/></span>
+            </div>
+            <div class="row">
+                <span><b>Report Success</b></span>
+                <span class="r" id="pr_last_report">none</span>
+            </div>
+            <div class="row">
+                <span class="r"><input type="button" value="Submit" id="pr_submit" onclick="ChaseCar.markRecovered();"/></span>
+            </div>
+
         </div>
     </div>
     <div id="homebox" style="width:0px;height:0px"></div>

@@ -17,6 +17,8 @@ var elm_uuid = 0;
 
 var receiver_names = [];
 var receivers = [];
+var recovery_names = [];
+var recoveries = [];
 
 var got_positions = false;
 var zoomed_in = false;
@@ -60,6 +62,7 @@ var Z_ME = 11;
 var Z_SHADOW = 1000000;
 var Z_CAR = 1000001;
 var Z_PAYLOAD = 1000002;
+var Z_RECOVERY = 1000003;
 
 // localStorage vars
 var ls_receivers = false;
@@ -290,7 +293,14 @@ var maptypes = {
          1,
          18,
          function(xy,z) { var n = Math.pow(2,z); return (xy.y<0 || xy.y>=n) ? null : 'http://'+['a','b','c','d'][Math.abs(xy.x+xy.y)%4]+'.tile.stamen.com/watercolor/'+z+'/'+wrapTiles(xy.x,z)+'/'+xy.y+'.png'; }
-    ]
+    ],
+    getlost: [
+        'GetLost',
+        '&copy; <a href="https://www.getlost.com.au/current-map-information/">Getlost Maps</a>',
+         2,
+         16,
+         function(xy,z) { var n = Math.pow(2,z); return (xy.y<0 || xy.y>=n) ? null : 'http://live.getlost.com.au/'+z+'/'+wrapTiles(xy.x,z)+'/'+xy.y+'.jpg'; }
+    ],
 };
 
 // generate a list of names for the UI
@@ -376,6 +386,7 @@ function clean_refresh(text, force, history_step) {
 
     clearTimeout(periodical);
     clearTimeout(periodical_receivers);
+    clearTimeout(periodical_recoveries);
 
     refresh();
 
@@ -2559,6 +2570,59 @@ function refreshReceivers() {
     });
 }
 
+function refreshRecoveries() {
+    // TODO: Option to hide recoveries
+    if(offline.get('opt_hide_recoveries')) return;
+
+    // API not ready yet!
+    return;
+
+    $.ajax({
+        type: "GET",
+        url: recovered_sondes_url,
+        data: "",
+        dataType: "json",
+        success: function(response, textStatus) {
+            // TODO: Offline stuff. (Or don't bother?)
+            //offline.set('recoveries', response);
+            updateRecoveries(response);
+        },
+        error: function() {
+        },
+        complete: function(request, textStatus) {
+            periodical_recoveries = setTimeout(refreshRecoveries, 60 * 1000);
+        }
+    });
+
+    // Test data
+    // var test_recovery = [
+    //     {
+    //       "serial": "S1234567",
+    //       "lat": -34.0,
+    //       "lon": 138.0,
+    //       "alt": 100.0,
+    //       "datetime": "2021-06-04T12:00Z",
+    //       "recovered": true,
+    //       "recovered_by": "VK5QI",
+    //       "description": "In a gigantic tree. <script>alert('xssfox');</script> But I had a pole."
+    //     },
+    //     {
+    //         "serial": "S1112234",
+    //         "lat": -34.1,
+    //         "lon": 138.1,
+    //         "alt": 100.0,
+    //         "recovered": false,
+    //         "recovered_by": "VK5FAIL",
+    //         "datetime": "2021-06-04T13:00Z",
+    //         "description": "In a gigantic tree. But I didn't have a pole. Yo listen up here's a story, about a little guy that lives in a blue world, and all day and all night and everything he sees is blue."
+    //       },
+    //     ];
+    // updateRecoveries(test_recovery);
+    // periodical_recoveries = setTimeout(refreshRecoveries, 60 * 1000);
+
+}
+
+
 var ajax_predictions = null;
 
 function refreshPredictions() {
@@ -2754,7 +2818,7 @@ function habitat_doc_step(hab_docs) {
 }
 
 
-var periodical, periodical_receivers;
+var periodical, periodical_receivers, periodical_recoveries;
 var periodical_predictions = null;
 var timer_seconds = 5;
 
@@ -2762,6 +2826,7 @@ function startAjax() {
     // prevent insane clicks to start numerous requests
     clearTimeout(periodical);
     clearTimeout(periodical_receivers);
+    clearTimeout(periodical_recoveries);
     clearTimeout(periodical_predictions);
 
     //periodical = setInterval(refresh, timer_seconds * 1000);
@@ -2769,6 +2834,7 @@ function startAjax() {
 
     //periodical_listeners = setInterval(refreshReceivers, 60 * 1000);
     refreshReceivers();
+    refreshRecoveries();
 }
 
 function stopAjax() {
@@ -2898,6 +2964,124 @@ function updateReceivers(r) {
 
     if(follow_vehicle !== null) drawLOSPaths(follow_vehicle);
 }
+
+function updateRecoveryMarker(recovery) {
+    var latlng = new google.maps.LatLng(recovery.lat, recovery.lon);
+  
+    // init a marker if the recovered payload doesn't already have one
+    if(!recovery.marker) {
+      if(recovery.recovered == true){
+        _recovery_icon = "payload-recovered.png";
+      }else{
+        _recovery_icon = "payload-not-recovered.png";
+      }
+
+      recovery.marker = new google.maps.Marker({
+          icon: {
+              url: host_url + markers_url + _recovery_icon,
+              size: new google.maps.Size(17,19),
+              scaledSize: new google.maps.Size(17,18),
+              anchor: new google.maps.Point(8,14)
+          },
+          zIndex: Z_RECOVERY,
+          position: latlng,
+          map: map,
+          optimized: false,
+          title: recovery.serial,
+          animation: google.maps.Animation.DROP
+      });
+
+      recovery.infobox = new google.maps.InfoWindow({
+          content: recovery.description
+      });
+
+
+      div = document.createElement('div');
+
+      html = "<div style='line-height:16px;position:relative;'>";
+      html += "<div><b>"+recovery.serial+(recovery.recovered ? " Recovered" : " Not Recovered")+"</b></div>";
+      html += "<hr style='margin:5px 0px'>";
+      html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(recovery.lat, 5) + ',&nbsp;' + roundNumber(recovery.lon, 5)+"</div>";
+
+      var imp = offline.get('opt_imperial');
+      var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(recovery.alt)) : parseInt(recovery.alt)).toLocaleString("us");
+      text_alt     += "&nbsp;" + ((imp) ? 'ft':'m');
+
+      html += "<div><b>Altitude:&nbsp;</b>"+text_alt+"</div>";
+      html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(recovery.datetime))+"</div>";
+      html += "<div><b>Reported by:&nbsp;</b>"+recovery.recovered_by+"</div>";
+      html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(recovery.description).html()+"</div>";
+      html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+recovery.serial+"'>"+recovery.serial+"</a></div>";
+
+      html += "</div>";
+
+      div.innerHTML = html;
+
+      recovery.infobox.setContent(div);
+
+      recovery.infobox_handle = google.maps.event.addListener(recovery.marker, 'click', function() {
+                recovery.infobox.open(map, recovery.marker);
+      });
+    } else {
+      recovery.marker.setPosition(latlng);
+    }
+  }
+  
+  function updateRecoveries(r) {
+
+      if(!r) return;
+      ls_recoveries = true;
+  
+      var i = 0, ii = r.length;
+      for(; i < ii; i++) {
+          var lat = parseFloat(r[i].lat);
+          var lon = parseFloat(r[i].lon);
+  
+          if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
+  
+          var r_index = $.inArray(r[i].serial, recovery_names);
+  
+          if(r_index == -1) {
+              recovery_names.push(r[i].serial);
+              r_index = recovery_names.length - 1;
+              recoveries[r_index] = {marker: null, infobox: null};
+          }
+  
+          var recovery = recoveries[r_index];
+          recovery.serial = r[i].serial;
+          recovery.lat = lat;
+          recovery.lon = lon;
+          recovery.recovered_by = r[i].recovered_by;
+          recovery.alt = parseFloat(r[i].alt);
+          recovery.recovered = r[i].recovered;
+          recovery.description = r[i].description;
+          recovery.datetime = r[i].datetime;
+          recovery.fresh = true;
+  
+          updateRecoveryMarker(recovery);
+      }
+  
+      // clear old recovery markers
+      i = 0;
+      for(; i < recoveries.length;) {
+          var e = recoveries[i];
+          if(e.fresh) {
+              e.fresh = false;
+              i++;
+          }
+          else {
+              // close box, remove event handle, and remove marker
+              e.infobox.close();
+              e.infobox_handle.remove();
+              e.marker.setMap(null);
+  
+              // remove from arrays
+              recoveries.splice(i,1);
+              recovery_names.splice(i,1);
+          }
+      }
+  
+  }
 
 function updatePredictions(r) {
     if(!r) return;

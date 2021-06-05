@@ -9,6 +9,7 @@
 
 ChaseCar = {
     db_uri: "https://api.v2.sondehub.org/listeners",   // Sondehub API
+    recovery_uri: "https://api.v2.sondehub.org/recovered",
 };
 
 // Updated SondeHub position upload function.
@@ -40,3 +41,83 @@ ChaseCar.updatePosition = function(callsign, position) {
             data: JSON.stringify(_doc),
     });
 };
+
+
+ChaseCar.markRecovered = function(){
+
+    _run_checks = false;//true;
+    _range_limit = 5000; // Metres
+
+    // Get the serial number to be marked recovered
+    _serial = $("#pr_serial").val().trim();
+
+    // Check it exists.
+    if(_serial.includes("chase") && _run_checks){
+        $('#pr_last_report').text("Invalid sonde callsign.");
+        return;
+    }
+    if(!vehicles.hasOwnProperty(_serial) && _run_checks){
+        $('#pr_last_report').text("Invalid sonde callsign.");
+        return;
+    }
+
+    // Now get the last position of the sonde.
+    _sonde = {
+        'lat':vehicles[_serial].curr_position['gps_lat'],
+        'lon':vehicles[_serial].curr_position['gps_lon'],
+        'alt':0.0
+    };
+
+    // Now get the chaser position.
+    _chaser = {
+        'lat': parseFloat($('#cc_lat').text()),
+        'lon': parseFloat($('#cc_lon').text()),
+        'alt': 0.0
+    };
+
+    // Calculate the distance from the sonde
+    _lookangles = calculate_lookangles(_chaser, _sonde);
+
+    if( (_lookangles.range > _range_limit ) && _run_checks){
+        $('#pr_last_report').text("Outside distance limit.");
+        return;
+    }
+
+    // We are close enough!
+    _callsign = $("#cc_callsign").val().trim();
+    _notes = $("#pr_notes").val().trim();
+
+    if($("#sw_use_car_pos").hasClass('on')){
+        _recov_lat = parseFloat($('#cc_lat').text());
+        _recov_lon = parseFloat($('#cc_lon').text());
+    } else {
+        _recov_lat = vehicles[_serial].curr_position['gps_lat'];
+        _recov_lon = vehicles[_serial].curr_position['gps_lon'];
+    }
+
+    var _doc = {
+        "serial": _serial,
+        "lat": _recov_lat,
+        "lon": _recov_lon,
+        "alt": vehicles[_serial].curr_position['gps_alt'],
+        "recovered": $("#sw_recovery_ok").hasClass('on'),
+        "recovered_by": _callsign,
+        "description": _notes
+    };
+
+    console.log(_doc);
+
+    $.ajax({
+        type: "PUT",
+        url: ChaseCar.recovery_uri,
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        data: JSON.stringify(_doc),
+    }).done(function() {
+        $('#pr_last_report').text("Reported OK!");
+    })
+    .fail(function() {
+    $('#pr_last_report').text("Failed to report.");
+    })
+
+}
