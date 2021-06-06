@@ -45,8 +45,8 @@ ChaseCar.updatePosition = function(callsign, position) {
 
 ChaseCar.markRecovered = function(){
 
-    _run_checks = false;//true;
-    _range_limit = 5000; // Metres
+    _run_checks = true;
+    _range_limit = 50000; // 50 km
 
     // Get the serial number to be marked recovered
     _serial = $("#pr_serial").val().trim();
@@ -105,7 +105,14 @@ ChaseCar.markRecovered = function(){
         "description": _notes
     };
 
-    console.log(_doc);
+    // Yes this is not the right way to do this...
+    // .. but it adds an extra bit of check.
+    var res = grecaptcha.getResponse();
+    if (res == "" || res == undefined || res.length == 0)
+    {
+        $('#pr_last_report').text("Do Recaptcha first!");
+        return;
+    }
 
     $.ajax({
         type: "PUT",
@@ -113,11 +120,17 @@ ChaseCar.markRecovered = function(){
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         data: JSON.stringify(_doc),
-    }).done(function() {
+    }).done(function(data) {
+        console.log(data);
         $('#pr_last_report').text("Reported OK!");
     })
-    .fail(function() {
-    $('#pr_last_report').text("Failed to report.");
+    .fail(function(jqXHR, textStatus, error) {
+        try {
+            _fail_resp = JSON.parse(jqXHR.responseText);
+            $('#pr_last_report').text(_fail_resp.message);
+        } catch(err) {
+            $('#pr_last_report').text("Failed to report.");
+        }
     })
 
 }

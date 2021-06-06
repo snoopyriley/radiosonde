@@ -3,7 +3,7 @@ var position_id = 0;
 var data_url = "https://api.v2.sondehub.org/datanew";
 var receivers_url = "https://api.v2.sondehub.org/listeners";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
-var recovered_sondes_url = "https://api.v2.sondehub.org/recoveries";
+var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 
 var habitat_max = 400;
 //var habitat_url = "//habitat.habhub.org/habitat/";
@@ -2573,9 +2573,6 @@ function refreshReceivers() {
 function refreshRecoveries() {
     // TODO: Option to hide recoveries
     if(offline.get('opt_hide_recoveries')) return;
-
-    // API not ready yet!
-    return;
 
     $.ajax({
         type: "GET",
