@@ -51,61 +51,80 @@ ChaseCar.markRecovered = function(){
     // Get the serial number to be marked recovered
     _serial = $("#pr_serial").val().trim();
 
+    _notes = $("#pr_notes").val().trim();
+
     // Check it exists.
     if(_serial.includes("chase") && _run_checks){
         $('#pr_last_report').text("Invalid sonde callsign.");
         return;
     }
-    if(!vehicles.hasOwnProperty(_serial) && _run_checks){
-        $('#pr_last_report').text("Invalid sonde callsign.");
-        return;
-    }
 
-    // Now get the last position of the sonde.
-    _sonde = {
-        'lat':vehicles[_serial].curr_position['gps_lat'],
-        'lon':vehicles[_serial].curr_position['gps_lon'],
-        'alt':0.0
-    };
-
-    // Now get the chaser position.
-    _chaser = {
-        'lat': parseFloat($('#cc_lat').text()),
-        'lon': parseFloat($('#cc_lon').text()),
-        'alt': 0.0
-    };
-
-    // Calculate the distance from the sonde
-    _lookangles = calculate_lookangles(_chaser, _sonde);
-
-    if( (_lookangles.range > _range_limit ) && _run_checks){
-        $('#pr_last_report').text("Outside distance limit.");
-        return;
-    }
-
-    // We are close enough!
     _callsign = $("#cc_callsign").val().trim();
     if (_callsign == "" || _callsign == undefined || _callsign.length == 0)
     {
-        $('#pr_last_report').text("Enter a callsign!");
+        $('#pr_last_report').text("Enter a Chase-Car callsign!");
         return;
     }
-    
-    _notes = $("#pr_notes").val().trim();
 
-    if($("#sw_use_car_pos").hasClass('on')){
-        _recov_lat = parseFloat($('#cc_lat').text());
-        _recov_lon = parseFloat($('#cc_lon').text());
+    _recov_lat = 0.0;
+    _recov_lon = 0.0;
+    _recov_alt = 0.0;
+
+    if(!vehicles.hasOwnProperty(_serial)){
+        // Sonde is not on the map, so we need to use the chaser position.
+        if($("#sw_use_car_pos").hasClass('on')){
+            _recov_lat = parseFloat($('#cc_lat').text());
+            _recov_lon = parseFloat($('#cc_lon').text());
+
+            if (_recov_lat == 0.0 && _recov_lon == 0.0){
+                $('#pr_last_report').text("Location Reporting must be enabled!");
+                return;
+            }
+
+        } else {
+            $('#pr_last_report').text("Sonde not on map, select 'Use Car Position' and try again.");
+            return;
+        }
+
     } else {
+        // Sonde is on the map, so run some additional checks.
         _recov_lat = vehicles[_serial].curr_position['gps_lat'];
         _recov_lon = vehicles[_serial].curr_position['gps_lon'];
+
+        // Now get the last position of the sonde.
+        _sonde = {
+            'lat':_recov_lat,
+            'lon':_recov_lon,
+            'alt':0.0
+        };
+
+        // Now get the chaser position.
+        _chaser = {
+            'lat': parseFloat($('#cc_lat').text()),
+            'lon': parseFloat($('#cc_lon').text()),
+            'alt': 0.0
+        };
+
+        // Calculate the distance from the sonde
+        _lookangles = calculate_lookangles(_chaser, _sonde);
+
+        if( (_lookangles.range > _range_limit ) && _run_checks){
+            $('#pr_last_report').text("Outside distance limit.");
+            return;
+        }
+
+        if($("#sw_use_car_pos").hasClass('on')){
+            _recov_lat = parseFloat($('#cc_lat').text());
+            _recov_lon = parseFloat($('#cc_lon').text());
+        }
     }
+
 
     var _doc = {
         "serial": _serial,
         "lat": _recov_lat,
         "lon": _recov_lon,
-        "alt": vehicles[_serial].curr_position['gps_alt'],
+        "alt": 0.0,
         "recovered": $("#sw_recovery_ok").hasClass('on'),
         "recovered_by": _callsign,
         "description": _notes

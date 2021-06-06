@@ -47,6 +47,7 @@
             <ol class="nav noselect">
                 <li class="home"><i class="icon-habhub"></i></li>
                 <li class="chasecar" style="display: none"><i class="icon-car"></i></li>
+                <li class="recoveries"><i class="icon-habhub"></i></li>
                 <li class="settings"><i class="icon-settings"></i></li>
                 <li class="weather">
                     <svg width="100%" height="100%" viewbox="0 0 35 40" xmlns="http://www.w3.org/2000/svg" version="1.1" version="1.1">
@@ -84,6 +85,15 @@
             <p>
                 <a href="embed-preview.html" target="_blank">Customize tracker for embedding</a>
             </p>
+        </div>
+    </div>
+    <div id="recoveriesbox" style="display: none" class="flatpage">
+        <div class="slimContainer">
+            <h2>Recoveries</h2>
+            <hr/>
+            <p>Recovery reports can be added on the Chase-Car pane.</p>
+            <hr/>
+            <div id="recovery-list">No recent recoveries :-(</div>
         </div>
     </div>
     <div id="aboutbox" style="display: none" class="flatpage">
@@ -313,7 +323,7 @@
             <h3>Report Recovery</h3>
             <hr>
             <div class="row">
-            <span>You can report a recovery here. Enter the serial number (no type code, e.g. 'S1234567'), tick recovered/not recovered, and add some notes. You must have location enabled, a callsign set above, and be within 50km of the radiosonde position.</span>
+            <span>You can report a recovery here. Enter the serial number (no type code, e.g. 'S1234567'), tick recovered/not recovered, and add some notes. You must have location enabled, and a callsign set above. If the sonde is currently on the map, you must be located within 50km of it.</span>
             </div>
             <div class="row">
                 <span><b>Serial</b></span>

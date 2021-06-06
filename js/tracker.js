@@ -2591,34 +2591,27 @@ function refreshRecoveries() {
         }
     });
 
-    // Test data
-    // var test_recovery = [
-    //     {
-    //       "serial": "S1234567",
-    //       "lat": -34.0,
-    //       "lon": 138.0,
-    //       "alt": 100.0,
-    //       "datetime": "2021-06-04T12:00Z",
-    //       "recovered": true,
-    //       "recovered_by": "VK5QI",
-    //       "description": "In a gigantic tree. <script>alert('xssfox');</script> But I had a pole."
-    //     },
-    //     {
-    //         "serial": "S1112234",
-    //         "lat": -34.1,
-    //         "lon": 138.1,
-    //         "alt": 100.0,
-    //         "recovered": false,
-    //         "recovered_by": "VK5FAIL",
-    //         "datetime": "2021-06-04T13:00Z",
-    //         "description": "In a gigantic tree. But I didn't have a pole. Yo listen up here's a story, about a little guy that lives in a blue world, and all day and all night and everything he sees is blue."
-    //       },
-    //     ];
-    // updateRecoveries(test_recovery);
-    // periodical_recoveries = setTimeout(refreshRecoveries, 60 * 1000);
-
 }
 
+
+function initRecoveryPane() {
+
+    $.ajax({
+        type: "GET",
+        url: recovered_sondes_url,
+        data: "",
+        dataType: "json",
+        success: function(response, textStatus) {
+            updateRecoveryPane(response);
+        },
+        error: function() {
+        },
+        complete: function(request, textStatus) {
+            periodical_recovery_pane = setTimeout(initRecoveryPane, 600 * 1000);
+        }
+    });
+
+}
 
 var ajax_predictions = null;
 
@@ -2832,6 +2825,7 @@ function startAjax() {
     //periodical_listeners = setInterval(refreshReceivers, 60 * 1000);
     refreshReceivers();
     refreshRecoveries();
+    initRecoveryPane();
 }
 
 function stopAjax() {
@@ -3004,7 +2998,6 @@ function updateRecoveryMarker(recovery) {
       var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(recovery.alt)) : parseInt(recovery.alt)).toLocaleString("us");
       text_alt     += "&nbsp;" + ((imp) ? 'ft':'m');
 
-      html += "<div><b>Altitude:&nbsp;</b>"+text_alt+"</div>";
       html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(recovery.datetime))+"</div>";
       html += "<div><b>Reported by:&nbsp;</b>"+recovery.recovered_by+"</div>";
       html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(recovery.description).html()+"</div>";
@@ -3079,6 +3072,48 @@ function updateRecoveryMarker(recovery) {
       }
   
   }
+
+function updateRecoveryPane(r){
+    if(!r) return;
+    ls_recoveries = true;
+
+    html = "";
+
+    var i = 0, ii = r.length;
+    for(; i < ii; i++) {
+        var lat = parseFloat(r[i].lat);
+        var lon = parseFloat(r[i].lon);
+        var alt = parseFloat(r[i].alt);
+
+        if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
+
+        var r_index = $.inArray(r[i].serial, recovery_names);
+
+        if(r_index == -1) {
+            recovery_names.push(r[i].serial);
+            r_index = recovery_names.length - 1;
+            recoveries[r_index] = {marker: null, infobox: null};
+        }
+
+        html += "<div style='line-height:16px;position:relative;'>";
+        html += "<div><b><u>"+r[i].serial+(r[i].recovered ? " Recovered by " : " Not Recovered by ")+r[i].recovered_by+"</u></b></div>";
+        html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(lat, 5) + ',&nbsp;' + roundNumber(lon, 5)+"</div>";
+  
+        var imp = offline.get('opt_imperial');
+        var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(alt)) : parseInt(alt)).toLocaleString("us");
+        text_alt     += "&nbsp;" + ((imp) ? 'ft':'m');
+  
+        html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(r[i].datetime))+"</div>";
+        html += "<div><b>Reported by:&nbsp;</b>"+r[i].recovered_by+"</div>";
+        html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(r[i].description).html()+"</div>";
+        html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+r[i].serial+"' target='_blank'>"+r[i].serial+"</a></div>";
+        html += "<hr style='margin:5px 0px'>";
+        html += "</div>";
+    }
+
+    $("#recovery-list").html(html);
+
+}
 
 function updatePredictions(r) {
     if(!r) return;
