@@ -85,6 +85,12 @@ ChaseCar.markRecovered = function(){
 
     // We are close enough!
     _callsign = $("#cc_callsign").val().trim();
+    if (_callsign == "" || _callsign == undefined || _callsign.length == 0)
+    {
+        $('#pr_last_report').text("Enter a callsign!");
+        return;
+    }
+    
     _notes = $("#pr_notes").val().trim();
 
     if($("#sw_use_car_pos").hasClass('on')){

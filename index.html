@@ -93,13 +93,16 @@
             <div id="motda">
                 <h4>Radiosondes?</h4>
                 To learn more check out our 
-                <a href="https://www.youtube.com/watch?v=YBy-bXEWZeM" target="_blank">Linux.conf.au video</a>.
+                <a href="https://www.youtube.com/watch?v=YBy-bXEWZeM" target="_blank">LCA video</a>.
                                 
                 <h4>How do I receive?</h4>
                 Set up a receiver station using 
-                <a href="https://github.com/projecthorus/radiosonde_auto_rx/wiki" target="_blank">radiosonde_auto_rx</a>.
+                <a href="https://github.com/projecthorus/radiosonde_auto_rx/wiki" target="_blank">auto_rx</a>.
                 <br/>
                 <b>Note that you must be running at least <a href="https://github.com/projecthorus/radiosonde_auto_rx/releases" target="_blank">v1.5.1</a> to show up on Sondehub v2!</b>
+                
+                <h4>Recovered a Sonde?</h4>
+                Click the 'car' icon on the top-right to submit a recovery notification.
 
                 <h4>Support Us!</h4>
                 Google Maps and AWS hosting unfortunately does not come cheap. If you're seeing a greyed out map, that's because we've exceeded our free Google Maps page loads. <br/>
@@ -110,6 +113,7 @@
                 
                 <h4>SondeHub Status Page</h4>
                 You can find the status of the SondeHub Database on the <a href="https://sondehub.org/go/status" target="_blank">SondeHub Status Page</a>.
+
             </div>
             <br/>
             <h2>Under Beta!</h2>
@@ -118,7 +122,7 @@
             <br/>
             This site uses data from the <a href="https://github.com/projecthorus/sondehub-infra/wiki" target="_blank">SondeHub v2</a> database, which will remove the radiosonde  
             load from the Habitat tracking database. We are still working to being this tracker up to feature-parity with the previous
-            tracker, so some features like recovered sonde icons and filtering by serial and type are still in-progress.
+            tracker, so some features like filtering by serial and type are still in-progress.
             <br/>
             Chase Cars can show up on the map using this tracker's chase-car features (look for the car icon at top-right) 
             or upload their position from <a href="https://github.com/projecthorus/chasemapper" target="_blank">Chasemapper</a>.
@@ -305,11 +309,9 @@
                 <span>Speed</span>
                 <span class="r" id="cc_speed">none</span>
             </div>
+            <hr>
             <h3>Payload Recovery</h3>
             <hr>
-            <div class="row">
-                <span><b>Under Testing - Not Yet Functional!</b></span>
-            </div>
             <div class="row">
             <span>You can mark a sonde as recovered using the following fields. Enter the serial number (manually, as a check), tick recovered/not recovered, and add some notes. You must have location enabled and be within 50km of the radiosonde position.</span>
             </div>
