@@ -68,14 +68,10 @@ function updateLegend(pos) {
     }
 
     if(!polyMarker) {
-        polyMarker = new google.maps.Marker({
-            clickable: true,
-            flat: true,
-            map: map,
-            visible: true,
-            icon: null
+        polyMarker = new L.Marker().addTo(map);
+        polyMarker.on('click', function (e) {
+            mapInfoBox_handle_path(e);
         });
-        google.maps.event.addListener(polyMarker, 'click', function() { mapInfoBox_handle_path({latLng: this.getPosition()}); });
     }
 
     // this loop finds an existing data point, so we can get coordinates
@@ -88,7 +84,7 @@ function updateLegend(pos) {
         var null_count = 0;
 
         if(outside && pij !== undefined) {
-            polyMarker.setPosition(vehicles[follow_vehicle].prediction_polyline.getPath().getArray()[pij]);
+            polyMarker.setLatLng(vehicles[follow_vehicle].prediction_polyline.getPath().getArray()[pij]);
         }
         else {
             var data_ref = vehicles[follow_vehicle].graph_data[0];
@@ -105,14 +101,9 @@ function updateLegend(pos) {
             ij -= null_count + ((null_count===0||null_count===data_ref.nulls) ? 0 : 1);
             if(ij < 0) ij = 0;
 
-            polyMarker.setPosition(vehicles[follow_vehicle].positions[ij]);
+            polyMarker.setLatLng(vehicles[follow_vehicle].positions[ij]);
         }
 
-        // adjust nite overlay
-        var date = new Date(pos.x1);
-
-        nite.setDate(date);
-        nite.refresh();
         // set timebox
         $('#timebox').removeClass('present').addClass('past');
         updateTimebox(date);
