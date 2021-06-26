@@ -821,7 +821,7 @@ IScroll.prototype = {
 	},
 
 	scrollToElement: function (el, time, offsetX, offsetY, easing) {
-		el = el.nodeType ? el : this.scroller.querySelector(el);
+		el = el.nodeType ? el : document.querySelectorAll(el)[1];
 
 		if ( !el ) {
 			return;

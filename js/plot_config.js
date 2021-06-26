@@ -67,44 +67,9 @@ function updateLegend(pos) {
         legend.eq(i).text(series.label.replace(/=.*/, "= " + y));
     }
 
-    if(!polyMarker) {
-        polyMarker = new L.Marker().addTo(map);
-        polyMarker.on('click', function (e) {
-            mapInfoBox_handle_path(e);
-        });
-    }
-
-    // this loop finds an existing data point, so we can get coordinates
-    // if the crosshair happens to be over null area, we snap to the previous data point
-    //
-    // to snap accurate to the corresponding LatLng, we need to count the number of null data points
-    // then we remove them form the count and we get the index we need for the positions array
     if(follow_vehicle !== null && vehicles[follow_vehicle].positions.length) {
-        // adjust index for null data points
-        var null_count = 0;
-
-        if(outside && pij !== undefined) {
-            polyMarker.setLatLng(vehicles[follow_vehicle].prediction_polyline.getPath().getArray()[pij]);
-        }
-        else {
-            var data_ref = vehicles[follow_vehicle].graph_data[0];
-
-            if(ij > data_ref.data.length / 2) {
-                for(i = data_ref.data.length - 1; i > ij; i--) null_count += (data_ref.data[i][1] === null) ? 1 : 0;
-                null_count = data_ref.nulls - null_count * 2;
-            } else {
-                for(i = 0; i < ij; i++) null_count += (data_ref.data[i][1] === null) ? 1 : 0;
-                null_count *= 2;
-            }
-
-            // update position
-            ij -= null_count + ((null_count===0||null_count===data_ref.nulls) ? 0 : 1);
-            if(ij < 0) ij = 0;
-
-            polyMarker.setLatLng(vehicles[follow_vehicle].positions[ij]);
-        }
-
         // set timebox
+        var date = new Date(pos.x1);
         $('#timebox').removeClass('present').addClass('past');
         updateTimebox(date);
     }

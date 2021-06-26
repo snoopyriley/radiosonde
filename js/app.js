@@ -334,7 +334,7 @@ function checkSize() {
     // this should hide the address bar on mobile phones, when possible
     window.scrollTo(0,1);
 
-    if(map) google.maps.event.trigger(map, 'resize');
+    if(map) map.invalidateSize();
 }
 
 window.onresize = checkSize;
@@ -815,6 +815,7 @@ $(window).ready(function() {
         "#sw_hide_timebox",
         "#sw_hilight_vehicle",
         '#sw_hide_horizon',
+        '#sw_hide_titles',
         "#sw_nowelcome",
         "#sw_interpolate",
     ];
@@ -899,6 +900,14 @@ $(window).ready(function() {
                     showHorizonRings();
                 }
                 break;
+            case "opt_hide_titles":
+                if(on) {
+                    hideTitles();
+                }
+                else {
+                    showTitles();
+                }
+                break;
             case "opt_layers_aprs":
                 if(on) map.overlayMapTypes.setAt("1", overlayAPRS);
                 else map.overlayMapTypes.setAt("1", null);
@@ -973,7 +982,8 @@ $(window).ready(function() {
     // list of overlays
     var overlayList = [
         ['Global', [
-            ['rainviewer', 'RainViewer Static'],
+            ['rainviewer', 'RainViewer'],
+            ['rainviewer-coverage', 'RainViewer Coverage'],
         ]],
         ['North America', [
             ['nexrad-n0q-900913', 'NEXRAD Base Reflectivity'],
@@ -1028,8 +1038,13 @@ $(window).ready(function() {
         } catch (err) {};
 
         try {
-            map.removeLayer(RainRadarAus);
+            map.removeLayer(RainRadar);
         } catch (err) {};
+
+        try {
+            map.removeLayer(RainRadarCoverage);
+        } catch (err) {};
+
 
         if(e.hasClass('on')) {
             e.removeClass('on').addClass('off');
@@ -1042,11 +1057,14 @@ $(window).ready(function() {
         }
 
         if(on) {
-            if (id.includes("rainviewer")) {
-                RainRadarAus.addTo(map);
+            if (id == "rainviewer") {
+                RainRadar.addTo(map);
+            } else if (id == "rainviewer-coverage") {
+                RainRadarCoverage.addTo(map);
             } else {
                 weatherLayer = L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/' + id + '/{z}/{x}/{y}.png?' + (new Date()).getTime(), {
-                    opacity: 0.6
+                    opacity: 0.6,
+                    attribution: '&copy; <a href="https://mesonet.agron.iastate.edu/">Iowa Environmental Mesonet</a>'
                 }).addTo(map);
             }
         }

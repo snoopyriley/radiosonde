@@ -107,21 +107,23 @@ var plot_options = {
     ]
 };
 
-// aprs overlay (WIP)
+// aprs overlay (not used)
 var overlayARPS = new L.tileLayer('http://{s}.tiles.tracker.habhub.org/aprs/tile_{z}_{x}_{y}.png', {
 	subdomains: 'abc',
     maxZoom: 6,
+    attribution: '&copy; <a href="https://tracker.habhub.org/">HabHub</a>'
 });
 
 //Global Precipitation Weather
-var RainRadarAus = new L.tileLayer('https://tilecache.rainviewer.com/v2/radar/' + (Math.floor(new Date().getTime() / 600000) * 600) + '/512/{z}/{x}/{y}/1/1_0.png', {
-    opacity: 0.6
+var RainRadar = new L.tileLayer('https://tilecache.rainviewer.com/v2/radar/' + (Math.floor(new Date().getTime() / 600000) * 600) + '/512/{z}/{x}/{y}/1/1_0.png', {
+    opacity: 0.6,
+    attribution: '&copy; <a href="https://www.rainviewer.com/sources.html">RainViewer</a> sources'
 });
 
-var overlayMaps = {
-    "ARPS": overlayARPS,
-    "Rain": RainRadarAus,
-};
+var RainRadarCoverage = new L.tileLayer('https://tilecache.rainviewer.com/v2/coverage/0/512/{z}/{x}/{y}/0/0_0.png', {
+    opacity: 0.6,
+    attribution: '&copy; <a href="https://www.rainviewer.com/sources.html">RainViewer</a>'
+});
 
 var offline = {
     get: function(key) {
@@ -266,6 +268,7 @@ var opentopomap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
 });
 opentopomap.id = "OpenTopoMap";
 
+//not used
 var getlost = L.tileLayer('https://live.getlost.com.au/{z}/{x}/{y}.jpg', {
 	attribution: '&copy; <a href="https://www.getlost.com.au/current-map-information/">Getlost Maps</a>',
 	minZoom: 4,
@@ -381,7 +384,7 @@ function load() {
 
     new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
 
-    layers = L.control.layers(baseMaps, overlayMaps, {position: "topleft"}).addTo(map);
+    layers = L.control.layers(baseMaps, null, {position: "topleft"}).addTo(map);
 
     if(window.performance && window.performance.now && window.navigator.userAgent.indexOf("Firefox") != -1) {
         document.getElementById('map').addEventListener("mousemove", throttle_events, true);
@@ -420,6 +423,30 @@ function load() {
     });
 
     map.on('zoomend', function() {
+        //do check for horizon labels
+        if (!offline.get("opt_hide_horizon")) {
+            for (const [key, value] of Object.entries(vehicles)) {
+                if (value["vehicle_type"] == "balloon") {
+                    if (value["horizon_circle"]["_map"]) 
+                    {
+                        try {
+                            var horizonwidth = value["horizon_circle"].getElement().getBoundingClientRect()["width"];
+                            var subhorizonwidth = value["subhorizon_circle"].getElement().getBoundingClientRect()["width"];
+                            if (horizonwidth != 0 && horizonwidth < 28) {
+                                map.removeLayer(value["horizon_circle_title"]);
+                            } else {
+                                map.addLayer(value["horizon_circle_title"]);
+                            }
+                            if (subhorizonwidth != 0 && subhorizonwidth < 28) {
+                                map.removeLayer(value["subhorizon_circle_title"]);
+                            } else {
+                                map.addLayer(value["subhorizon_circle_title"]);
+                            }
+                        } catch(e){}
+                    }
+                }
+              }
+        }
         updateZoom();
     });
 
@@ -435,8 +462,7 @@ function load() {
             onAdd: function(map) {
                 var div = L.DomUtil.create('div');
         
-                div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:85px;height:42px;" onchange="clean_refresh(this.value)" value="' + wvar.mode + '"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
-                div.style = '';
+                div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:85px;height:42px;" onchange="clean_refresh(this.value)"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
         
                 return div;
             },
@@ -512,15 +538,20 @@ function panTo(vcallsign) {
     update_lookangles(vcallsign);
 
     // pan map
-    map.flyTo(vehicles[vcallsign].marker.getLatLng(), 10);
+    if (map.getZoom() > 10) {
+        map.setView(vehicles[vcallsign].marker.getLatLng());
+    } else {
+        map.setView(vehicles[vcallsign].marker.getLatLng(), 10);
+    }
 }
 
 function panToRecovery(rcallsign) {
+    if(offline.get('opt_hide_recoveries')) alert("Recovered Sonde Hidden, enable in settings");
     for (let i = 0; i < recoveries.length; i++) {
         if (recoveries[i].hasOwnProperty('serial')) {
             if (recoveries[i]['serial'] == rcallsign) {
                 //pan map
-                map.flyTo(recoveries[i]['marker'].getLatLng(), 10);
+                map.setView(recoveries[i]['marker'].getLatLng(), 10);
             }
         }
     }
@@ -768,14 +799,14 @@ function focusVehicle(vcallsign, ignoreOpt) {
         var vehicle = vehicles[i], j;
 
         if(i == vcallsign || vcallsign === null) {
-            if(vehicle.horizon_circle) vehicle.horizon_circle.setOptions({zIndex:Z_RANGE,strokeOpacity:opacityFocused * 0.6});
-            if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setOptions({zIndex:Z_RANGE,strokeOpacity:opacityFocused * 0.8});
-            for(j in vehicle.polyline) vehicle.polyline[j].setOptions({zIndex:Z_PATH-j,strokeOpacity:opacityFocused});
+            if(vehicle.horizon_circle) vehicle.horizon_circle.setStyle({opacity:opacityFocused * 0.6});
+            if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setStyle({opacity:opacityFocused * 0.8});
+            for(j in vehicle.polyline) vehicle.polyline[j].setStyle({opacity:opacityFocused});
         }
         else {
-            if(vehicle.horizon_circle) vehicle.horizon_circle.setOptions({zIndex:1,strokeOpacity:opacityOther * 0.6});
-            if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setOptions({zIndex:1,strokeOpacity:opacityOther * 0.8});
-            for(j in vehicle.polyline) vehicle.polyline[j].setOptions({zIndex:1,strokeOpacity:opacityOther});
+            if(vehicle.horizon_circle) vehicle.horizon_circle.setStyle({opacity:opacityOther * 0.6});
+            if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setStyle({opacity:opacityOther * 0.8});
+            for(j in vehicle.polyline) vehicle.polyline[j].setStyle({opacity:opacityOther});
         }
     }
 }
@@ -881,7 +912,9 @@ function formatDate(date,utc) {
 
 function updateVehicleInfo(vcallsign, newPosition) {
   var vehicle = vehicles[vcallsign];
-  var latlng = new L.LatLng(newPosition.gps_lat, newPosition.gps_lon);
+  if (!isNaN(newPosition.gps_lat) && !isNaN(newPosition.gps_lon)){
+    var latlng = new L.LatLng(newPosition.gps_lat, newPosition.gps_lon);
+  }
 
   // update market z-index based on latitude, 90 being background and -90 foreground
   // the first 2 decimal digits are included for added accuracy
@@ -895,24 +928,46 @@ function updateVehicleInfo(vcallsign, newPosition) {
   vehicle.marker.setLatLng(latlng);
   //vehicle.marker.setZIndex(((vehicle.vehicle_type=="car")? Z_CAR : Z_PAYLOAD) + zIndex);
 
-  if(!!vehicle.marker.setCourse) vehicle.marker.setCourse((vehicle.curr_position.gps_heading !== "") ? parseInt(vehicle.curr_position.gps_heading) : 90);
+  if(!!vehicle.marker.setCourse) {
+    if (vehicle.curr_position.gps_heading) {
+        vehicle.marker.setCourse((vehicle.curr_position.gps_heading !== "") ? parseInt(vehicle.curr_position.gps_heading) : 90);
+    }
+  } 
 
   // update horizon circles and icon
   if(vehicle.vehicle_type == "balloon") {
     //updateAltitude(vcallsign);
     var horizon_km = Math.sqrt(12.756 * newPosition.gps_alt);
-    //vehicle.horizon_circle.setRadius(Math.round(horizon_km)*1000);
+    if (!isNaN(horizon_km)) {
+        vehicle.horizon_circle.setRadius(Math.round(horizon_km)*1000);
+        vehicle.horizon_circle.setLatLng(latlng);
+
+        horizon_circle_title_icon = new L.DivIcon({
+            className: "horizon_circle_title",
+            html: '<span style="position:relative;left:-50%;top:-5px;color:black;border:1px solid rgb(0, 0, 255);border-radius:5px;font-size:9px;padding:2px;background-color:white;">' + Math.round(horizon_km) + 'km</span>'
+        });
+
+        vehicle.horizon_circle_title.setIcon(horizon_circle_title_icon);
+    }
 
     if(vehicle.subhorizon_circle) {
-      // see: http://ukhas.org.uk/communication:lineofsight
-      var el = 5.0; // elevation above horizon
-      var h = parseFloat(newPosition.gps_alt); // height above ground
+        // see: http://ukhas.org.uk/communication:lineofsight
+        var el = 5.0; // elevation above horizon
+        var h = parseFloat(newPosition.gps_alt); // height above ground
 
-      var elva = el * DEG_TO_RAD;
-      var slant = EARTH_RADIUS*(Math.cos(Math.PI/2+elva)+Math.sqrt(Math.pow(Math.cos(Math.PI/2+elva),2)+h*(2*EARTH_RADIUS+h)/Math.pow(EARTH_RADIUS,2)));
-      var subhorizon_km = Math.acos((Math.pow(EARTH_RADIUS,2)+Math.pow(EARTH_RADIUS+h,2)-Math.pow(slant,2))/(2*EARTH_RADIUS*(EARTH_RADIUS+h)))*EARTH_RADIUS;
+        var elva = el * DEG_TO_RAD;
+        var slant = EARTH_RADIUS*(Math.cos(Math.PI/2+elva)+Math.sqrt(Math.pow(Math.cos(Math.PI/2+elva),2)+h*(2*EARTH_RADIUS+h)/Math.pow(EARTH_RADIUS,2)));
+        var subhorizon_km = Math.acos((Math.pow(EARTH_RADIUS,2)+Math.pow(EARTH_RADIUS+h,2)-Math.pow(slant,2))/(2*EARTH_RADIUS*(EARTH_RADIUS+h)))*EARTH_RADIUS;
 
-      //vehicle.subhorizon_circle.setRadius(Math.round(subhorizon_km));
+        vehicle.subhorizon_circle.setRadius(Math.round(subhorizon_km));
+        vehicle.subhorizon_circle.setLatLng(latlng);
+
+        subhorizon_circle_title_icon = new L.DivIcon({
+            className: "subhorizon_circle_title",
+            html: '<span style="position:relative;left:-50%;top:-5px;color:black;border:1px solid rgb(0, 255, 0);border-radius:5px;font-size:9px;padding:2px;background-color:white;">' + Math.round(subhorizon_km/1000) + 'km</span>'
+        });
+
+        vehicle.subhorizon_circle_title.setIcon(subhorizon_circle_title_icon);
     }
 
     // indicates whenever a payload has landed
@@ -984,9 +1039,12 @@ function updateVehicleInfo(vcallsign, newPosition) {
   var elm = $('.vehicle' + vehicle.uuid);
 
   // if the vehicle doesn't exist in the list
+  // style="top:80px"
+  // if (vehicle["vehicle_type"] == "car") {
   if (elm.length === 0) {
     $('.portrait').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
     $('.landscape').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+
 
   } else if(elm.attr('data-vcallsign') === undefined) {
     elm.attr('data-vcallsign', vcallsign);
@@ -1070,11 +1128,11 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<div class="data">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
            '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' +
-               ' style="top:'+(vehicle.image_src_size.height+55)+'px">Path</span>' +
+               ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
            ((vcallsign in hysplit) ? '<span class="vbutton hysplit '+((hysplit[vcallsign].getMap()) ? 'active' : '')+'"' +
-                ' data-vcallsign="'+vcallsign+'" style="top:'+(vehicle.image_src_size.height+55+21+10)+'px">HYSPLIT</span>' : '') +
+                ' data-vcallsign="'+vcallsign+'" style="top:'+(vehicle.image_src_size[1]+55+21+10)+'px">HYSPLIT</span>' : '') +
            ((vcallsign.substr(0, 6) in ssdv) ? '<a class="vbutton active" href="//ssdv.habhub.org/' + vcallsign.substr(0, 6) + '"' +
-                ' target="_blank" style="top:'+(vehicle.image_src_size.height+55+((vcallsign in hysplit) ? 42 : 21)+10)+'px">SSDV</a>' : '') +
+                ' target="_blank" style="top:'+(vehicle.image_src_size[1]+55+((vcallsign in hysplit) ? 42 : 21)+10)+'px">SSDV</a>' : '') +
            '<div class="left">' +
            '<dl>';
   // end
@@ -1535,13 +1593,12 @@ function mapInfoBox_handle_prediction(event) {
 
 function mapInfoBox_handle_horizons(event, obj,  title) {
     var value = "";
-
+    
     if(offline.get('opt_imperial')) {
-        value = Math.round(obj.getRadius()*0.000621371192) + "miles";
+        value = Math.round(event.target.getRadius()*0.000621371192) + "miles";
     } else {
-        value = Math.round(obj.getRadius()/10)/100 + "km";
+        value = Math.round(event.target.getRadius()/10)/100 + "km";
     }
-
 
     mapInfoBox.setContent("<pre>" + title + "\nr = "+ value + "</pre>");
     mapInfoBox.setLatLng(event.latlng);
@@ -1576,6 +1633,7 @@ var marker_rotate_func = function(deg) {
         iconUrl: canvas.toDataURL(),
         iconSize: size,
         iconAnchor: [canvas.width*0.25, canvas.height*0.25],
+        tooltipAnchor: [0,-32],
     });
     this.setIcon(newIcon);
 };
@@ -1620,9 +1678,10 @@ function addPosition(position) {
         var point = new L.LatLng(position.gps_lat, position.gps_lon);
         var image_src = "", image_src_size, image_src_offset;
         var color_index = 0;
-        var gmaps_elements = [];
         var polyline = null;
         var polyline_visible = false;
+        var horizon_circle_title = null;
+        var subhorizon_circle_title = null;
         if(vcallsign.search(/(chase)/i) != -1) {
             vehicle_type = "car";
             color_index = car_index++ % car_colors.length;
@@ -1633,13 +1692,24 @@ function addPosition(position) {
             marker = new L.Marker(point, {
                 title: vcallsign,
                 zIndexOffset: Z_CAR,
-            });
+            }).addTo(map).on('click', onClick);
+
+            // Scroll list stuff here.
+            function onClick(e) {
+                _vehicle_id = e.target.options.title;
+                _vehicle_idname = ".vehicle"+vehicles[_vehicle_id].uuid;
+                $(_vehicle_idname).addClass('active');
+                listScroll.refresh();
+                listScroll.scrollToElement(_vehicle_idname);
+                panTo(vcallsign);
+            };
 
             if(!!!window.HTMLCanvasElement) {
                 carIcon = L.icon({
                     iconUrl: image_src,
                     iconSize: image_src_size,
-                    iconAnchor: [27.22]
+                    iconAnchor: [27.22],
+                    tooltipAnchor: [0,-32],
                 });
                 marker.setIcon(new carIcon);
             } else {
@@ -1651,7 +1721,7 @@ function addPosition(position) {
                     color: car_colors[color_index],
                     opacity: 1,
                     weight: 3,
-                }).addTo(map),
+                })
             ];
         }
         else if(vcallsign == "XX") {
@@ -1696,7 +1766,8 @@ function addPosition(position) {
             balloonIcon = new L.icon({
                 iconUrl: image_src,
                 iconSize: image_src_size,
-                tooltipAnchor: [0,-48],
+                tooltipAnchor: [0,-98],
+                iconAnchor: [23,90],
             });
 
             marker = new L.Marker(point, {
@@ -1726,10 +1797,10 @@ function addPosition(position) {
                 var img;
                 if(mode == "landed") {
                     map.removeLayer(vehicle.marker.shadow);
-                    //vehicle.horizon_circle.setVisible(false);
-                    //vehicle.horizon_circle.label.set('visible', false);
-                    //vehicle.subhorizon_circle.setVisible(false);
-                    //vehicle.subhorizon_circle.label.set('visible', false);
+                    map.removeLayer(vehicle.horizon_circle);
+                    map.removeLayer(vehicle.subhorizon_circle);
+                    map.removeLayer(vehicle.horizon_circle_title);
+                    map.removeLayer(vehicle.subhorizon_circle_title);
 
                     img = new L.icon ({
                         iconUrl: host_url + markers_url + "payload-" + this.balloonColor + ".png",
@@ -1741,23 +1812,25 @@ function addPosition(position) {
                     map.addLayer(vehicle.marker.shadow);
 
                     if(offline.get('opt_hide_horizon') == false){
-                        //vehicle.horizon_circle.setVisible(true);
-                        //vehicle.horizon_circle.label.set('visible', true);
-                        //vehicle.subhorizon_circle.setVisible(true);
-                        //vehicle.subhorizon_circle.label.set('visible', true);
+                        map.addLayer(vehicle.horizon_circle);
+                        map.addLayer(vehicle.subhorizon_circle);
+                        map.addLayer(vehicle.horizon_circle_title);
+                        map.addLayer(vehicle.subhorizon_circle_title);
                     }
 
                     if(mode == "parachute") {
                         img = new L.icon ({
                             iconUrl: host_url + markers_url + "parachute-" + this.balloonColor + ".png",
                             iconSize: [46,84],
-                            tooltipAnchor: [0,-48],
+                            tooltipAnchor: [0,-98],
+                            iconAnchor: [23,90],
                         });
                     } else {
                         img = new L.icon ({
                             iconUrl: host_url + markers_url + "balloon-" + this.balloonColor + ".png",
                             iconSize: [46,84],
-                            tooltipAnchor: [0,-48],
+                            tooltipAnchor: [0,-98],
+                            iconAnchor: [23,90],
                         });
                     }
                 }
@@ -1804,39 +1877,28 @@ function addPosition(position) {
                 fillColor: '#00F',
                 fillOpacity: 0,
                 opacity: 0.6,
-            }).addTo(map);
+            });
 
-            /*
+            horizon_circle_title_icon = new L.DivIcon({
+                className: "horizon_circle_title",
+                html: '<span style="position:relative;left:-50%;top:-5px;color:black;border:1px solid rgb(0, 0, 255);border-radius:5px;font-size:9px;padding:2px;background-color:white;">km</span>'
+            });
 
-            // label
-            horizon_circle.label = new L.tooltip().addTo(map);
-            horizon_circle.label.bindTo('opacity', horizon_circle, 'strokeOpacity');
-            horizon_circle.label.bindTo('zIndex', horizon_circle, 'zIndex');
-            horizon_circle.label.bindTo('strokeColor', horizon_circle, 'strokeColor');
+            horizon_circle_title = new L.Marker(point, {
+                icon: horizon_circle_title_icon
+            });
 
-            var refresh_func = function() {
-                if(!this.getVisible()) {
-                    this.label.set('visible', false);
-                    return;
-                }
+            if (!offline.get("opt_hide_horizon")) {
+                horizon_circle.addTo(map);
+                horizon_circle_title.addTo(map);
+            }
 
-                var north = google.maps.geometry.spherical.computeOffset(this.getCenter(), this.getRadius(), 0);
-                var south = google.maps.geometry.spherical.computeOffset(this.getCenter(), this.getRadius(), 180);
-
-                var projection = this.label.getProjection();
-                var dist = projection.fromLatLngToDivPixel(south).y -
-                           projection.fromLatLngToDivPixel(north).y;
-
-                var val = this.getRadius() / 1000;
-                val = offline.get('opt_imperial') ? Math.round(val * 0.621371192) + "mi" : Math.round(val) + "km";
-
-                this.label.set('visible', (75 < dist));
-                this.label.set('position', google.maps.geometry.spherical.computeOffset(this.getCenter(), this.getRadius(), 180));
-                this.label.set('text', val);
-            };
-
-            google.maps.event.addListener(horizon_circle, 'center_changed', refresh_func);
-            google.maps.event.addListener(horizon_circle, 'radius_changed', refresh_func);
+            horizon_circle.on('move', function (e) {
+                try { 
+                    var latlng = L.latLng(e.target.getBounds()._southWest.lat, ((e.target.getBounds()._northEast.lng + e.target.getBounds()._southWest.lng)/2));
+                    horizon_circle_title.setLatLng(latlng);
+                } catch (err) {}
+            });  
 
             subhorizon_circle = new L.Circle(point, {
                 zIndexOffset: Z_RANGE,
@@ -1845,30 +1907,28 @@ function addPosition(position) {
                 fillColor: '#0F0',
                 fillOpacity: 0,
                 opacity: 0.8,
-            }).addTo(map);
-            
-            subhorizon_circle.label = new google.maps.Label({
-                map: map,
-                strokeColor: subhorizon_circle.get('strokeColor'),
-                visible: false
             });
-            gmaps_elements.push(subhorizon_circle.label);
-            subhorizon_circle.label.bindTo('opacity', subhorizon_circle, 'strokeOpacity');
-            subhorizon_circle.label.bindTo('zIndex', subhorizon_circle, 'zIndex');
-            subhorizon_circle.label.bindTo('strokeColor', subhorizon_circle, 'strokeColor');
 
-            google.maps.event.addListener(subhorizon_circle, 'center_changed', refresh_func);
-            google.maps.event.addListener(subhorizon_circle, 'radius_changed', refresh_func);
+            subhorizon_circle_title_icon = new L.DivIcon({
+                className: "subhorizon_circle_title",
+                html: '<span style="position:relative;left:-50%;top:-5px;color:black;border:1px solid rgb(0, 255, 0);border-radius:5px;font-size:9px;padding:2px;background-color:white;">km</span>'
+            });
 
-            if(offline.get("opt_hide_horizon")){
-                horizon_circle.setVisible(false);
-                horizon_circle.label.set('visible', false);
-                subhorizon_circle.setVisible(false);
-                subhorizon_circle.label.set('visible', false);
+            subhorizon_circle_title = new L.Marker(point, {
+                icon: subhorizon_circle_title_icon
+            });
+
+            if (!offline.get("opt_hide_horizon")) {
+                subhorizon_circle.addTo(map);
+                subhorizon_circle_title.addTo(map);
             }
 
-            */
-
+            subhorizon_circle.on('move', function (e) {
+                try { 
+                    var latlng = L.latLng(e.target.getBounds()._southWest.lat, ((e.target.getBounds()._northEast.lng + e.target.getBounds()._southWest.lng)/2));
+                    subhorizon_circle_title.setLatLng(latlng);
+                } catch (err) {}
+            });  
             
             polyline_visible = true;
             polyline = [
@@ -1876,24 +1936,35 @@ function addPosition(position) {
                     color: balloon_colors[color_index],
                     opacity: 1,
                     weight: 3,
-                }).addTo(map),
+                }).addTo(map)
             ];
         }
 
-        marker.bindTooltip(vcallsign, {direction: 'center', permanent: 'true', className: 'serialtooltip'});
+        if (!offline.get("opt_hide_titles")) {
+            if (vehicle_type == "car") {
+                title = marker.bindTooltip(vcallsign, {direction: 'center', permanent: 'true', className: 'serialtooltip'});
+            } else {
+                title = marker.bindTooltip((position.type + ' ' + vcallsign), {direction: 'center', permanent: 'true', className: 'serialtooltip'});
+            }
+        } else {
+            title = null;
+        }
 
         var vehicle_info = {
                             callsign: vcallsign,
                             uuid: elm_uuid++,
                             vehicle_type: vehicle_type,
                             marker: marker,
+                            title: title,
                             marker_shadow: marker_shadow,
                             landing_marker: landing_marker,
                             image_src: image_src,
                             image_src_size: image_src_size,
                             image_src_offset: image_src_offset,
                             horizon_circle: horizon_circle,
+                            horizon_circle_title: horizon_circle_title,
                             subhorizon_circle: subhorizon_circle,
+                            subhorizon_circle_title: subhorizon_circle_title,
                             num_positions: 0,
                             positions: [],
                             positions_ts: [],
@@ -1931,7 +2002,7 @@ function addPosition(position) {
         
         vehicle_info.kill = function() {
             $(".vehicle"+vehicle_info.uuid).remove();
-            potentialobjects = [marker, marker_shadow, landing_marker, horizon_circle, subhorizon_circle, polyline];
+            potentialobjects = [marker, marker_shadow, landing_marker, horizon_circle, horizon_circle_title, subhorizon_circle, subhorizon_circle_title, polyline];
             if (map.hasLayer(vehicle_info["prediction_polyline"])) { 
                 map.removeLayer(vehicle_info["prediction_polyline"]);
             }
@@ -1960,14 +2031,6 @@ function addPosition(position) {
                 mapInfoBox_handle_path(e);
             });
         }
-
-        /*
-
-        // horizon circles
-        if(vehicle_info.horizon_circle) google.maps.event.addListener(vehicle_info.horizon_circle, 'click', mapInfoBox_handle_truehorizon);
-        if(vehicle_info.subhorizon_circle) google.maps.event.addListener(vehicle_info.subhorizon_circle, 'click', mapInfoBox_handle_horizon);
-
-        */
         
         vehicles[vcallsign] = vehicle_info;    
     }
@@ -2012,11 +2075,44 @@ function addPosition(position) {
         var poslen = vehicle.num_positions;
         if(poslen > 1) vehicle.path_length += vehicle.positions[poslen-2].distanceTo(vehicle.positions[poslen-1]);
 
+        L.LatLng.prototype.bearingTo = function(other) {
+            var d2r  = L.LatLng.DEG_TO_RAD;
+            var r2d  = L.LatLng.RAD_TO_DEG;
+            var lat1 = this.lat * d2r;
+            var lat2 = other.lat * d2r;
+            var dLon = (other.lng-this.lng) * d2r;
+            var y    = Math.sin(dLon) * Math.cos(lat2);
+            var x    = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+            var brng = Math.atan2(y, x);
+            brng = parseInt( brng * r2d );
+            brng = (brng + 360) % 360;
+            return brng;
+        };
+
+        function toDegrees(radians) {
+            return radians * 180 / Math.PI;
+        };
+
+        function toRadians(degrees) {
+            return degrees * Math.PI / 180;
+        };
+
         // if car doesn't report heading, we calculate it from the last position
         if(vehicle.num_positions > 1 && vehicle.vehicle_type == 'car' && 'gps_heading' in position && position.gps_heading === "") {
-            var latlng = new L.LatLng(position.gps_lat, position.gps_lon);
-            var old_latlng = new L.LatLng(vehicle.curr_position.gps_lat, vehicle.curr_position.gps_lon);
-            position.gps_heading = old_latlng.distanceTo(latlng);
+
+            // Source
+            var startLat = toRadians(vehicle.curr_position.gps_lat);
+            var startLng = toRadians(vehicle.curr_position.gps_lon);
+
+            // destination
+            var destLat = toRadians(position.gps_lat);
+            var destLng = toRadians(position.gps_lon);
+
+            y = Math.sin(destLng - startLng) * Math.cos(destLat);
+            x = Math.cos(startLat) * Math.sin(destLat) - Math.sin(startLat) * Math.cos(destLat) * Math.cos(destLng - startLng);
+            brng = Math.atan2(y, x);
+            brng = toDegrees(brng);
+            if (brng != 0) { position.gps_heading = brng; };
         }
 
         vehicle.curr_position = position;
@@ -2084,7 +2180,7 @@ function updateGraph(vcallsign, reset_selection) {
     if(reset_selection) {
         if(vcallsign !== null) delete plot_options.xaxis;
 
-        if(polyMarker) polyMarker.setLatLng(null);
+        if(polyMarker) map.remove(polyMarker);
         plot_crosshair_locked = false;
 
         $("#timebox").removeClass('past').addClass('present');
@@ -2986,7 +3082,6 @@ function refreshUI() {
         updateVehicleInfo(vcallsign, vehicles[vcallsign].curr_position);
     }
 
-    mapInfoBox.close();
     if(follow_vehicle !== null) update_lookangles(follow_vehicle);
 }
 
@@ -2994,20 +3089,35 @@ function refreshUI() {
 function hideHorizonRings(){
     for(var vcallsign in vehicles) {
         if(vehicles[vcallsign].vehicle_type == "balloon"){
-            vehicles[vcallsign].horizon_circle.setVisible(false);
-            vehicles[vcallsign].horizon_circle.label.set('visible', false);
-            vehicles[vcallsign].subhorizon_circle.setVisible(false);
-            vehicles[vcallsign].subhorizon_circle.label.set('visible', false);
+            map.removeLayer(vehicles[vcallsign].horizon_circle);
+            map.removeLayer(vehicles[vcallsign].subhorizon_circle);
+            map.removeLayer(vehicles[vcallsign].horizon_circle_title);
+            map.removeLayer(vehicles[vcallsign].subhorizon_circle_title);
         }
     }
 }
 function showHorizonRings(){
     for(var vcallsign in vehicles) {
         if(vehicles[vcallsign].vehicle_type == "balloon"){
-            vehicles[vcallsign].horizon_circle.setVisible(true);
-            vehicles[vcallsign].horizon_circle.label.set('visible', true);
-            vehicles[vcallsign].subhorizon_circle.setVisible(true);
-            vehicles[vcallsign].subhorizon_circle.label.set('visible', true);
+            map.addLayer(vehicles[vcallsign].horizon_circle);
+            map.addLayer(vehicles[vcallsign].subhorizon_circle);
+            map.addLayer(vehicles[vcallsign].horizon_circle_title);
+            map.addLayer(vehicles[vcallsign].subhorizon_circle_title);
+        }
+    }
+}
+
+function hideTitles(){
+    for(var vcallsign in vehicles) {
+        if(vehicles[vcallsign].vehicle_type == "balloon" || vehicles[vcallsign].vehicle_type == "car"){
+            vehicles[vcallsign].title.unbindTooltip();
+        }
+    }
+}
+function showTitles(){
+    for(var vcallsign in vehicles) {
+        if(vehicles[vcallsign].vehicle_type == "balloon" || vehicles[vcallsign].vehicle_type == "car"){
+            vehicles[vcallsign].title = vehicles[vcallsign].marker.bindTooltip(vehicles[vcallsign]["marker"]["options"]["title"], {direction: 'center', permanent: 'true', className: 'serialtooltip'});
         }
     }
 }
