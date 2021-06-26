@@ -13,7 +13,7 @@ function lhash_update(history_step) {
     var hash = "";
 
     // generate hash
-    hash += "mt=" + map.getMapTypeId();
+    hash += "mt=" + selectedLayer;
     hash += "&mz=" + map.getZoom();
 
     if(!/^[a-z0-9]{32}$/ig.exec(wvar.query)) {
@@ -22,8 +22,8 @@ function lhash_update(history_step) {
 
     if(follow_vehicle === null || manual_pan) {
         var latlng = map.getCenter();
-        hash += "&mc=" + roundNumber(latlng.lat(), 5) +
-                "," + roundNumber(latlng.lng(), 5);
+        hash += "&mc=" + roundNumber(latlng.lat, 5) +
+                "," + roundNumber(latlng.lng, 5);
     }
 
     if(follow_vehicle !== null) {
@@ -33,11 +33,6 @@ function lhash_update(history_step) {
     if(wvar.query !== "") {
         hash += "&q=" + wvar.query;
         $("header .search input[type='text']").val(wvar.query);
-    }
-
-    // other vars
-    if(wvar.nyan) {
-        hash += "&nyan=1";
     }
 
     hash = encodeURI(hash);
@@ -85,7 +80,6 @@ function load_hash(no_refresh) {
         zoom: true,
         focus: "",
         query: "",
-        nyan: false,
     };
 
     parms.forEach(function(v) {
@@ -95,7 +89,10 @@ function load_hash(no_refresh) {
 
         switch(k) {
             case "mt":
-                map.setMapTypeId(v);
+                if( baseMaps.hasOwnProperty(v) ) {
+                    selectedLayer = v;
+                    map.addLayer(baseMaps[v]);
+                }
                 break;
             case "mz":
                 map.setZoom(parseInt(v));
@@ -104,8 +101,8 @@ function load_hash(no_refresh) {
                 def.zoom = false;
                 manual_pan = true;
                 v = v.split(',');
-                var latlng = new google.maps.LatLng(v[0], v[1]);
-                map.setCenter(latlng);
+                var latlng = new L.LatLng(v[0], v[1]);
+                map.setView(latlng);
                 break;
             case "f":
                 refocus = (follow_vehicle != v);
@@ -127,7 +124,7 @@ function load_hash(no_refresh) {
     });
 
     // check if we should force refresh
-    ['mode','query','nyan'].forEach(function(k) {
+    ['mode','query'].forEach(function(k) {
         if(wvar[k] != def[k]) refresh = true;
     });
 
@@ -337,7 +334,7 @@ function checkSize() {
     // this should hide the address bar on mobile phones, when possible
     window.scrollTo(0,1);
 
-    if(map) google.maps.event.trigger(map, 'resize');
+    if(map) map.invalidateSize();
 }
 
 window.onresize = checkSize;
@@ -585,11 +582,11 @@ $(window).ready(function() {
 
         if(elm.hasClass("active")) {
             elm.removeClass('active');
-            hysplit[name].setMap(null);
+            map.removeLayer(hysplit[name]);
         }
         else {
             elm.addClass('active');
-            hysplit[name].setMap(map);
+            map.addLayer(hysplit[name]);
         }
     });
 
@@ -728,13 +725,13 @@ $(window).ready(function() {
             //CHASE_enabled = false;
 
             // blue man reappers :)
-            if(currentPosition && currentPosition.marker) currentPosition.marker.setVisible(true);
+            if(currentPosition && currentPosition.marker) map.addLayer(currentPosition.marker);
 
             // analytics
             if(typeof _gaq == 'object') _gaq.push(['_trackEvent', 'Functionality', 'Turn Off', 'Chase Car']);
         // turning the switch on
         } else {
-            if(callsign.length < 5) { alert('Please enter a valid callsign, at least 5 characters'); return; }
+            if(callsign.length == null || callsign.length < 5) { alert('Please enter a valid callsign, at least 5 characters'); return; }
             if(!callsign.match(/^[a-zA-Z0-9\_\-]+$/)) { alert('Invalid characters in callsign (use only a-z,0-9,-,_)'); return; }
 
             field.attr('disabled','disabled');
@@ -759,7 +756,7 @@ $(window).ready(function() {
             //CHASE_enabled = true;
 
             // hide the blue man
-            if(currentPosition && currentPosition.marker) currentPosition.marker.setVisible(false);
+            if(currentPosition && currentPosition.marker) map.removeLayer(currentPosition.marker);
 
             // analytics
             if(typeof _gaq == 'object') _gaq.push(['_trackEvent', 'Functionality', 'Turn On', 'Chase Car']);
@@ -818,6 +815,7 @@ $(window).ready(function() {
         "#sw_hide_timebox",
         "#sw_hilight_vehicle",
         '#sw_hide_horizon',
+        '#sw_hide_titles',
         "#sw_nowelcome",
         "#sw_interpolate",
     ];
@@ -856,8 +854,15 @@ $(window).ready(function() {
                 refreshUI();
                 break;
             case "opt_daylight":
-                if(on) { nite.show(); }
-                else { nite.hide(); }
+                if(on) { 
+                    nite.addTo(map);
+                    niteupdate = setInterval(function() {
+                        nite.setTime();
+                    }, 60000); // Every minute
+                } else { 
+                    nite.remove();
+                    clearInterval(nite);
+                }
                 break;
             case "opt_hide_receivers":
                 if(on) {
@@ -893,6 +898,14 @@ $(window).ready(function() {
                 }
                 else {
                     showHorizonRings();
+                }
+                break;
+            case "opt_hide_titles":
+                if(on) {
+                    hideTitles();
+                }
+                else {
+                    showTitles();
                 }
                 break;
             case "opt_layers_aprs":
@@ -942,13 +955,13 @@ $(window).ready(function() {
         // Enable the chase-car option for all browsers, not just mobile ones.
         $(".chasecar").show();
         $("#locate-me,#app_name").attr('style','').click(function() {
-            if(map && currentPosition) {
+            if(currentPosition) {
                 // disable following of vehicles
                 stopFollow();
                 // open map
                 $('.nav .home').click();
                 // pan map to our current location
-                map.panTo(new google.maps.LatLng(currentPosition.lat, currentPosition.lon));
+                map.flyTo(new L.LatLng(currentPosition.lat, currentPosition.lon));
 
                 //analytics
                 if(typeof _gaq == 'object') _gaq.push(['_trackEvent', 'Functionality', 'Locate me']);
@@ -969,32 +982,14 @@ $(window).ready(function() {
     // list of overlays
     var overlayList = [
         ['Global', [
-            ['google-radar','Google Earth Radar'],
-            ['nrl-global-cloudtop','NRL Monterey Cloudtop'],
-            ['nrl-global-ir','NRL Monterey IR'],
-            ['nrl-global-vapor','NRL Monterey Vapor']
-        ]],
-        ['Europe/Africa', [
-            ['meteosat-Odeg-MPE', 'METEOSAT Precip. Estimate']
-        ]],
-        ['Indian Ocean', [
-            ['meteosat-iodc-MPE', 'METEOSAT IODC Precip. Est.']
+            ['rainviewer', 'RainViewer'],
+            ['rainviewer-coverage', 'RainViewer Coverage'],
         ]],
         ['North America', [
             ['nexrad-n0q-900913', 'NEXRAD Base Reflectivity'],
             ['goes-ir-4km-900913', 'GOES NA Infrared ~4km'],
             ['goes-wv-4km-900913', 'GOES NA Water Vapor ~4km'],
             ['goes-vis-1km-900913', 'GOES NA Visible ~1km'],
-            ['goes-east-ir-4km-900913', 'GOES East CONUS Infrared'],
-            ['goes-east-wv-4km-900913', 'GOES East CONUS Water Vapor'],
-            ['goes-east-vis-1km-900913', 'GOES East CONUS Visible'],
-            ['goes-west-ir-4km-900913', 'GOES West CONUS Infrared'],
-            ['goes-west-wv-4km-900913', 'GOES West CONUS Water Vapor'],
-            ['goes-west-vis-1km-900913', 'GOES West CONUS Visible'],
-            ['hawaii-vis-900913', 'GOES West Hawaii Visible'],
-            ['alaska-vis-900913', 'GOES West Alaska Visible'],
-            ['alaska-ir-900913', 'GOES West Alaska IR'],
-            ['alaska-wv-900913', 'GOES West Alaska Water Vapor'],
             ['q2-n1p-900913', 'Q2 1 Hour Precipitation'],
             ['q2-p24h-900913', 'Q2 24 Hour Precipitation'],
             ['q2-p48h-900913', 'Q2 48 Hour Precipitation'],
@@ -1029,12 +1024,27 @@ $(window).ready(function() {
         }
     }
 
+    var weatherLayer;
+
     // the magic that makes the switches do things
     elm.find(".switch").click(function() {
         var e = $(this);
         var name = e.attr('id').replace('sw', 'opt');
         var id = name.replace("opt_weather_","");
         var on;
+
+        try {
+            map.removeLayer(weatherLayer);
+        } catch (err) {};
+
+        try {
+            map.removeLayer(RainRadar);
+        } catch (err) {};
+
+        try {
+            map.removeLayer(RainRadarCoverage);
+        } catch (err) {};
+
 
         if(e.hasClass('on')) {
             e.removeClass('on').addClass('off');
@@ -1046,26 +1056,17 @@ $(window).ready(function() {
             on = 1;
         }
 
-        weatherImageOverlay.setMap(null);
-        weatherGoogleRadar.setMap(null);
-        map.overlayMapTypes.setAt("0", null);
-
         if(on) {
-            if(id == "google-radar") {
-                weatherGoogleRadar.setMap(map);
-                return;
-            } else if(id in weatherImageOverlayList) {
-                var o = weatherImageOverlayList[id];
-                var sw = new google.maps.LatLng(o[1][0][0], o[1][0][1]);
-                var ne = new google.maps.LatLng(o[1][1][0], o[1][1][1]);
-                var bounds = new google.maps.LatLngBounds(sw, ne);
-                weatherImageOverlay = new google.maps.GroundOverlay(o[0], bounds, {opacity: 0.7});
-                weatherImageOverlay.setMap(map);
-                return;
+            if (id == "rainviewer") {
+                RainRadar.addTo(map);
+            } else if (id == "rainviewer-coverage") {
+                RainRadarCoverage.addTo(map);
+            } else {
+                weatherLayer = L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/' + id + '/{z}/{x}/{y}.png?' + (new Date()).getTime(), {
+                    opacity: 0.6,
+                    attribution: '&copy; <a href="https://mesonet.agron.iastate.edu/">Iowa Environmental Mesonet</a>'
+                }).addTo(map);
             }
-
-            weatherOverlayId = id;
-            map.overlayMapTypes.setAt("0", weatherOverlay);
         }
    });
 
