@@ -386,10 +386,6 @@ function load() {
 
     layers = L.control.layers(baseMaps, null, {position: "topleft"}).addTo(map);
 
-    if(window.performance && window.performance.now && window.navigator.userAgent.indexOf("Firefox") != -1) {
-        document.getElementById('map').addEventListener("mousemove", throttle_events, true);
-    }
-
     L.Control.Status = L.Control.extend({
         onAdd: function(map) {
             var div = L.DomUtil.create('div');
@@ -425,27 +421,27 @@ function load() {
     map.on('zoomend', function() {
         //do check for horizon labels
         if (!offline.get("opt_hide_horizon")) {
-            for (const [key, value] of Object.entries(vehicles)) {
-                if (value["vehicle_type"] == "balloon") {
-                    if (value["horizon_circle"]["_map"]) 
+            for (key in vehicles) {
+                if (vehicles[key]["vehicle_type"] == "balloon") {
+                    if (vehicles[key]["horizon_circle"]["_map"]) 
                     {
                         try {
-                            var horizonwidth = value["horizon_circle"].getElement().getBoundingClientRect()["width"];
-                            var subhorizonwidth = value["subhorizon_circle"].getElement().getBoundingClientRect()["width"];
+                            var horizonwidth = vehicles[key]["horizon_circle"].getElement().getBoundingClientRect()["width"];
+                            var subhorizonwidth = vehicles[key]["subhorizon_circle"].getElement().getBoundingClientRect()["width"];
                             if (horizonwidth != 0 && horizonwidth < 28) {
-                                map.removeLayer(value["horizon_circle_title"]);
+                                map.removeLayer(vehicles[key]["horizon_circle_title"]);
                             } else {
-                                map.addLayer(value["horizon_circle_title"]);
+                                map.addLayer(vehicles[key]["horizon_circle_title"]);
                             }
                             if (subhorizonwidth != 0 && subhorizonwidth < 28) {
-                                map.removeLayer(value["subhorizon_circle_title"]);
+                                map.removeLayer(vehicles[key]["subhorizon_circle_title"]);
                             } else {
-                                map.addLayer(value["subhorizon_circle_title"]);
+                                map.addLayer(vehicles[key]["subhorizon_circle_title"]);
                             }
-                        } catch(e){}
+                        } catch(e){};
                     }
                 }
-              }
+            }
         }
         updateZoom();
     });
