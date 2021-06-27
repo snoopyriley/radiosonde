@@ -380,6 +380,7 @@ function load() {
         zoomControl: false,
         center: [53.467511,-2.2338940],
         layers: [osm],
+        preferCanvas: true,
     });
 
     map.addControl(new L.Control.Fullscreen({ position: 'bottomleft' }));
@@ -564,7 +565,7 @@ function showLaunchSites() {
                     sondes = sondes.replace(new RegExp("\\b77\\b"), "M10 (possible to track)");
                     sondes = sondes.replace(new RegExp("\\b82\\b"), "LMS6-1680 (possible to track)");
                     sondes = sondes.replace(new RegExp("\\b84\\b"), "iMet-54 (possible to track)");
-                    var marker = new L.marker(latlon);
+                    var marker = new L.circleMarker(latlon, {color: 'black', radius: 8});
                     var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes);
                     marker.bindPopup(popup);
                     launches.addLayer(marker);
