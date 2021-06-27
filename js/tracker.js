@@ -20,6 +20,8 @@ var receivers = [];
 var recovery_names = [];
 var recoveries = [];
 
+var launches = null;
+
 var got_positions = false;
 var zoomed_in = false;
 var max_positions = 0; // maximum number of positions that ajax request should return (0 means no maximum)
@@ -414,6 +416,16 @@ function load() {
     // initalize nite overlay
     nite = new L.terminator();
 
+    if (offline.get("opt_daylight")) {
+        map.addLayer(nite);
+    }
+
+    if (offline.get("opt_layers_launches")) {
+        showLaunchSites();
+        map.addLayer(launches);
+        console.log(launches.getAttribution());
+    }
+
     map.on('baselayerchange', function (e) {
         selectedLayer = e.layer.id;
     });
@@ -458,7 +470,7 @@ function load() {
             onAdd: function(map) {
                 var div = L.DomUtil.create('div');
         
-                div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:85px;height:42px;" onchange="clean_refresh(this.value)"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
+                div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
         
                 return div;
             },
@@ -522,6 +534,46 @@ function load() {
         if(!is_mobile && !offline.get('opt_nowelcome') && $(window).width() > 900) $('.nav li.about').click();
 
     }, 500);
+}
+
+function showLaunchSites() {
+    if (!launches) {
+        launches = new L.layerGroup([], {attribution: "© <a href='https://github.com/rs1729/RS/issues/15' target='_blank'>rs1729</a>"});
+        $.getJSON("launchSites.json", function(json) {
+            for (var key in json) {
+                if (json.hasOwnProperty(key)) {
+                    var latlon = [json[key].lat, json[key].lon];
+                    var sondes = json[key].rs_types.toString();
+                    sondes = sondes.replace(new RegExp("\\b07\\b"), "iMet-1 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b11\\b"), "LMS6-403 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b13\\b"), "RS92 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b14\\b"), "RS92 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b17\\b"), "DFM-09 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b19\\b"), "MRZ-N1 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b21\\b"), "RS-11G (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b22\\b"), "RS-11G (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b23\\b"), "RS41 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b24\\b"), "RS41 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b34\\b"), "iMet-4 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b35\\b"), "iMS-100 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b41\\b"), "RS41 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b42\\b"), "RS41 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b52\\b"), "RS92-NGP (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b54\\b"), "DFM-17 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b62\\b"), "MRZ-3MK (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b63\\b"), "M20 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b77\\b"), "M10 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b82\\b"), "LMS6-1680 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b84\\b"), "iMet-54 (possible to track)");
+                    var marker = new L.marker(latlon);
+                    var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes);
+                    marker.bindPopup(popup);
+                    launches.addLayer(marker);
+                }
+            }
+            console.log(launches);
+        });
+    }
 }
 
 function panTo(vcallsign) {
@@ -795,19 +847,21 @@ function focusVehicle(vcallsign, ignoreOpt) {
     for(var i in vehicles) {
         var vehicle = vehicles[i], j;
 
-        if(i == vcallsign || vcallsign === null) {
-            if(vehicle.horizon_circle) vehicle.horizon_circle.setStyle({opacity:opacityFocused * 0.6});
-            if(vehicle.horizon_circle_title) vehicle.subhorizon_circle_title.setOpacity(opacityFocused * 0.8);
-            if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setStyle({opacity:opacityFocused * 0.8});
-            if(vehicle.subhorizon_circle_title) vehicle.subhorizon_circle_title.setOpacity(opacityFocused * 0.8);
-            for(j in vehicle.polyline) vehicle.polyline[j].setStyle({opacity:opacityFocused});
-        }
-        else {
-            if(vehicle.horizon_circle) vehicle.horizon_circle.setStyle({opacity:opacityOther * 0.6});
-            if(vehicle.horizon_circle_title) vehicle.horizon_circle_title.setOpacity(opacityOther * 0.6);
-            if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setStyle({opacity:opacityOther * 0.8});
-            if(vehicle.subhorizon_circle_title) vehicle.subhorizon_circle_title.setOpacity(opacityOther * 0.8);
-            for(j in vehicle.polyline) vehicle.polyline[j].setStyle({opacity:opacityOther});
+        if (vehicle.vehicle_type == "balloon") {
+            if(i == vcallsign || vcallsign === null) {
+                if(vehicle.horizon_circle) vehicle.horizon_circle.setStyle({opacity:opacityFocused * 0.6});
+                if(vehicle.horizon_circle_title) vehicle.horizon_circle_title.setOpacity(opacityFocused * 0.8);
+                if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setStyle({opacity:opacityFocused * 0.8});
+                if(vehicle.subhorizon_circle_title) vehicle.subhorizon_circle_title.setOpacity(opacityFocused * 0.8);
+                for(j in vehicle.polyline) vehicle.polyline[j].setStyle({opacity:opacityFocused});
+            }
+            else {
+                if(vehicle.horizon_circle) vehicle.horizon_circle.setStyle({opacity:opacityOther * 0.6});
+                if(vehicle.horizon_circle_title) vehicle.horizon_circle_title.setOpacity(opacityOther * 0.6);
+                if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setStyle({opacity:opacityOther * 0.8});
+                if(vehicle.subhorizon_circle_title) vehicle.subhorizon_circle_title.setOpacity(opacityOther * 0.8);
+                for(j in vehicle.polyline) vehicle.polyline[j].setStyle({opacity:opacityOther});
+            }
         }
     }
 }
@@ -2495,8 +2549,6 @@ function refreshReceivers() {
     // if options to hide receivers is selected do nothing
     if(offline.get('opt_hide_receivers')) return;
 
-    //if(typeof _gaq == 'object') _gaq.push(['_trackEvent', 'ajax', 'refresh', 'Recievers']);
-
     $.ajax({
         type: "GET",
         url: receivers_url,
@@ -2561,7 +2613,6 @@ function initRecoveryPane() {
 var ajax_predictions = null;
 
 function refreshPredictions() {
-    //if(typeof _gaq == 'object') _gaq.push(['_trackEvent', 'ajax', 'refresh', 'Predictions']);
     if(ajax_inprogress) {
       clearTimeout(periodical_predictions);
       periodical_predictions = setTimeout(refreshPredictions, 1000);

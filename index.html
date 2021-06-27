@@ -75,47 +75,43 @@
                                 
                 <h4>How do I receive?</h4>
                 Set up a receiver station using 
-                <a href="https://github.com/projecthorus/radiosonde_auto_rx/wiki" target="_blank">auto_rx</a>.
+                <a href="https://github.com/projecthorus/radiosonde_auto_rx/wiki" target="_blank">auto_rx</a> or <a href="https://github.com/dl9rdz/rdz_ttgo_sonde" target="_blank">rdzTTGOsonde</a>.
                 <br/>
-                <b>Note that you must be running at least <a href="https://github.com/projecthorus/radiosonde_auto_rx/releases" target="_blank">v1.5.1</a> to show up on Sondehub v2!</b>
                 
                 <h4>Recovered a Sonde?</h4>
                 Click the 'car' icon on the top-right to submit a recovery notification.
 
                 <h4>Support Us!</h4>
-                AWS hosting unfortunately does not come cheap. <br/>
+                AWS hosting unfortunately does not come cheap. 
                 If you use SondeHub regularly, please consider <a href="https://www.patreon.com/sondehub" target="_blank">supporting us on Patreon</a>, or with a <a href="https://sondehub.org/go/donate" target="_blank">donation on Paypal</a>.
 
                 <h4>Amateur HAB Launches?</h4>
                 You can find Amateur High-Altitude Balloon launches on the <a href="https://tracker.habhub.org/" target="_blank">HabHub Tracker</a>.
                 
-                <h4>SondeHub Status Page</h4>
-                You can find the status of the SondeHub Database on the <a href="https://sondehub.org/go/status" target="_blank">SondeHub Status Page</a>.
+                <h4>SondeHub Status Pages</h4>
+                You can find the status of the SondeHub Database on the <a href="https://sondehub.org/go/status" target="_blank">SondeHub Dashboard</a>.<br/>
+                You can view outages of the SondeHub Database at <a href="https://sondehub.statuspage.io/" target="_blank">SondeHub Status</a>.
 
             </div>
             <br/>
             <h2>Under Beta!</h2>
             <hr/>
-            Welcome to the new SondeHub Tracker v2 (leaflet edition)!
-            <br/>
             This site uses data from the <a href="https://github.com/projecthorus/sondehub-infra/wiki" target="_blank">SondeHub v2</a> database, which will remove the radiosonde  
             load from the Habitat tracking database. We are still working to being this tracker up to feature-parity with the previous
-            tracker, so some features like filtering by serial and type are still in-progress.
-            <br/>
+            tracker, so some features like filtering by type are still in-progress.
+            <br/><br/>
             Chase Cars can show up on the map using this tracker's chase-car features (look for the car icon at top-right) 
-            or upload their position from <a href="https://github.com/projecthorus/chasemapper" target="_blank">Chasemapper</a>.
-            <br/>
-            Please be patient as we work to build up the feature set, and expect some bugs!
-            <br/>
+            or upload their position from <a href="https://github.com/projecthorus/chasemapper" target="_blank">Chasemapper</a> or <a href="https://github.com/dl9rdz/rdz_ttgo_sonde" target="_blank">rdzTTGOsonde</a>.
+            <br/><br/>
             <h2>Contribute</h2>
             <hr/>
             <p>
                 Did you know the tracker is open-source? Check it out on
                 <a href="https://github.com/projecthorus/sondehub-tracker" target="_blank">github/sondehub-tracker</a>.
                 Bug reports, suggestions and pull requests are welcome. 
-                <br/>
+                <br/><br/>
                 A huge thanks to RGP for developing the mobile tracker that this site is based on.
-                <br/>
+                <br/><br/>
                 You can also find us on IRC in <a href="https://kiwiirc.com/nextclient/irc.libera.chat/highaltitude" target="_blank">#highaltitude</a> at <b>libera.chat</b>.
             </p>
         </div>
@@ -206,14 +202,14 @@
             <h4>Other</h4>
             <hr/>
             <div class="row option">
-                <span><b>Availability offline</b></span>
-                <div class="switch off" id="sw_offline">
+                <span><b>Show Launch Sites</b></span>
+                <div class="switch off" id="sw_layers_launches">
                     <span class="thumb"></span>
-                    <input type="checkbox" id="opt_offline">
+                    <input type="checkbox" id="opt_layers_launches">
                 </div>
             </div>
             <div class="row option">
-                <span><b>Force check for new  version</b></span>
+                <span><b>Force check for new version</b></span>
                 <div class="switch off" id="sw_cache">
                     <span class="thumb"></span>
                     <input type="checkbox" id="opt_cache">

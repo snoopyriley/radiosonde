@@ -146,7 +146,6 @@ ChaseCar.markRecovered = function(){
         dataType: "json",
         data: JSON.stringify(_doc),
     }).done(function(data) {
-        console.log(data);
         $('#pr_last_report').text("Reported OK!");
     })
     .fail(function(jqXHR, textStatus, error) {
