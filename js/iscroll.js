@@ -821,7 +821,13 @@ IScroll.prototype = {
 	},
 
 	scrollToElement: function (el, time, offsetX, offsetY, easing) {
-		el = el.nodeType ? el : document.querySelectorAll(el)[1];
+		el = el.nodeType ? el : document.querySelectorAll(el);
+		//figure out which el to use (oreintation)
+		if (el[0].offsetHeight) {
+			el = el[0];
+		} else {
+			el = el[1];
+		}
 
 		if ( !el ) {
 			return;

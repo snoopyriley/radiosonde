@@ -12,10 +12,17 @@
     background-position: 2px -24px;
     }
 
-.leaflet-control-fullscreen {
-  position:relative;
-  top:-25px;
-  }
+@media (orientation: landscape) {
+  .leaflet-control-fullscreen {
+    position:relative;
+    top:-25px;
+    }  
+  .leaflet-fullscreen-on .leaflet-control-fullscreen {
+    position:relative;
+    top:0px;
+    }  
+}
+
 
 /* Do not combine these two rules; IE will break. */
 .leaflet-container:-webkit-full-screen {

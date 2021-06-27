@@ -522,9 +522,6 @@ function load() {
         if(!is_mobile && !offline.get('opt_nowelcome') && $(window).width() > 900) $('.nav li.about').click();
 
     }, 500);
-
-    // load if aprs layer, if selected
-    if(offline.get('opt_layers_aprs')) map.overlayMapTypes.setAt("1", overlayAPRS);
 }
 
 function panTo(vcallsign) {
@@ -543,6 +540,10 @@ function panTo(vcallsign) {
 
 function panToRecovery(rcallsign) {
     if(offline.get('opt_hide_recoveries')) alert("Recovered Sonde Hidden, enable in settings");
+    //if mobile close panel
+    if (is_mobile) {
+        $('.flatpage, #homebox').hide();
+    }
     for (let i = 0; i < recoveries.length; i++) {
         if (recoveries[i].hasOwnProperty('serial')) {
             if (recoveries[i]['serial'] == rcallsign) {
@@ -796,12 +797,16 @@ function focusVehicle(vcallsign, ignoreOpt) {
 
         if(i == vcallsign || vcallsign === null) {
             if(vehicle.horizon_circle) vehicle.horizon_circle.setStyle({opacity:opacityFocused * 0.6});
+            if(vehicle.horizon_circle_title) vehicle.subhorizon_circle_title.setOpacity(opacityFocused * 0.8);
             if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setStyle({opacity:opacityFocused * 0.8});
+            if(vehicle.subhorizon_circle_title) vehicle.subhorizon_circle_title.setOpacity(opacityFocused * 0.8);
             for(j in vehicle.polyline) vehicle.polyline[j].setStyle({opacity:opacityFocused});
         }
         else {
             if(vehicle.horizon_circle) vehicle.horizon_circle.setStyle({opacity:opacityOther * 0.6});
+            if(vehicle.horizon_circle_title) vehicle.horizon_circle_title.setOpacity(opacityOther * 0.6);
             if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setStyle({opacity:opacityOther * 0.8});
+            if(vehicle.subhorizon_circle_title) vehicle.subhorizon_circle_title.setOpacity(opacityOther * 0.8);
             for(j in vehicle.polyline) vehicle.polyline[j].setStyle({opacity:opacityOther});
         }
     }
