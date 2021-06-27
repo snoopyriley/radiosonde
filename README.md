@@ -2,6 +2,8 @@
 
 A fork of [habitat-mobile-tracker](https://github.com/rossengeorgiev/habitat-mobile-tracker) for use with the [SondeHub v2 ElasticSearch](https://github.com/projecthorus/sondehub-infra/wiki/ElasticSearch-Kibana-access) database. Huge credits to [Rossen Georgiev](https://github.com/rossengeorgiev/) for developing the mobile-tracker.
 
+![mobile tracker screenshot](resources/mobiletracker-screencap.png "mobile tracker screenshot")
+
 A webapp for tracking radiosondes. Works an desktop and mobile devices.
 The SondeHub tracker is a continuation of [spacenear.us/tracker](http://spacenear.us/tracker).
 
