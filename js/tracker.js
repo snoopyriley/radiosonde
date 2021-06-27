@@ -423,7 +423,6 @@ function load() {
     if (offline.get("opt_layers_launches")) {
         showLaunchSites();
         map.addLayer(launches);
-        console.log(launches.getAttribution());
     }
 
     map.on('baselayerchange', function (e) {
@@ -571,7 +570,6 @@ function showLaunchSites() {
                     launches.addLayer(marker);
                 }
             }
-            console.log(launches);
         });
     }
 }
