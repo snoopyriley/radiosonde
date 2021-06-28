@@ -21,6 +21,7 @@ var recovery_names = [];
 var recoveries = [];
 
 var launches = null;
+var receiverCanvas = null;
 
 var got_positions = false;
 var zoomed_in = false;
@@ -413,6 +414,9 @@ function load() {
     // update current position if we geolocation is available
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
+    //Receiver canvas
+    receiverCanvas = new L.MarkersCanvas();
+    receiverCanvas.addTo(map);
     
     // initalize nite overlay
     nite = new L.terminator();
@@ -2874,11 +2878,13 @@ function updateReceiverMarker(receiver) {
         icon: receiverIcon,
         title: receiver.name,
         zIndexOffset: Z_STATION, 
-    }).addTo(map);
+    });
     
     receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
 
     receiver.marker.bindPopup(receiver.infobox);
+
+    receiverCanvas.addMarker(receiver.marker);
   } else {
     receiver.marker.setLatLng(latlng);
   }
@@ -2929,10 +2935,8 @@ function updateReceivers(r) {
             i++;
         }
         else {
-            // close box, remove event handle, and remove marker
-            //e.infobox.close();
-            //e.infobox_handle.remove();
-            map.removeLayer(e.marker);
+            map.removeLayer(e.infobox);
+            receiverCanvas.removeMarker(e.marker);
 
             // remove from arrays
             receivers.splice(i,1);
