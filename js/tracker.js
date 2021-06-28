@@ -415,7 +415,7 @@ function load() {
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
     //Receiver canvas
-    receiverCanvas = new L.MarkersCanvas();
+    receiverCanvas = new L.canvasIconLayer();
     receiverCanvas.addTo(map);
     
     // initalize nite overlay
@@ -442,19 +442,20 @@ function load() {
                     if (vehicles[key]["horizon_circle"]["_map"]) 
                     {
                         try {
-                            var horizonwidth = vehicles[key]["horizon_circle"].getElement().getBoundingClientRect()["width"];
-                            var subhorizonwidth = vehicles[key]["subhorizon_circle"].getElement().getBoundingClientRect()["width"];
-                            if (horizonwidth != 0 && horizonwidth < 28) {
+                            var zoom = map.getZoom();
+                            var horizonzoom = (Math.abs(Math.log(vehicles[key]["horizon_circle"].getRadius()/2000000)/0.75));
+                            var subhorizonzoom = (Math.abs(Math.log(vehicles[key]["subhorizon_circle"].getRadius()/2000000)/0.75));
+                            if (horizonzoom > zoom) {
                                 map.removeLayer(vehicles[key]["horizon_circle_title"]);
                             } else {
                                 map.addLayer(vehicles[key]["horizon_circle_title"]);
                             }
-                            if (subhorizonwidth != 0 && subhorizonwidth < 28) {
+                            if (subhorizonzoom > zoom) {
                                 map.removeLayer(vehicles[key]["subhorizon_circle_title"]);
                             } else {
                                 map.addLayer(vehicles[key]["subhorizon_circle_title"]);
                             }
-                        } catch(e){};
+                        } catch(e){console.log(e);};
                     }
                 }
             }
@@ -1935,6 +1936,7 @@ function addPosition(position) {
                 fillColor: '#00F',
                 fillOpacity: 0,
                 opacity: 0.6,
+                interactive: false,
             });
 
             horizon_circle_title_icon = new L.DivIcon({
@@ -1943,7 +1945,8 @@ function addPosition(position) {
             });
 
             horizon_circle_title = new L.Marker(point, {
-                icon: horizon_circle_title_icon
+                icon: horizon_circle_title_icon,
+                interactive: false,
             });
 
             if (!offline.get("opt_hide_horizon")) {
@@ -1965,15 +1968,17 @@ function addPosition(position) {
                 fillColor: '#0F0',
                 fillOpacity: 0,
                 opacity: 0.8,
+                interactive: false,
             });
 
             subhorizon_circle_title_icon = new L.DivIcon({
                 className: "subhorizon_circle_title",
-                html: '<span style="position:relative;left:-50%;top:-5px;color:black;border:1px solid rgb(0, 255, 0);border-radius:5px;font-size:9px;padding:2px;background-color:white;">km</span>'
+                html: '<span style="position:relative;left:-50%;top:-5px;color:black;border:1px solid rgb(0, 255, 0);border-radius:5px;font-size:9px;padding:2px;background-color:white;">km</span>',
             });
 
             subhorizon_circle_title = new L.Marker(point, {
-                icon: subhorizon_circle_title_icon
+                icon: subhorizon_circle_title_icon,
+                interactive: false,
             });
 
             if (!offline.get("opt_hide_horizon")) {
