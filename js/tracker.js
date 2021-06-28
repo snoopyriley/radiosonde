@@ -455,7 +455,7 @@ function load() {
                             } else {
                                 map.addLayer(vehicles[key]["subhorizon_circle_title"]);
                             }
-                        } catch(e){console.log(e);};
+                        } catch(e){};
                     }
                 }
             }
@@ -543,7 +543,7 @@ function load() {
 
 function showLaunchSites() {
     if (!launches) {
-        launches = new L.layerGroup([], {attribution: "© <a href='https://github.com/rs1729/RS/issues/15' target='_blank'>rs1729</a>"});
+        launches = new L.layerGroup([], {attribution: "© <a href='https://github.com/rs1729/RS/issues/15' target='_blank' rel='noopener'>rs1729</a>"});
         $.getJSON("launchSites.json", function(json) {
             for (var key in json) {
                 if (json.hasOwnProperty(key)) {
@@ -915,6 +915,7 @@ function followVehicle(vcallsign, noPan, force) {
     }
 
     if(follow_vehicle != vcallsign || force) {
+        refresh(vcallsign);
         focusVehicle(vcallsign);
 
 		follow_vehicle = vcallsign;
@@ -1844,6 +1845,7 @@ function addPosition(position) {
                 listScroll.refresh();
                 listScroll.scrollToElement(_vehicle_idname);
                 followVehicle($(_vehicle_idname).attr('data-vcallsign'));
+                refresh(_vehicle_id);
             };
 
             marker.shadow = marker_shadow;
@@ -2502,11 +2504,13 @@ function graphAddPosition(vcallsign, new_data) {
 var ajax_positions = null;
 var ajax_inprogress = false;
 
-function refresh() {
+function refresh(serial) {
   if(ajax_inprogress) {
-    clearTimeout(periodical);
-    periodical = setTimeout(refresh, 2000);
-    return;
+    if (serial === undefined) {
+        clearTimeout(periodical);
+        periodical = setTimeout(refresh, 2000);
+        return;
+    }
   }
 
   ajax_inprogress = true;
@@ -2521,7 +2525,11 @@ function refresh() {
   var mode = wvar.mode.toLowerCase();
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
-  var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
+  if (serial === undefined) {
+    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
+  } else {
+    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(serial);
+  }
 
   ajax_positions = $.ajax({
     type: "GET",
@@ -2994,7 +3002,7 @@ function updateRecoveryMarker(recovery) {
       html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(recovery.datetime))+"</div>";
       html += "<div><b>Reported by:&nbsp;</b>"+recovery.recovered_by+"</div>";
       html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(recovery.description).html()+"</div>";
-      html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+recovery.serial+"' target='_blank'>"+recovery.serial+"</a></div>";
+      html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+recovery.serial+"' target='_blank' rel='noopener'>"+recovery.serial+"</a></div>";
 
       html += "</div>";
 
@@ -3096,7 +3104,7 @@ function updateRecoveryPane(r){
         html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(r[i].datetime))+"</div>";
         html += "<div><b>Reported by:&nbsp;</b>"+r[i].recovered_by+"</div>";
         html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(r[i].description).html()+"</div>";
-        html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+r[i].serial+"' target='_blank'>"+r[i].serial+"</a></div>";
+        html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+r[i].serial+"' target='_blank' rel='noopener'>"+r[i].serial+"</a></div>";
         html += "<hr style='margin:5px 0px'>";
         html += "</div>";
     }
