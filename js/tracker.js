@@ -36,11 +36,17 @@ var balloon_index = 0;
 var balloon_colors_name = ["red", "blue", "green", "yellow", "purple", "orange", "cyan"];
 var balloon_colors = ["#f00", "blue", "green", "#FDFC30", "#c700e6", "#ff8a0f", "#0fffca"];
 
+var nyan_color_index = 0;
+var nyan_colors = ['nyan', 'nyan-coin', 'nyan-mon', 'nyan-pirate', 'nyan-cool', 'nyan-tothemax', 'nyan-pumpkin', 'nyan-afro', 'nyan-coin', 'nyan-mummy'];
+var rainbow = ["#ff0000", "#fc9a00", "#f6ff00", "#38ff01", "#009aff","#0000ff"];
+
 var map = null;
 var overlay = null;
 var layer_clouds = null;
 
 var notamOverlay = null;
+
+var svgRenderer = L.svg();
 
 var modeList = [
 //    "Position",
@@ -353,6 +359,7 @@ function clean_refresh(text, force, history_step) {
 
     car_index = 0;
     balloon_index = 0;
+    nyan_color_index = 0;
     stopFollow(force);
 
     // add loading spinner in the vehicle list
@@ -384,8 +391,6 @@ function load() {
         layers: [osm],
         preferCanvas: true,
     });
-
-    var svgRenderer = L.svg();
 
     map.addControl(new L.Control.Fullscreen({ position: 'bottomleft' }));
 
@@ -1906,7 +1911,7 @@ function addPosition(position) {
                         });
                     }
                 }
-                this.setIcon(img);
+                if (!wvar.nyan) {this.setIcon(img);};
             };
             marker.setAltitude = function(alt) {
                 //var pos = overlay.getProjection().fromLatLngToDivPixel(this.shadow.getLatLng());
@@ -2075,6 +2080,41 @@ function addPosition(position) {
                     
         // deep copy yaxes config for graph
         plot_options.yaxes.forEach(function(v) { vehicle_info.graph_yaxes.push($.extend({}, v)); });     
+
+        //nyan cat (very important feature)
+        if(wvar.nyan && vehicle_info.vehicle_type == "balloon") {
+            var nyan = nyan_colors[nyan_color_index] + ".gif";
+            nyan_color_index = (nyan_color_index + 1) % nyan_colors.length;
+            var nyanw = (nyan_color_index == 4) ? 104 : 55;
+
+            nyanIcon = new L.icon ({
+                iconUrl: host_url + markers_url + nyan,
+                iconSize: [nyanw,39],
+                iconAnchor: [26,20],
+            });
+
+            vehicle_info.marker.setIcon(nyanIcon);
+
+            vehicle_info.image_src = host_url + markers_url + "hab_nyan.gif";
+            vehicle_info.image_src_offset = [-34,-70];
+
+            var k;
+            for(k in vehicle_info.polyline) {
+                map.removeLayer(vehicle_info.polyline[k]);
+            }
+
+            vehicle_info.polyline = [];
+
+            for(k in rainbow) {
+                vehicle_info.polyline.push(new L.Polyline(point, {
+                    zIndexOffset: (Z_PATH - (k * 1)),
+                    color: rainbow[k],
+                    opacity: 1,
+                    weight: (k*4) + 2,
+                }).addTo(map));
+                vehicle_info.polyline[k].bringToBack();
+            }
+        }
         
         vehicle_info.kill = function() {
             $(".vehicle"+vehicle_info.uuid).remove();
