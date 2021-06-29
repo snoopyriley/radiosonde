@@ -366,6 +366,7 @@ function clean_refresh(text, force, history_step) {
     lhash_update(history_step);
 
     clearTimeout(periodical);
+    clearTimeout(periodical_focus);
     clearTimeout(periodical_receivers);
     clearTimeout(periodical_recoveries);
 
@@ -888,6 +889,9 @@ function stopFollow(no_data_reset) {
             wvar.focus = "";
         }
 
+        //stop detailed data
+        clearTimeout(periodical_focus);
+
         // clear graph
         if(plot) plot = $.plot(plot_holder, {}, plot_options);
         updateGraph(null, true);
@@ -917,7 +921,8 @@ function followVehicle(vcallsign, noPan, force) {
     }
 
     if(follow_vehicle != vcallsign || force) {
-        refresh(vcallsign);
+        clearTimeout(periodical_focus);
+        refreshSingle(vcallsign, true);
         focusVehicle(vcallsign);
 
 		follow_vehicle = vcallsign;
@@ -1850,7 +1855,8 @@ function addPosition(position) {
                 listScroll.refresh();
                 listScroll.scrollToElement(_vehicle_idname);
                 followVehicle($(_vehicle_idname).attr('data-vcallsign'));
-                refresh(_vehicle_id);
+                clearTimeout(periodical_focus);
+                refreshSingle(_vehicle_id, true);
             };
 
             marker.shadow = marker_shadow;
@@ -2507,15 +2513,15 @@ function graphAddPosition(vcallsign, new_data) {
 }
 
 var ajax_positions = null;
+var ajax_positions_single = null;
 var ajax_inprogress = false;
+var ajax_inprogress_single = false;
 
-function refresh(serial) {
+function refresh() {
   if(ajax_inprogress) {
-    if (serial === undefined) {
-        clearTimeout(periodical);
-        periodical = setTimeout(refresh, 2000);
-        return;
-    }
+    clearTimeout(periodical);
+    periodical = setTimeout(refresh, 2000);
+    return;
   }
 
   ajax_inprogress = true;
@@ -2530,11 +2536,7 @@ function refresh(serial) {
   var mode = wvar.mode.toLowerCase();
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
-  if (serial === undefined) {
-    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
-  } else {
-    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(serial);
-  }
+  var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
 
   ajax_positions = $.ajax({
     type: "GET",
@@ -2544,10 +2546,7 @@ function refresh(serial) {
     success: function(response, textStatus) {
         $("#stText").text("loading |");
         response.fetch_timestamp = Date.now();
-        if (serial === undefined) {update(response);} else {
-            //vehicles[serial].kill();
-            update(response, true);
-        }
+        update(response);
         $("#stText").text("");
         $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
     },
@@ -2568,6 +2567,50 @@ function refresh(serial) {
     }
   });
 }
+
+function refreshSingle(serial, first) {
+    if(ajax_inprogress_single) {
+        clearTimeout(periodical_focus);
+        if (first) {
+            periodical_focus = setTimeout(refreshSingle, 2000, serial, first);
+        } else {
+            periodical_focus = setTimeout(refreshSingle, 2000, serial);
+        }
+        return;
+    }
+  
+    if (first === undefined) {
+        first = false;
+    }
+  
+    ajax_inprogress_single = true;
+  
+    var mode = wvar.mode.toLowerCase();
+    mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
+  
+    if (first){
+      var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(serial);
+    } else {
+      var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(serial); 
+    }
+  
+    ajax_positions_single = $.ajax({
+      type: "GET",
+      url: data_url,
+      data: data_str,
+      dataType: "json",
+      success: function(response, textStatus) {
+          response.fetch_timestamp = Date.now();
+          if (!first) {update(response, false);} else {
+              update(response, true);
+          }
+      },
+      complete: function(request, textStatus) {
+          clearTimeout(periodical_focus);
+          periodical_focus = setTimeout(refreshSingle, timer_seconds_focus * 1000, serial);
+      }
+    });
+  }
 
 function refreshReceivers() {
     // if options to hide receivers is selected do nothing
@@ -2828,13 +2871,15 @@ function habitat_doc_step(hab_docs) {
 }
 
 
-var periodical, periodical_receivers, periodical_recoveries;
+var periodical, periodical_focus, periodical_receivers, periodical_recoveries;
 var periodical_predictions = null;
 var timer_seconds = 5;
+var timer_seconds_focus = 1;
 
 function startAjax() {
     // prevent insane clicks to start numerous requests
     clearTimeout(periodical);
+    clearTimeout(periodical_focus);
     clearTimeout(periodical_receivers);
     clearTimeout(periodical_recoveries);
     clearTimeout(periodical_predictions);
@@ -2852,6 +2897,8 @@ function stopAjax() {
     // stop our timed ajax
     clearTimeout(periodical);
     if(ajax_positions) ajax_positions.abort();
+
+    clearTimeout(periodical_focus);
 
     clearTimeout(periodical_predictions);
     periodical_predictions = null;
@@ -3211,7 +3258,11 @@ function update(response, flag) {
         // if no vehicles are found, this will remove the spinner and put a friendly message
         $("#main .empty").html("<span>No vehicles :(</span>");
 
-        ajax_inprogress = false;
+        if (flag === undefined) {
+            ajax_inprogress = false;
+        } else {
+            ajax_inprogress_single = false;
+        }
 
         return;
     }
@@ -3273,11 +3324,7 @@ function update(response, flag) {
             if(vehicle === undefined) return;
 
             if(vehicle.updated) {
-                if (flag) {
-                    updatePolyline(vcallsign, true);
-                } else {
-                    updatePolyline(vcallsign);
-                }
+                updatePolyline(vcallsign, flag);
                 
                 updateVehicleInfo(vcallsign, vehicle.curr_position);
 
@@ -3313,7 +3360,11 @@ function update(response, flag) {
 
           if(periodical_predictions === null) refreshPredictions();
 
-          ajax_inprogress = false;
+          if (flag === undefined) {
+            ajax_inprogress = false;
+          } else {
+            ajax_inprogress_single = false;
+          }
         }
     };
 
