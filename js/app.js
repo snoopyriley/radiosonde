@@ -35,6 +35,11 @@ function lhash_update(history_step) {
         $("header .search input[type='text']").val(wvar.query);
     }
 
+    // other vars
+    if(wvar.nyan) {
+        hash += "&nyan=1";
+    }
+
     hash = encodeURI(hash);
     // set state
     if(history_supported) {
@@ -80,6 +85,7 @@ function load_hash(no_refresh) {
         zoom: true,
         focus: "",
         query: "",
+        nyan: false,
     };
 
     parms.forEach(function(v) {
@@ -124,7 +130,7 @@ function load_hash(no_refresh) {
     });
 
     // check if we should force refresh
-    ['mode','query'].forEach(function(k) {
+    ['mode','query','nyan'].forEach(function(k) {
         if(wvar[k] != def[k]) refresh = true;
     });
 

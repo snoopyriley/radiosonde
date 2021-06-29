@@ -36,11 +36,17 @@ var balloon_index = 0;
 var balloon_colors_name = ["red", "blue", "green", "yellow", "purple", "orange", "cyan"];
 var balloon_colors = ["#f00", "blue", "green", "#FDFC30", "#c700e6", "#ff8a0f", "#0fffca"];
 
+var nyan_color_index = 0;
+var nyan_colors = ['nyan', 'nyan-coin', 'nyan-mon', 'nyan-pirate', 'nyan-cool', 'nyan-tothemax', 'nyan-pumpkin', 'nyan-afro', 'nyan-coin', 'nyan-mummy'];
+var rainbow = ["#ff0000", "#fc9a00", "#f6ff00", "#38ff01", "#009aff","#0000ff"];
+
 var map = null;
 var overlay = null;
 var layer_clouds = null;
 
 var notamOverlay = null;
+
+var svgRenderer = L.svg();
 
 var modeList = [
 //    "Position",
@@ -353,6 +359,7 @@ function clean_refresh(text, force, history_step) {
 
     car_index = 0;
     balloon_index = 0;
+    nyan_color_index = 0;
     stopFollow(force);
 
     // add loading spinner in the vehicle list
@@ -366,6 +373,7 @@ function clean_refresh(text, force, history_step) {
     lhash_update(history_step);
 
     clearTimeout(periodical);
+    clearTimeout(periodical_focus);
     clearTimeout(periodical_receivers);
     clearTimeout(periodical_recoveries);
 
@@ -383,8 +391,6 @@ function load() {
         layers: [osm],
         preferCanvas: true,
     });
-
-    var svgRenderer = L.svg();
 
     map.addControl(new L.Control.Fullscreen({ position: 'bottomleft' }));
 
@@ -888,6 +894,9 @@ function stopFollow(no_data_reset) {
             wvar.focus = "";
         }
 
+        //stop detailed data
+        clearTimeout(periodical_focus);
+
         // clear graph
         if(plot) plot = $.plot(plot_holder, {}, plot_options);
         updateGraph(null, true);
@@ -917,7 +926,8 @@ function followVehicle(vcallsign, noPan, force) {
     }
 
     if(follow_vehicle != vcallsign || force) {
-        refresh(vcallsign);
+        clearTimeout(periodical_focus);
+        refreshSingle(vcallsign, true);
         focusVehicle(vcallsign);
 
 		follow_vehicle = vcallsign;
@@ -1850,7 +1860,8 @@ function addPosition(position) {
                 listScroll.refresh();
                 listScroll.scrollToElement(_vehicle_idname);
                 followVehicle($(_vehicle_idname).attr('data-vcallsign'));
-                refresh(_vehicle_id);
+                clearTimeout(periodical_focus);
+                refreshSingle(_vehicle_id, true);
             };
 
             marker.shadow = marker_shadow;
@@ -1900,7 +1911,7 @@ function addPosition(position) {
                         });
                     }
                 }
-                this.setIcon(img);
+                if (!wvar.nyan) {this.setIcon(img);};
             };
             marker.setAltitude = function(alt) {
                 //var pos = overlay.getProjection().fromLatLngToDivPixel(this.shadow.getLatLng());
@@ -2069,6 +2080,41 @@ function addPosition(position) {
                     
         // deep copy yaxes config for graph
         plot_options.yaxes.forEach(function(v) { vehicle_info.graph_yaxes.push($.extend({}, v)); });     
+
+        //nyan cat (very important feature)
+        if(wvar.nyan && vehicle_info.vehicle_type == "balloon") {
+            var nyan = nyan_colors[nyan_color_index] + ".gif";
+            nyan_color_index = (nyan_color_index + 1) % nyan_colors.length;
+            var nyanw = (nyan_color_index == 4) ? 104 : 55;
+
+            nyanIcon = new L.icon ({
+                iconUrl: host_url + markers_url + nyan,
+                iconSize: [nyanw,39],
+                iconAnchor: [26,20],
+            });
+
+            vehicle_info.marker.setIcon(nyanIcon);
+
+            vehicle_info.image_src = host_url + markers_url + "hab_nyan.gif";
+            vehicle_info.image_src_offset = [-34,-70];
+
+            var k;
+            for(k in vehicle_info.polyline) {
+                map.removeLayer(vehicle_info.polyline[k]);
+            }
+
+            vehicle_info.polyline = [];
+
+            for(k in rainbow) {
+                vehicle_info.polyline.push(new L.Polyline(point, {
+                    zIndexOffset: (Z_PATH - (k * 1)),
+                    color: rainbow[k],
+                    opacity: 1,
+                    weight: (k*4) + 2,
+                }).addTo(map));
+                vehicle_info.polyline[k].bringToBack();
+            }
+        }
         
         vehicle_info.kill = function() {
             $(".vehicle"+vehicle_info.uuid).remove();
@@ -2507,15 +2553,15 @@ function graphAddPosition(vcallsign, new_data) {
 }
 
 var ajax_positions = null;
+var ajax_positions_single = null;
 var ajax_inprogress = false;
+var ajax_inprogress_single = false;
 
-function refresh(serial) {
+function refresh() {
   if(ajax_inprogress) {
-    if (serial === undefined) {
-        clearTimeout(periodical);
-        periodical = setTimeout(refresh, 2000);
-        return;
-    }
+    clearTimeout(periodical);
+    periodical = setTimeout(refresh, 2000);
+    return;
   }
 
   ajax_inprogress = true;
@@ -2530,11 +2576,7 @@ function refresh(serial) {
   var mode = wvar.mode.toLowerCase();
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
-  if (serial === undefined) {
-    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
-  } else {
-    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(serial);
-  }
+  var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
 
   ajax_positions = $.ajax({
     type: "GET",
@@ -2544,10 +2586,7 @@ function refresh(serial) {
     success: function(response, textStatus) {
         $("#stText").text("loading |");
         response.fetch_timestamp = Date.now();
-        if (serial === undefined) {update(response);} else {
-            //vehicles[serial].kill();
-            update(response, true);
-        }
+        update(response);
         $("#stText").text("");
         $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
     },
@@ -2568,6 +2607,50 @@ function refresh(serial) {
     }
   });
 }
+
+function refreshSingle(serial, first) {
+    if(ajax_inprogress_single) {
+        clearTimeout(periodical_focus);
+        if (first) {
+            periodical_focus = setTimeout(refreshSingle, 2000, serial, first);
+        } else {
+            periodical_focus = setTimeout(refreshSingle, 2000, serial);
+        }
+        return;
+    }
+  
+    if (first === undefined) {
+        first = false;
+    }
+  
+    ajax_inprogress_single = true;
+  
+    var mode = wvar.mode.toLowerCase();
+    mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
+  
+    if (first){
+      var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(serial);
+    } else {
+      var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(serial); 
+    }
+  
+    ajax_positions_single = $.ajax({
+      type: "GET",
+      url: data_url,
+      data: data_str,
+      dataType: "json",
+      success: function(response, textStatus) {
+          response.fetch_timestamp = Date.now();
+          if (!first) {update(response, false);} else {
+              update(response, true);
+          }
+      },
+      complete: function(request, textStatus) {
+          clearTimeout(periodical_focus);
+          periodical_focus = setTimeout(refreshSingle, timer_seconds_focus * 1000, serial);
+      }
+    });
+  }
 
 function refreshReceivers() {
     // if options to hide receivers is selected do nothing
@@ -2828,13 +2911,15 @@ function habitat_doc_step(hab_docs) {
 }
 
 
-var periodical, periodical_receivers, periodical_recoveries;
+var periodical, periodical_focus, periodical_receivers, periodical_recoveries;
 var periodical_predictions = null;
 var timer_seconds = 5;
+var timer_seconds_focus = 1;
 
 function startAjax() {
     // prevent insane clicks to start numerous requests
     clearTimeout(periodical);
+    clearTimeout(periodical_focus);
     clearTimeout(periodical_receivers);
     clearTimeout(periodical_recoveries);
     clearTimeout(periodical_predictions);
@@ -2852,6 +2937,8 @@ function stopAjax() {
     // stop our timed ajax
     clearTimeout(periodical);
     if(ajax_positions) ajax_positions.abort();
+
+    clearTimeout(periodical_focus);
 
     clearTimeout(periodical_predictions);
     periodical_predictions = null;
@@ -3211,7 +3298,11 @@ function update(response, flag) {
         // if no vehicles are found, this will remove the spinner and put a friendly message
         $("#main .empty").html("<span>No vehicles :(</span>");
 
-        ajax_inprogress = false;
+        if (flag === undefined) {
+            ajax_inprogress = false;
+        } else {
+            ajax_inprogress_single = false;
+        }
 
         return;
     }
@@ -3273,11 +3364,7 @@ function update(response, flag) {
             if(vehicle === undefined) return;
 
             if(vehicle.updated) {
-                if (flag) {
-                    updatePolyline(vcallsign, true);
-                } else {
-                    updatePolyline(vcallsign);
-                }
+                updatePolyline(vcallsign, flag);
                 
                 updateVehicleInfo(vcallsign, vehicle.curr_position);
 
@@ -3313,7 +3400,11 @@ function update(response, flag) {
 
           if(periodical_predictions === null) refreshPredictions();
 
-          ajax_inprogress = false;
+          if (flag === undefined) {
+            ajax_inprogress = false;
+          } else {
+            ajax_inprogress_single = false;
+          }
         }
     };
 
