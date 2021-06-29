@@ -1,0 +1,24 @@
+{
+  "name": "SondeHub Tracker",
+  "short_name": "SondeHub",
+  "description": "A webapp for tracking radiosondes.",
+  "theme_color": "#00a3d3",
+  "background_color": "#33b5e5",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/img/icons/maskable_icon_x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/img/icons/maskable_icon_x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -384,6 +384,8 @@ function load() {
         preferCanvas: true,
     });
 
+    var svgRenderer = L.svg();
+
     map.addControl(new L.Control.Fullscreen({ position: 'bottomleft' }));
 
     new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
@@ -419,7 +421,7 @@ function load() {
     receiverCanvas.addTo(map);
     
     // initalize nite overlay
-    nite = new L.terminator();
+    nite = new L.terminator({ renderer: svgRenderer });
 
     if (offline.get("opt_daylight")) {
         map.addLayer(nite);
@@ -1372,8 +1374,11 @@ function redrawPrediction(vcallsign) {
     }
 }
 
-function updatePolyline(vcallsign) {
+function updatePolyline(vcallsign, flag) {
     for(var k in vehicles[vcallsign].polyline) {
+        if (flag) {
+            vehicles[vcallsign].polyline[k].setLatLngs([]);
+        }
         vehicles[vcallsign].polyline[k].setLatLngs(vehicles[vcallsign].positions);
     }
 }
@@ -2539,7 +2544,10 @@ function refresh(serial) {
     success: function(response, textStatus) {
         $("#stText").text("loading |");
         response.fetch_timestamp = Date.now();
-        update(response);
+        if (serial === undefined) {update(response);} else {
+            //vehicles[serial].kill();
+            update(response, true);
+        }
         $("#stText").text("");
         $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
     },
@@ -3194,7 +3202,7 @@ var ssdv = {};
 var status = "";
 var bs_idx = 0;
 
-function update(response) {
+function update(response, flag) {
     if (response === null ||
         !response.positions ||
         !response.positions.position ||
@@ -3265,7 +3273,12 @@ function update(response) {
             if(vehicle === undefined) return;
 
             if(vehicle.updated) {
-                updatePolyline(vcallsign);
+                if (flag) {
+                    updatePolyline(vcallsign, true);
+                } else {
+                    updatePolyline(vcallsign);
+                }
+                
                 updateVehicleInfo(vcallsign, vehicle.curr_position);
 
                 // remember last position for each vehicle
