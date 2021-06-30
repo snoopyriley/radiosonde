@@ -2140,7 +2140,7 @@ function addPosition(position) {
                 for(var p in vehicle_info.polyline) {
                     map.removeLayer(vehicle_info.polyline[p]);
                 }
-            } catch (e) {console.log(e)};
+            } catch (e) {};
             for (let i = 0; i < potentialobjects.length; i++) {
                 if (map.hasLayer(potentialobjects[i])) { 
                     map.removeLayer(potentialobjects[i]);
@@ -2305,7 +2305,7 @@ function updateGraph(vcallsign, reset_selection) {
     if(reset_selection) {
         if(vcallsign !== null) delete plot_options.xaxis;
 
-        if(polyMarker) map.remove(polyMarker);
+        if(polyMarker) map.removeLayer(polyMarker);
         plot_crosshair_locked = false;
 
         $("#timebox").removeClass('past').addClass('present');
