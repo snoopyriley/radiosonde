@@ -427,7 +427,10 @@ function load() {
     receiverCanvas.addTo(map);
     
     // initalize nite overlay
-    nite = new L.terminator({ renderer: svgRenderer });
+    nite = new L.terminator({ 
+        renderer: svgRenderer,
+        interactive: false,
+    });
 
     if (offline.get("opt_daylight")) {
         map.addLayer(nite);
@@ -1260,8 +1263,12 @@ function set_polyline_visibility(vcallsign, val) {
     vehicle.polyline_visible = val;
 
     for(var k in vehicle.polyline) {
-        if (val) map.addLayer(vehicle.polyline[k]);
-        else map.removeLayer(vehicle.polyline[k]);
+        if (val) {
+            map.addLayer(vehicle.polyline[k]);
+            vehicle.polyline[k].bringToBack();
+        } else {
+            map.removeLayer(vehicle.polyline[k]);
+        }
     }
 
     map.removeLayer(mapInfoBox);
@@ -2091,6 +2098,7 @@ function addPosition(position) {
                 iconUrl: host_url + markers_url + nyan,
                 iconSize: [nyanw,39],
                 iconAnchor: [26,20],
+                tooltipAnchor: [0,-29],
             });
 
             vehicle_info.marker.setIcon(nyanIcon);
@@ -2129,9 +2137,10 @@ function addPosition(position) {
                 map.removeLayer(vehicle_info["prediction_burst"]);
             }
             try {
-                map.removeLayer(polyline[0]);
-                map.removeLayer(polyline[1]);
-            } catch (e) {};
+                for(var p in vehicle_info.polyline) {
+                    map.removeLayer(vehicle_info.polyline[p]);
+                }
+            } catch (e) {console.log(e)};
             for (let i = 0; i < potentialobjects.length; i++) {
                 if (map.hasLayer(potentialobjects[i])) { 
                     map.removeLayer(potentialobjects[i]);
