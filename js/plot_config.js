@@ -68,6 +68,43 @@ function updateLegend(pos) {
     }
 
     if(follow_vehicle !== null && vehicles[follow_vehicle].positions.length) {
+        // adjust index for null data points
+        var null_count = 0;
+
+        if (!map.hasLayer(polyMarker) && polyMarker) {
+            map.addLayer(polyMarker);
+        }
+
+        if(outside && pij !== undefined) {
+            if(!polyMarker) {
+                try {polyMarker = new L.Marker(vehicles[follow_vehicle].prediction_polyline.getLatLngs()[pij]).addTo(map);} catch (e) {};
+            } else {
+                try {polyMarker.setLatLng(vehicles[follow_vehicle].prediction_polyline.getLatLngs()[pij]);} catch (e) {};
+            }
+            
+        }
+        else {
+            var data_ref = vehicles[follow_vehicle].graph_data[0];
+
+            if(ij > data_ref.data.length / 2) {
+                for(i = data_ref.data.length - 1; i > ij; i--) null_count += (data_ref.data[i][1] === null) ? 1 : 0;
+                null_count = data_ref.nulls - null_count * 2;
+            } else {
+                for(i = 0; i < ij; i++) null_count += (data_ref.data[i][1] === null) ? 1 : 0;
+                null_count *= 2;
+            }
+
+            // update position
+            ij -= null_count + ((null_count===0||null_count===data_ref.nulls) ? 0 : 1);
+            if(ij < 0) ij = 0;
+
+            if(!polyMarker) {
+                try {polyMarker = new L.Marker(vehicles[follow_vehicle].positions[ij]).addTo(map);} catch (e) {};
+            } else {
+                try {polyMarker.setLatLng(vehicles[follow_vehicle].positions[ij]);} catch (e) {};
+            }
+        }
+
         // set timebox
         var date = new Date(pos.x1);
         $('#timebox').removeClass('present').addClass('past');

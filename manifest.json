@@ -3,7 +3,7 @@
   "short_name": "SondeHub",
   "description": "A webapp for tracking radiosondes.",
   "theme_color": "#00a3d3",
-  "background_color": "#33b5e5",
+  "background_color": "#00a3d3",
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
