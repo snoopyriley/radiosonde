@@ -150,17 +150,14 @@ body {
     background: #00A3D3;
 }
 #loading img {
-    width: 350px;
-    height: 250px;
-}
-#loading > div {
     position: absolute;
-    top: 50%;
+    display: block;
+    width: 80vw;
+    max-width: 500px;
     left: 50%;
-    width: 350px;
-    height: 250px;
-    margin-top: -175px;
-    margin-left: -125px;
+    top: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 }
 #loading .bar {
     position: relative;
@@ -446,7 +443,6 @@ header .search form input[type='submit'] {
 #main .row .data img {
     position: absolute;
     z-index: 2;
-    bottom: 40%;
     right: 30%;
     opacity: 0.6;
     width: 46px;

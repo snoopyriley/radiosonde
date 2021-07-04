@@ -392,12 +392,19 @@ function load() {
         preferCanvas: true,
     });
 
+    // fullscreen button
     map.addControl(new L.Control.Fullscreen({ position: 'bottomleft' }));
 
+    // scale (would be better if integrated into attirbution bar)
+    L.control.scale({position:'bottomright', imperial:false}).addTo(map);
+
+    // zoom controls
     new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
 
+    // map selector
     layers = L.control.layers(baseMaps, null, {position: "topleft"}).addTo(map);
 
+    // update time div
     L.Control.Status = L.Control.extend({
         onAdd: function(map) {
             var div = L.DomUtil.create('div');
