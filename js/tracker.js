@@ -116,6 +116,9 @@ var plot_options = {
     ]
 };
 
+//hide PWA taskbar count
+navigator.clearAppBadge();
+
 // aprs overlay (not used)
 var overlayARPS = new L.tileLayer('http://{s}.tiles.tracker.habhub.org/aprs/tile_{z}_{x}_{y}.png', {
 	subdomains: 'abc',
@@ -2619,6 +2622,11 @@ function refresh() {
     complete: function(request, textStatus) {
         document.getElementById("timeperiod").disabled = false;
         clearTimeout(periodical);
+        if (Object.keys(vehicles).length > 1) {
+            navigator.setAppBadge(Object.keys(vehicles).length); //show number of vehicles on PWA taskbar
+        } else {
+            navigator.clearAppBadge(); //hide
+        }
         periodical = setTimeout(refresh, timer_seconds * 1000);
     }
   });
@@ -2991,6 +2999,11 @@ function updateReceiverMarker(receiver) {
 
   // init a marker if the receiver doesn't already have one
   if(!receiver.marker) {
+    
+    if (!receiver.description.includes("radiosonde_auto_rx")) {
+        //future option to show different icon per software
+    }
+
     receiverIcon = new L.icon({
         iconUrl: host_url + markers_url + "antenna-green.png",
         iconSize: [26, 34],
