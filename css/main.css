@@ -415,8 +415,25 @@ header .search form input[type='submit'] {
 #main .row .data .vbutton {
     position: absolute;
     background-color: #fff;
+    width: 25px !important;
     right: 5px;
     top: 150px;
+    padding-left: 3px;
+    padding-right: 3px;
+    font-size: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    z-index: 5;
+    text-align: center;
+}
+
+#main .row .data .sbutton {
+    position: absolute;
+    background-color: #fff;
+    width: 25px !important;
+    right: 5px;
+    top: 170px;
     padding-left: 3px;
     padding-right: 3px;
     font-size: 10px;
@@ -438,6 +455,10 @@ header .search form input[type='submit'] {
 
 #main .portrait .row .data .vbutton {
     top: 50px !important;
+}
+
+#main .portrait .row .data .sbutton {
+    top: 80px !important;
 }
 
 #main .row .data img {

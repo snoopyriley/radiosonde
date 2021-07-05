@@ -116,6 +116,9 @@ var plot_options = {
     ]
 };
 
+//hide PWA taskbar count
+navigator.clearAppBadge();
+
 // aprs overlay (not used)
 var overlayARPS = new L.tileLayer('http://{s}.tiles.tracker.habhub.org/aprs/tile_{z}_{x}_{y}.png', {
 	subdomains: 'abc',
@@ -596,6 +599,20 @@ function showLaunchSites() {
             }
         });
     }
+}
+
+function shareVehicle(callsign) {
+    const shareData = {
+        title: 'SondeHub: ' + vehicles[callsign].marker.options.title + ' Flight Information',
+        text: 'You can view the flight path and sensor data for ' + vehicles[callsign].marker.options.title + ' on the SondeHub tracker!',
+        url: window.location.origin + '/' + callsign,
+    }
+    try {
+        navigator.share(shareData);
+    } catch (e) {
+        console.log("Error sharing: " + e);
+    }
+    
 }
 
 function panTo(vcallsign) {
@@ -1211,6 +1228,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
            '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' +
                ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
+            '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')">Share</span>' +
            ((vcallsign in hysplit) ? '<span class="vbutton hysplit '+((hysplit[vcallsign].getMap()) ? 'active' : '')+'"' +
                 ' data-vcallsign="'+vcallsign+'" style="top:'+(vehicle.image_src_size[1]+55+21+10)+'px">HYSPLIT</span>' : '') +
            ((vcallsign.substr(0, 6) in ssdv) ? '<a class="vbutton active" href="//ssdv.habhub.org/' + vcallsign.substr(0, 6) + '"' +
@@ -2619,6 +2637,11 @@ function refresh() {
     complete: function(request, textStatus) {
         document.getElementById("timeperiod").disabled = false;
         clearTimeout(periodical);
+        if (Object.keys(vehicles).length > 1) {
+            navigator.setAppBadge(Object.keys(vehicles).length); //show number of vehicles on PWA taskbar
+        } else {
+            navigator.clearAppBadge(); //hide
+        }
         periodical = setTimeout(refresh, timer_seconds * 1000);
     }
   });
@@ -2991,6 +3014,11 @@ function updateReceiverMarker(receiver) {
 
   // init a marker if the receiver doesn't already have one
   if(!receiver.marker) {
+    
+    if (!receiver.description.includes("radiosonde_auto_rx")) {
+        //future option to show different icon per software
+    }
+
     receiverIcon = new L.icon({
         iconUrl: host_url + markers_url + "antenna-green.png",
         iconSize: [26, 34],
