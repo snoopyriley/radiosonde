@@ -46,19 +46,19 @@
   ],
   "screenshots": [
     {
-      "src": "/img/screenshots/screenshot1.jpg",
-      "type": "image/jpg",
-      "sizes": "1080x2240"
+      "src": "/img/screenshots/screenshot1.png",
+      "type": "image/png",
+      "sizes": "1242x2208"
     },
     {
-      "src": "/img/screenshots/screenshot2.jpg",
-      "type": "image/jpg",
-      "sizes": "1080x2240"
+      "src": "/img/screenshots/screenshot2.png",
+      "type": "image/png",
+      "sizes": "1242x2208"
     },
     {
-      "src": "/img/screenshots/screenshot3.jpg",
-      "type": "image/jpg",
-      "sizes": "1080x2240"
+      "src": "/img/screenshots/screenshot3.png",
+      "type": "image/png",
+      "sizes": "1242x2208"
     }
   ]
 }
