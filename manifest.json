@@ -46,17 +46,17 @@
   ],
   "screenshots": [
     {
-      "src": "/img/screenshot/screenshot1.jpg",
+      "src": "/img/screenshots/screenshot1.jpg",
       "type": "image/jpg",
       "sizes": "1080x2240"
     },
     {
-      "src": "/img/screenshot/screenshot2.jpg",
+      "src": "/img/screenshots/screenshot2.jpg",
       "type": "image/jpg",
       "sizes": "1080x2240"
     },
     {
-      "src": "/img/screenshot/screenshot3.jpg",
+      "src": "/img/screenshots/screenshot3.jpg",
       "type": "image/jpg",
       "sizes": "1080x2240"
     }

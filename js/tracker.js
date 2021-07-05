@@ -601,6 +601,20 @@ function showLaunchSites() {
     }
 }
 
+function shareVehicle(callsign) {
+    const shareData = {
+        title: 'SondeHub: ' + vehicles[callsign].marker.options.title + ' Flight Information',
+        text: 'You can view the flight path and sensor data for ' + vehicles[callsign].marker.options.title + ' on the SondeHub tracker!',
+        url: window.location.origin + '/' + callsign,
+    }
+    try {
+        navigator.share(shareData);
+    } catch (e) {
+        console.log("Error sharing: " + e);
+    }
+    
+}
+
 function panTo(vcallsign) {
     if(!vcallsign || vehicles[vcallsign] === undefined) return;
 
@@ -1214,6 +1228,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
            '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' +
                ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
+            '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')">Share</span>' +
            ((vcallsign in hysplit) ? '<span class="vbutton hysplit '+((hysplit[vcallsign].getMap()) ? 'active' : '')+'"' +
                 ' data-vcallsign="'+vcallsign+'" style="top:'+(vehicle.image_src_size[1]+55+21+10)+'px">HYSPLIT</span>' : '') +
            ((vcallsign.substr(0, 6) in ssdv) ? '<a class="vbutton active" href="//ssdv.habhub.org/' + vcallsign.substr(0, 6) + '"' +
