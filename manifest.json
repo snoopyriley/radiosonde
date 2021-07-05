@@ -14,13 +14,51 @@
       "src": "/img/icons/maskable_icon_x192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "/img/icons/maskable_icon_x512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "maskable"
+    },
+    {
+      "src": "/img/icons/icon_x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icons/icon_x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nyan Mode",
+      "short_name": "Nyan",
+      "description": "Start the tracker with Nyan Cat mode enabled",
+      "url": "/#!nyan=1",
+      "icons": [{ "src": "/img/icons/nyan_icon_x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/img/screenshot/screenshot1.jpg",
+      "type": "image/jpg",
+      "sizes": "1080x2240"
+    },
+    {
+      "src": "/img/screenshot/screenshot2.jpg",
+      "type": "image/jpg",
+      "sizes": "1080x2240"
+    },
+    {
+      "src": "/img/screenshot/screenshot3.jpg",
+      "type": "image/jpg",
+      "sizes": "1080x2240"
     }
   ]
 }
