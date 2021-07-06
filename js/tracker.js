@@ -2591,8 +2591,6 @@ function refresh() {
     return;
   }
 
-  console.log(vehicles);
-
   if (ajax_inprogress_old == wvar.query) {
     if (vehicles.hasOwnProperty(wvar.query)) {
         return;
@@ -2674,7 +2672,7 @@ function refreshSingle(serial, first) {
         }
         return;
     }
-    
+
     if (ajax_inprogress_old == wvar.query) {
         if (vehicles.hasOwnProperty(wvar.query)) {
             return;
@@ -2715,8 +2713,6 @@ function refreshSingle(serial, first) {
 }
 
 function refreshSingleOld(serial) {
-
-    console.log(vehicles);
 
     if (ajax_inprogress_old == wvar.query) {
         if (vehicles.hasOwnProperty(wvar.query)) {
