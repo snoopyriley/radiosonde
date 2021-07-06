@@ -2591,11 +2591,15 @@ function refresh() {
     return;
   }
 
+  console.log(vehicles);
+
   if (ajax_inprogress_old == wvar.query) {
-    return;
-  } else {
-    document.getElementById("timeperiod").disabled = false;
+    if (vehicles.hasOwnProperty(wvar.query)) {
+        return;
+    }
   }
+    
+  document.getElementById("timeperiod").disabled = false;
   
   ajax_inprogress = true;
 
@@ -2670,8 +2674,11 @@ function refreshSingle(serial, first) {
         }
         return;
     }
-    if (serial == ajax_inprogress_old) {
-        return;
+    
+    if (ajax_inprogress_old == wvar.query) {
+        if (vehicles.hasOwnProperty(wvar.query)) {
+            return;
+        }
     }
   
     if (first === undefined) {
@@ -2709,8 +2716,12 @@ function refreshSingle(serial, first) {
 
 function refreshSingleOld(serial) {
 
-    if(serial == ajax_inprogress_old) {
-        return;
+    console.log(vehicles);
+
+    if (ajax_inprogress_old == wvar.query) {
+        if (vehicles.hasOwnProperty(wvar.query)) {
+            return;
+        }
     }
 
     document.getElementById("timeperiod").disabled = true;
