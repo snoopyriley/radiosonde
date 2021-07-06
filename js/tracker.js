@@ -116,9 +116,6 @@ var plot_options = {
     ]
 };
 
-//hide PWA taskbar count
-navigator.clearAppBadge();
-
 // aprs overlay (not used)
 var overlayARPS = new L.tileLayer('http://{s}.tiles.tracker.habhub.org/aprs/tile_{z}_{x}_{y}.png', {
 	subdomains: 'abc',
@@ -1138,8 +1135,14 @@ function updateVehicleInfo(vcallsign, newPosition) {
   // style="top:80px"
   // if (vehicle["vehicle_type"] == "car") {
   if (elm.length === 0) {
-    $('.portrait').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
-    $('.landscape').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+    if (vehicle.vehicle_type!="car") {
+        $('.portrait').prepend('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.landscape').prepend('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+    } else {
+        $('.portrait').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.landscape').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+    }
+    
 
 
   } else if(elm.attr('data-vcallsign') === undefined) {
@@ -1271,7 +1274,11 @@ function updateVehicleInfo(vcallsign, newPosition) {
   // redraw canvas
   if(wvar.mode != "Position" && vehicle.graph_data.length) {
       var can = $('.vehicle'+vehicle.uuid+' .graph');
-      drawAltitudeProfile(can.get(0), can.get(1), vehicle.graph_data[0], vehicle.max_alt);
+      if (vehicle.vehicle_type!="car") {
+        drawAltitudeProfile(can.get(0), can.get(1), vehicle.graph_data[0], vehicle.max_alt, true);
+      } else {
+        drawAltitudeProfile(can.get(0), can.get(1), vehicle.graph_data[0], vehicle.max_alt, true);
+      }
   }
 
   // mark vehicles as redrawn
@@ -1422,7 +1429,7 @@ function updatePolyline(vcallsign, flag) {
     }
 }
 
-function drawAltitudeProfile(c1, c2, series, alt_max) {
+function drawAltitudeProfile(c1, c2, series, alt_max, chase) {
     alt_max = (alt_max < 2000) ? 2000 : alt_max;
     var alt_list = series.data;
     var len = alt_list.length;
@@ -1443,12 +1450,21 @@ function drawAltitudeProfile(c1, c2, series, alt_max) {
     c1.attr('width', cw1).attr('height', ch1);
     c2.attr('width', cw2).attr('height', ch2);
 
-    ctx1.fillStyle = "#d6f0f9";
-    ctx1.lineWidth = 2 * ratio;
-    ctx1.strokeStyle= "#33B5F5";
-    ctx2.fillStyle = "#d6f0f9";
-    ctx2.lineWidth = 2 * ratio;
-    ctx2.strokeStyle= "#33B5F5";
+    if (chase) {
+        ctx1.fillStyle = "#d6f0f9";
+        ctx1.lineWidth = 2 * ratio;
+        ctx1.strokeStyle= "#33B5F5";
+        ctx2.fillStyle = "#d6f0f9";
+        ctx2.lineWidth = 2 * ratio;
+        ctx2.strokeStyle= "#33B5F5";
+    } else {
+        ctx1.fillStyle = "#f9d6d6";
+        ctx1.lineWidth = 2 * ratio;
+        ctx1.strokeStyle= "#f53333";
+        ctx2.fillStyle = "#f9d6d6";
+        ctx2.lineWidth = 2 * ratio;
+        ctx2.strokeStyle= "#f53333";
+    }
 
     var xt1 = (cw1 - (2 * ratio)) / real_len;
     var yt1 = (ch1 - (6 * ratio)) / alt_max;
@@ -2611,7 +2627,11 @@ function refresh() {
   var mode = wvar.mode.toLowerCase();
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
-  var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
+  if (wvar.query) {
+    var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
+  } else {
+    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
+  }
 
   ajax_positions = $.ajax({
     type: "GET",
@@ -2652,11 +2672,6 @@ function refresh() {
             document.getElementById("timeperiod").disabled = false;
         }
         clearTimeout(periodical);
-        if (Object.keys(vehicles).length > 1) {
-            navigator.setAppBadge(Object.keys(vehicles).length); //show number of vehicles on PWA taskbar
-        } else {
-            navigator.clearAppBadge(); //hide
-        }
         periodical = setTimeout(refresh, timer_seconds * 1000);
     }
   });
