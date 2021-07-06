@@ -334,8 +334,6 @@ function clean_refresh(text, force, history_step) {
     history_step = !!history_step;
 
     if(text == wvar.mode && !force) return false;
-    if(ajax_inprogress) return false;
-
     stopAjax();
 
     // reset mode if, invalid mode is specified
@@ -813,7 +811,6 @@ function updateAltitude(vcallsign) {
   } else if(position.gps_alt > 55000) {
     position.gps_alt = 55000;
   }
-  vehicle.marker.setAltitude(pixel_altitude);
 }
 
 function updateZoom() {
@@ -1224,11 +1221,11 @@ function updateVehicleInfo(vcallsign, newPosition) {
            //'<span>' + vcallsign + ' <i class="icon-target"></i></span>' +
            '<canvas class="graph"></canvas>' +
            '<i class="arrow"></i></div>' +
-           '<div class="data">' +
+           '<div class="data" style="min-height:' + (vehicle.image_src_size[1]+95) + 'px">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
-           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' +
-               ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
-            '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')">Share</span>' +
+           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">Share</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">Card</span>' : '') +
            ((vcallsign in hysplit) ? '<span class="vbutton hysplit '+((hysplit[vcallsign].getMap()) ? 'active' : '')+'"' +
                 ' data-vcallsign="'+vcallsign+'" style="top:'+(vehicle.image_src_size[1]+55+21+10)+'px">HYSPLIT</span>' : '') +
            ((vcallsign.substr(0, 6) in ssdv) ? '<a class="vbutton active" href="//ssdv.habhub.org/' + vcallsign.substr(0, 6) + '"' +
@@ -1642,7 +1639,6 @@ function mapInfoBox_handle_path_fetch(id,vehicle) {
             var callsign_list = []
             for(var rxcall in data.callsign){
                 if(data.callsign.hasOwnProperty(rxcall)) {
-                    _new_call += "<b>Received via:&nbsp;</b> ";
                     _new_call = rxcall;
                     if(data.callsign[rxcall].hasOwnProperty('snr')){
                         if(data.callsign[rxcall].snr){
@@ -1944,11 +1940,6 @@ function addPosition(position) {
                     }
                 }
                 if (!wvar.nyan) {this.setIcon(img);};
-            };
-            marker.setAltitude = function(alt) {
-                //var pos = overlay.getProjection().fromLatLngToDivPixel(this.shadow.getLatLng());
-                //pos.y -= alt;
-                //this.setLatLng(overlay.getProjection().fromDivPixelToLatLng(pos));
             };
 
             // Add landing marker if the payload provides a predicted landing position.
@@ -2588,8 +2579,10 @@ function graphAddPosition(vcallsign, new_data) {
 
 var ajax_positions = null;
 var ajax_positions_single = null;
+var ajax_positions_old = null;
 var ajax_inprogress = false;
 var ajax_inprogress_single = false;
+var ajax_inprogress_old = "none";
 
 function refresh() {
   if(ajax_inprogress) {
@@ -2598,6 +2591,14 @@ function refresh() {
     return;
   }
 
+  if (ajax_inprogress_old == wvar.query) {
+    if (vehicles.hasOwnProperty(wvar.query)) {
+        return;
+    }
+  }
+    
+  document.getElementById("timeperiod").disabled = false;
+  
   ajax_inprogress = true;
 
   $("#stText").text("checking |");
@@ -2620,7 +2621,17 @@ function refresh() {
     success: function(response, textStatus) {
         $("#stText").text("loading |");
         response.fetch_timestamp = Date.now();
-        update(response);
+        if (wvar.query != null) {
+            if (JSON.stringify(response).indexOf(wvar.query) == -1) {
+                //check using new API
+                ajax_inprogress = false;
+                refreshSingleOld(wvar.query);
+            } else {
+                update(response);
+            }       
+        } else {
+            update(response);
+        }
         $("#stText").text("");
         $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
     },
@@ -2633,9 +2644,13 @@ function refresh() {
             $("#stText").text("no connection |");
             $("#stTimer").attr("data-timestamp", data.fetch_timestamp);
         }
+
+        ajax_inprogress = false;
     },
     complete: function(request, textStatus) {
-        document.getElementById("timeperiod").disabled = false;
+        if (ajax_inprogress_old != wvar.query) {
+            document.getElementById("timeperiod").disabled = false;
+        }
         clearTimeout(periodical);
         if (Object.keys(vehicles).length > 1) {
             navigator.setAppBadge(Object.keys(vehicles).length); //show number of vehicles on PWA taskbar
@@ -2656,6 +2671,12 @@ function refreshSingle(serial, first) {
             periodical_focus = setTimeout(refreshSingle, 2000, serial);
         }
         return;
+    }
+
+    if (ajax_inprogress_old == wvar.query) {
+        if (vehicles.hasOwnProperty(wvar.query)) {
+            return;
+        }
     }
   
     if (first === undefined) {
@@ -2689,7 +2710,86 @@ function refreshSingle(serial, first) {
           periodical_focus = setTimeout(refreshSingle, timer_seconds_focus * 1000, serial);
       }
     });
-  }
+}
+
+function refreshSingleOld(serial) {
+
+    if (ajax_inprogress_old == wvar.query) {
+        if (vehicles.hasOwnProperty(wvar.query)) {
+            return;
+        }
+    }
+
+    document.getElementById("timeperiod").disabled = true;
+  
+    var data_url = "https://api.v2.sondehub.org/sonde/" + encodeURIComponent(serial); 
+
+    ajax_inprogress_old = serial;
+  
+    ajax_positions_old = $.ajax({
+      type: "GET",
+      url: data_url,
+      dataType: "json",
+      success: function(data, textStatus) {
+          var response = {};
+          response.positions = {};
+          var dataTemp = [];
+          for (var i = data.length - 1; i >= 0; i--) {
+            if (data[i].hasOwnProperty('subtype')) {
+              if (data[i].subtype != "SondehubV1") {
+                var dataTempEntry = {};
+                var station = data[i].uploader_callsign
+                dataTempEntry.callsign = {};
+                dataTempEntry.callsign[station] = {};
+                dataTempEntry.callsign[station].snr = data[i].snr;
+                dataTempEntry.callsign[station].rssi = data[i].rssi;
+                dataTempEntry.gps_alt = data[i].alt;
+                dataTempEntry.gps_heading = data[i].heading;
+                dataTempEntry.gps_lat = data[i].lat;
+                dataTempEntry.gps_lon = data[i].lon;
+                dataTempEntry.gps_time = data[i].datetime;
+                dataTempEntry.server_time = data[i].datetime;
+                dataTempEntry.vehicle = data[i].serial;
+                dataTempEntry.position_id = data[i].serial + "-" + data[i].datetime;
+                dataTempEntry.data = {};
+                if (data[i].batt) {
+                    dataTempEntry.data.batt = data[i].batt;
+                }
+                if (data[i].burst_timer) {
+                    dataTempEntry.data.burst_timer = data[i].burst_timer;
+                }
+                if (data[i].frequency) {
+                    dataTempEntry.data.burst_timer = data[i].frequency;
+                }
+                if (data[i].humidity) {
+                    dataTempEntry.data.humidity = data[i].humidity;
+                }
+                if (data[i].manufacturer) {
+                    dataTempEntry.data.manufacturer = data[i].manufacturer;
+                }
+                if (data[i].sats) {
+                    dataTempEntry.data.sats = data[i].sats;
+                }
+                if (data[i].temp) {
+                    dataTempEntry.data.temperature_external = data[i].temp;
+                }
+                if (data[i].type) {
+                    dataTempEntry.data.type = data[i].type;
+                    dataTempEntry.type = data[i].type;
+                }
+                if (data[i].pressure) {
+                    dataTempEntry.data.pressure = data[i].pressure;
+                }
+                dataTemp.push(dataTempEntry)
+              }
+            }
+          }
+          response.positions.position = dataTemp;
+          response.fetch_timestamp = Date.now();
+          update(response, "old");
+      }
+    });
+}
 
 function refreshReceivers() {
     // if options to hide receivers is selected do nothing
@@ -2978,6 +3078,9 @@ function stopAjax() {
     if(ajax_positions) ajax_positions.abort();
 
     clearTimeout(periodical_focus);
+    if(ajax_positions_single) ajax_positions_single.abort();
+
+    if(ajax_positions_old) ajax_positions_old.abort();
 
     clearTimeout(periodical_predictions);
     periodical_predictions = null;
@@ -3339,16 +3442,18 @@ function update(response, flag) {
         !response.positions.position ||
         !response.positions.position.length) {
 
-        // if no vehicles are found, this will remove the spinner and put a friendly message
-        $("#main .empty").html("<span>No vehicles :(</span>");
+        if (flag != "old") {
+            // if no vehicles are found, this will remove the spinner and put a friendly message
+            $("#main .empty").html("<span>No vehicles :(</span>");
 
-        if (flag === undefined) {
-            ajax_inprogress = false;
-        } else {
-            ajax_inprogress_single = false;
+            if (flag === undefined) {
+                ajax_inprogress = false;
+            } else {
+                ajax_inprogress_single = false;
+            }
+
+            return;
         }
-
-        return;
     }
 
     ssdv = (!response.ssdv) ? {} : response.ssdv;
@@ -3444,10 +3549,12 @@ function update(response, flag) {
 
           if(periodical_predictions === null) refreshPredictions();
 
-          if (flag === undefined) {
-            ajax_inprogress = false;
-          } else {
-            ajax_inprogress_single = false;
+          if (flag != "old") {
+            if (flag === undefined) {
+                ajax_inprogress = false;
+            } else {
+                ajax_inprogress_single = false;
+            }
           }
         }
     };

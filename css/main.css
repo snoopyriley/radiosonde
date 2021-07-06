@@ -441,6 +441,7 @@ header .search form input[type='submit'] {
     border: 1px solid #ccc;
     cursor: pointer;
     z-index: 5;
+    text-align: center;
 }
 
 #main .row .data .vbutton.active {
