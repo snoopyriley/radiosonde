@@ -2593,6 +2593,8 @@ function refresh() {
 
   if (ajax_inprogress_old == wvar.query) {
     return;
+  } else {
+    document.getElementById("timeperiod").disabled = false;
   }
   
   ajax_inprogress = true;
@@ -2644,7 +2646,9 @@ function refresh() {
         ajax_inprogress = false;
     },
     complete: function(request, textStatus) {
-        document.getElementById("timeperiod").disabled = false;
+        if (ajax_inprogress_old != wvar.query) {
+            document.getElementById("timeperiod").disabled = false;
+        }
         clearTimeout(periodical);
         if (Object.keys(vehicles).length > 1) {
             navigator.setAppBadge(Object.keys(vehicles).length); //show number of vehicles on PWA taskbar
@@ -2708,6 +2712,8 @@ function refreshSingleOld(serial) {
     if(serial == ajax_inprogress_old) {
         return;
     }
+
+    document.getElementById("timeperiod").disabled = true;
   
     var data_url = "https://api.v2.sondehub.org/sonde/" + encodeURIComponent(serial); 
 
