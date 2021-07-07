@@ -23,6 +23,8 @@ var recoveries = [];
 var launches = null;
 var receiverCanvas = null;
 
+var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ"];
+
 var got_positions = false;
 var zoomed_in = false;
 var max_positions = 0; // maximum number of positions that ajax request should return (0 means no maximum)
@@ -2635,7 +2637,11 @@ function refresh() {
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
   if (wvar.query) {
-    var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
+    if (sondePrefix.indexOf(wvar.query) > -1) {
+        var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=";
+    } else {
+        var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
+    }
   } else {
     var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
   }
@@ -2648,15 +2654,19 @@ function refresh() {
     success: function(response, textStatus) {
         $("#stText").text("loading |");
         response.fetch_timestamp = Date.now();
-        if (wvar.query != null) {
+        if (sondePrefix.indexOf(wvar.query) > -1) {
+            update(response);
+        } else if (wvar.query != null) {
             if (JSON.stringify(response).indexOf(wvar.query) == -1) {
                 //check using new API
                 ajax_inprogress = false;
                 refreshSingleOld(wvar.query);
             } else {
+                ajax_inprogress_old = wvar.query;
                 update(response);
             }       
         } else {
+            ajax_inprogress_old = wvar.query;
             update(response);
         }
         $("#stText").text("");
@@ -2742,10 +2752,6 @@ function refreshSingleOld(serial) {
         }
     }
 
-    if (ajax_inprogress_old == serial) {
-        return;
-    }
-
     document.getElementById("timeperiod").disabled = true;
   
     var data_url = "https://api.v2.sondehub.org/sonde/" + encodeURIComponent(serial); 
@@ -2805,6 +2811,9 @@ function refreshSingleOld(serial) {
                 }
                 if (data[i].pressure) {
                     dataTempEntry.data.pressure = data[i].pressure;
+                }
+                if (data[i].xdata) {
+                    dataTempEntry.data.xdata = data[i].xdata;
                 }
                 dataTemp.push(dataTempEntry);
               } else {
@@ -3504,6 +3513,16 @@ function update(response, flag) {
             }
 
             return;
+        }
+    }
+
+    if (sondePrefix.indexOf(wvar.query) > -1) {
+        for (var i = response.positions.position.length - 1; i >= 0; i--) {
+            try {
+                if (!response.positions.position[i].type.includes(wvar.query)) {
+                    response.positions.position.splice(i, 1)
+                }
+            } catch (e) {}
         }
     }
 
