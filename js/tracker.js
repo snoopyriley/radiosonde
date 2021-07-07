@@ -2742,6 +2742,10 @@ function refreshSingleOld(serial) {
         }
     }
 
+    if (ajax_inprogress_old == serial) {
+        return;
+    }
+
     document.getElementById("timeperiod").disabled = true;
   
     var data_url = "https://api.v2.sondehub.org/sonde/" + encodeURIComponent(serial); 
@@ -2760,7 +2764,7 @@ function refreshSingleOld(serial) {
             if (data[i].hasOwnProperty('subtype')) {
               if (data[i].subtype != "SondehubV1") {
                 var dataTempEntry = {};
-                var station = data[i].uploader_callsign
+                var station = data[i].uploader_callsign;
                 dataTempEntry.callsign = {};
                 dataTempEntry.callsign[station] = {};
                 dataTempEntry.callsign[station].snr = data[i].snr;
@@ -2802,13 +2806,38 @@ function refreshSingleOld(serial) {
                 if (data[i].pressure) {
                     dataTempEntry.data.pressure = data[i].pressure;
                 }
-                dataTemp.push(dataTempEntry)
+                dataTemp.push(dataTempEntry);
+              } else {
+                var dataTempEntry = {};
+                var station = data[i].uploader_callsign;
+                dataTempEntry.callsign = {};
+                dataTempEntry.callsign[station] = {};
+                dataTempEntry.gps_alt = parseFloat(data[i].alt);
+                dataTempEntry.gps_lat = parseFloat(data[i].lat);
+                dataTempEntry.gps_lon = parseFloat(data[i].lon);
+                dataTempEntry.gps_time = data[i].time_received;
+                dataTempEntry.server_time = data[i].time_received;
+                dataTempEntry.vehicle = data[i].serial;
+                dataTempEntry.position_id = data[i].serial + "-" + data[i].time_received;
+                dataTempEntry.data = {};
+                if (data[i].humidity) {
+                    dataTempEntry.data.humidity = parseFloat(data[i].humidity);
+                }
+                if (data[i].temp) {
+                    dataTempEntry.data.temperature_external = parseFloat(data[i].temp);
+                }
+                dataTemp.push(dataTempEntry);
               }
             }
           }
           response.positions.position = dataTemp;
           response.fetch_timestamp = Date.now();
-          update(response, "old");
+          if (response.positions.position.length == 0) {
+            update(response);
+          } else {
+            update(response, "old");
+          }
+          
       }
     });
 }
