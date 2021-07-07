@@ -1219,23 +1219,30 @@ function updateVehicleInfo(vcallsign, newPosition) {
     callsign_list = callsign_list.join(", ");
   }
 
+  //desktop
   var a    = '<div class="header">' +
            '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
-           //'<span>' + vcallsign + ' <i class="icon-target"></i></span>' +
            '<canvas class="graph"></canvas>' +
            '<i class="arrow"></i></div>' +
-           '<div class="data" style="min-height:' + (vehicle.image_src_size[1]+95) + 'px">' +
+           '<div class="data">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
            '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">Share</span>' : '') +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">Card</span>' : '') +
-           ((vcallsign in hysplit) ? '<span class="vbutton hysplit '+((hysplit[vcallsign].getMap()) ? 'active' : '')+'"' +
-                ' data-vcallsign="'+vcallsign+'" style="top:'+(vehicle.image_src_size[1]+55+21+10)+'px">HYSPLIT</span>' : '') +
-           ((vcallsign.substr(0, 6) in ssdv) ? '<a class="vbutton active" href="//ssdv.habhub.org/' + vcallsign.substr(0, 6) + '"' +
-                ' target="_blank" style="top:'+(vehicle.image_src_size[1]+55+((vcallsign in hysplit) ? 42 : 21)+10)+'px">SSDV</a>' : '') +
            '<div class="left">' +
            '<dl>';
-  // end
+  //mobile
+  var aa    = '<div class="header">' +
+           '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
+           '<canvas class="graph"></canvas>' +
+           '<i class="arrow"></i></div>' +
+           '<div class="data">' +
+           '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
+           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:55px">Path</span>' +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:85px">Share</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:115px">Card</span>' : '') +
+           '<div class="left">' +
+           '<dl>';
   var b    = '</dl>' +
            '</div>' + // right
            '</div>' + // data
@@ -1268,7 +1275,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '';
 
   // update html
-  $('.portrait .vehicle'+vehicle.uuid).html(a + p + b);
+  $('.portrait .vehicle'+vehicle.uuid).html(aa + p + b);
   $('.landscape .vehicle'+vehicle.uuid).html(a + l + b);
 
   // redraw canvas

@@ -454,14 +454,6 @@ header .search form input[type='submit'] {
     border: 1px solid #5E5E5E;
 }
 
-#main .portrait .row .data .vbutton {
-    top: 50px !important;
-}
-
-#main .portrait .row .data .sbutton {
-    top: 80px !important;
-}
-
 #main .row .data img {
     position: absolute;
     z-index: 2;
@@ -842,7 +834,7 @@ header .search form input[type='submit'] {
     }
     #main .data .left {
         float: left;
-        width: 160px;
+        width: 80%;
         padding-left: 5px;
     }
     #main .data dl > dt {
@@ -878,7 +870,7 @@ header .search form input[type='submit'] {
     }
     #main .data .left {
         float: left;
-        width: 60%;
+        width: 55%;
         padding-left: 5px;
     }
     #main .data .right {
