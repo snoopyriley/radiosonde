@@ -5,7 +5,6 @@
   "theme_color": "#00a3d3",
   "background_color": "#00a3d3",
   "display": "standalone",
-  "orientation": "any",
   "categories": ["utilities"],
   "scope": "/",
   "start_url": "/",
