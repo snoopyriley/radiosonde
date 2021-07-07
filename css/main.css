@@ -323,9 +323,6 @@ header .search form input[type='submit'] {
     border-left: 5px solid #ccc;
 }
 
-#main .vehicle0 .header {
-    border-top: 1px solid #33b5e5;
-}
 #main .header.empty {
     text-align: center;
     width: 100%;
