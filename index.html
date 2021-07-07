@@ -94,17 +94,15 @@
                 You can find the status of the SondeHub Database on the <a href="https://sondehub.org/go/status" target="_blank" rel="noopener">SondeHub Dashboard</a>.<br/>
                 You can view outages of the SondeHub Database at <a href="https://sondehub.statuspage.io/" target="_blank" rel="noopener">SondeHub Status</a>.
 
+                <h4>Info</h4>
+                This site uses data from the <a href="https://github.com/projecthorus/sondehub-infra/wiki" target="_blank" rel="noopener">SondeHub v2</a> database, which will remove the radiosonde  
+                load from the Habitat tracking database.
+
+                <h4>Chase Cars</h4>
+                Chase Cars can show up on the map using this tracker's chase-car features (look for the car icon at top-right) 
+                or upload their position from <a href="https://github.com/projecthorus/chasemapper" target="_blank" rel="noopener">Chasemapper</a> or <a href="https://github.com/dl9rdz/rdz_ttgo_sonde" target="_blank" rel="noopener">rdzTTGOsonde</a>.
+
             </div>
-            <br/>
-            <h2>Under Beta!</h2>
-            <hr/>
-            This site uses data from the <a href="https://github.com/projecthorus/sondehub-infra/wiki" target="_blank" rel="noopener">SondeHub v2</a> database, which will remove the radiosonde  
-            load from the Habitat tracking database. We are still working to being this tracker up to feature-parity with the previous
-            tracker, so some features like filtering by type are still in-progress.
-            <br/><br/>
-            Chase Cars can show up on the map using this tracker's chase-car features (look for the car icon at top-right) 
-            or upload their position from <a href="https://github.com/projecthorus/chasemapper" target="_blank" rel="noopener">Chasemapper</a> or <a href="https://github.com/dl9rdz/rdz_ttgo_sonde" target="_blank" rel="noopener">rdzTTGOsonde</a>.
-            <br/><br/>
             <h2>Contribute</h2>
             <hr/>
             <p>
@@ -366,12 +364,6 @@
     <script type="text/javascript" language="javascript" src="js/Leaflet.fullscreen.min.js"></script>
     <script type="text/javascript" language="javascript" src="js/L.Terminator.js"></script>
     <script src="https://xc5dqkj2cgb1.statuspage.io/embed/script.js" async defer></script>
-    <script type="text/javascript" language="javascript" src="js/mobile.js"></script>
-    <script type="text/javascript" language="javascript" src="js/rbush.js"></script>
-    <script>var module = {};</script>
-    <script src="js/leaflet.canvas-markers.js"></script>
-    <script>module.exports(L);</script>
-    <script type="text/javascript" language="javascript" src="js/pwa.js"></script>
     <!--
     <script type="text/javascript" language="javascript" src="js/iscroll.js"></script>
     <script type="text/javascript" language="javascript" src="js/jquery-1.12.4-min.js"></script>
@@ -379,5 +371,12 @@
     <script type="text/javascript" language="javascript" src="js/tracker.js"></script>
     <script type="text/javascript" language="javascript" src="js/app.js"></script>
     -->
+    <script type="text/javascript" language="javascript" src="js/mobile.js"></script>
+    <script type="text/javascript" language="javascript" src="js/rbush.js"></script>
+    <script>var module = {};</script>
+    <script src="js/leaflet.canvas-markers.js"></script>
+    <script>module.exports(L);</script>
+    <script type="text/javascript" language="javascript" src="js/pwa.js"></script>
+    
     </body>
 </html>

@@ -23,6 +23,8 @@ var recoveries = [];
 var launches = null;
 var receiverCanvas = null;
 
+var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ"];
+
 var got_positions = false;
 var zoomed_in = false;
 var max_positions = 0; // maximum number of positions that ajax request should return (0 means no maximum)
@@ -1219,23 +1221,30 @@ function updateVehicleInfo(vcallsign, newPosition) {
     callsign_list = callsign_list.join(", ");
   }
 
+  //desktop
   var a    = '<div class="header">' +
            '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
-           //'<span>' + vcallsign + ' <i class="icon-target"></i></span>' +
            '<canvas class="graph"></canvas>' +
            '<i class="arrow"></i></div>' +
-           '<div class="data" style="min-height:' + (vehicle.image_src_size[1]+95) + 'px">' +
+           '<div class="data">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
            '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">Share</span>' : '') +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">Card</span>' : '') +
-           ((vcallsign in hysplit) ? '<span class="vbutton hysplit '+((hysplit[vcallsign].getMap()) ? 'active' : '')+'"' +
-                ' data-vcallsign="'+vcallsign+'" style="top:'+(vehicle.image_src_size[1]+55+21+10)+'px">HYSPLIT</span>' : '') +
-           ((vcallsign.substr(0, 6) in ssdv) ? '<a class="vbutton active" href="//ssdv.habhub.org/' + vcallsign.substr(0, 6) + '"' +
-                ' target="_blank" style="top:'+(vehicle.image_src_size[1]+55+((vcallsign in hysplit) ? 42 : 21)+10)+'px">SSDV</a>' : '') +
            '<div class="left">' +
            '<dl>';
-  // end
+  //mobile
+  var aa    = '<div class="header">' +
+           '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
+           '<canvas class="graph"></canvas>' +
+           '<i class="arrow"></i></div>' +
+           '<div class="data">' +
+           '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
+           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:55px">Path</span>' +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:85px">Share</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:115px">Card</span>' : '') +
+           '<div class="left">' +
+           '<dl>';
   var b    = '</dl>' +
            '</div>' + // right
            '</div>' + // data
@@ -1268,7 +1277,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '';
 
   // update html
-  $('.portrait .vehicle'+vehicle.uuid).html(a + p + b);
+  $('.portrait .vehicle'+vehicle.uuid).html(aa + p + b);
   $('.landscape .vehicle'+vehicle.uuid).html(a + l + b);
 
   // redraw canvas
@@ -2628,7 +2637,11 @@ function refresh() {
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
   if (wvar.query) {
-    var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
+    if (sondePrefix.indexOf(wvar.query) > -1) {
+        var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=";
+    } else {
+        var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
+    }
   } else {
     var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
   }
@@ -2641,15 +2654,19 @@ function refresh() {
     success: function(response, textStatus) {
         $("#stText").text("loading |");
         response.fetch_timestamp = Date.now();
-        if (wvar.query != null) {
+        if (sondePrefix.indexOf(wvar.query) > -1) {
+            update(response);
+        } else if (wvar.query != null) {
             if (JSON.stringify(response).indexOf(wvar.query) == -1) {
                 //check using new API
                 ajax_inprogress = false;
                 refreshSingleOld(wvar.query);
             } else {
+                ajax_inprogress_old = wvar.query;
                 update(response);
             }       
         } else {
+            ajax_inprogress_old = wvar.query;
             update(response);
         }
         $("#stText").text("");
@@ -2753,7 +2770,7 @@ function refreshSingleOld(serial) {
             if (data[i].hasOwnProperty('subtype')) {
               if (data[i].subtype != "SondehubV1") {
                 var dataTempEntry = {};
-                var station = data[i].uploader_callsign
+                var station = data[i].uploader_callsign;
                 dataTempEntry.callsign = {};
                 dataTempEntry.callsign[station] = {};
                 dataTempEntry.callsign[station].snr = data[i].snr;
@@ -2795,13 +2812,41 @@ function refreshSingleOld(serial) {
                 if (data[i].pressure) {
                     dataTempEntry.data.pressure = data[i].pressure;
                 }
-                dataTemp.push(dataTempEntry)
+                if (data[i].xdata) {
+                    dataTempEntry.data.xdata = data[i].xdata;
+                }
+                dataTemp.push(dataTempEntry);
+              } else {
+                var dataTempEntry = {};
+                var station = data[i].uploader_callsign;
+                dataTempEntry.callsign = {};
+                dataTempEntry.callsign[station] = {};
+                dataTempEntry.gps_alt = parseFloat(data[i].alt);
+                dataTempEntry.gps_lat = parseFloat(data[i].lat);
+                dataTempEntry.gps_lon = parseFloat(data[i].lon);
+                dataTempEntry.gps_time = data[i].time_received;
+                dataTempEntry.server_time = data[i].time_received;
+                dataTempEntry.vehicle = data[i].serial;
+                dataTempEntry.position_id = data[i].serial + "-" + data[i].time_received;
+                dataTempEntry.data = {};
+                if (data[i].humidity) {
+                    dataTempEntry.data.humidity = parseFloat(data[i].humidity);
+                }
+                if (data[i].temp) {
+                    dataTempEntry.data.temperature_external = parseFloat(data[i].temp);
+                }
+                dataTemp.push(dataTempEntry);
               }
             }
           }
           response.positions.position = dataTemp;
           response.fetch_timestamp = Date.now();
-          update(response, "old");
+          if (response.positions.position.length == 0) {
+            update(response);
+          } else {
+            update(response, "old");
+          }
+          
       }
     });
 }
@@ -3468,6 +3513,16 @@ function update(response, flag) {
             }
 
             return;
+        }
+    }
+
+    if (sondePrefix.indexOf(wvar.query) > -1) {
+        for (var i = response.positions.position.length - 1; i >= 0; i--) {
+            try {
+                if (!response.positions.position[i].type.includes(wvar.query)) {
+                    response.positions.position.splice(i, 1)
+                }
+            } catch (e) {}
         }
     }
 
