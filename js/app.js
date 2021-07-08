@@ -1062,9 +1062,12 @@ $(window).ready(function() {
        wvar.query = text;
        stopFollow();
        zoomed_in = false;
-       wvar.zoom = true;
+       if (sondePrefix.indexOf(wvar.query) > -1) {
+        wvar.zoom = false;
+       } else {
+        wvar.zoom = true;
+       }
 
-       if(text === "") { wvar.mode = null; }
        clean_refresh(wvar.mode, true, true);
    });
 });
