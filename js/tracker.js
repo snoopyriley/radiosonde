@@ -23,7 +23,7 @@ var recoveries = [];
 var launches = null;
 var receiverCanvas = null;
 
-var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ"];
+var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ", "chase"];
 
 var got_positions = false;
 var zoomed_in = false;
@@ -55,7 +55,9 @@ var modeList = [
     "1 hour",
     "3 hours",
     "6 hours",
-    "12 hours"
+    "12 hours",
+    "1 day",
+    "3 days"
 ];
 var modeDefault = "3 hours";
 var modeDefaultMobile = "1 hour";
@@ -2655,6 +2657,7 @@ function refresh() {
         $("#stText").text("loading |");
         response.fetch_timestamp = Date.now();
         if (sondePrefix.indexOf(wvar.query) > -1) {
+            ajax_inprogress_old = "none";
             update(response);
         } else if (wvar.query != null) {
             if (JSON.stringify(response).indexOf(wvar.query) == -1) {
@@ -2666,7 +2669,7 @@ function refresh() {
                 update(response);
             }       
         } else {
-            ajax_inprogress_old = wvar.query;
+            ajax_inprogress_old = "none";
             update(response);
         }
         $("#stText").text("");
@@ -3135,12 +3138,17 @@ function startAjax() {
 function stopAjax() {
     // stop our timed ajax
     clearTimeout(periodical);
+    periodical = null;
+    ajax_inprogress = false;
     if(ajax_positions) ajax_positions.abort();
 
     clearTimeout(periodical_focus);
+    periodical_focus = null;
+    ajax_inprogress_single = false;
     if(ajax_positions_single) ajax_positions_single.abort();
 
     if(ajax_positions_old) ajax_positions_old.abort();
+    ajax_inprogress_old = "none";
 
     clearTimeout(periodical_predictions);
     periodical_predictions = null;
