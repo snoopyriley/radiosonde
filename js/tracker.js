@@ -1232,7 +1232,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
            '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">Share</span>' : '') +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">Card</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">Plot</span>' : '') +
            '<div class="left">' +
            '<dl>';
   //mobile
@@ -1244,7 +1244,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
            '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:55px">Path</span>' +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:85px">Share</span>' : '') +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:115px">Card</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:115px">Plot</span>' : '') +
            '<div class="left">' +
            '<dl>';
   var b    = '</dl>' +
@@ -2624,7 +2624,9 @@ function refresh() {
     }
   }
     
-  document.getElementById("timeperiod").disabled = false;
+  if (ajax_inprogress_old != wvar.query) {
+     document.getElementById("timeperiod").disabled = false;
+  }
   
   ajax_inprogress = true;
 
