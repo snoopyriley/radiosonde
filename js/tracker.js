@@ -2750,9 +2750,7 @@ function refreshSingle(serial, first) {
 function refreshSingleOld(serial) {
 
     if (ajax_inprogress_old == wvar.query) {
-        if (vehicles.hasOwnProperty(wvar.query)) {
-            return;
-        }
+        return;
     }
 
     document.getElementById("timeperiod").disabled = true;
