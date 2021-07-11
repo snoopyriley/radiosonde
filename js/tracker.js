@@ -450,6 +450,10 @@ function load() {
         map.addLayer(launches);
     }
 
+    map.on('moveend', function (e) {
+        lhash_update();
+    });
+
     map.on('baselayerchange', function (e) {
         selectedLayer = e.layer.id;
     });
@@ -496,7 +500,8 @@ function load() {
                 var div = L.DomUtil.create('div');
         
                 div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
-        
+                div.innerHTML.onload = setTimeValue();
+
                 return div;
             },
         
@@ -559,6 +564,12 @@ function load() {
         if(!is_mobile && !offline.get('opt_nowelcome') && $(window).width() > 900) $('.nav li.about').click();
 
     }, 500);
+}
+
+function setTimeValue() {   
+    setTimeout(function() {
+        document.getElementById("timeperiod").value = wvar.mode;
+      }, 100);
 }
 
 function showLaunchSites() {
