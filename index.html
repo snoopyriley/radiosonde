@@ -4,28 +4,24 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <title>SondeHub Tracker</title>
         <meta name="description" content="Live tracking of radiosonde flights. Data via SondeHub v2. Includes weather overlay, predictions, and access to historic radiosonde flights on sondehub." />
-        <meta name="author" content="Rossen Georgiev / Mark Jessop / Michaela Wheeler" />
+        <meta name="author" content="Rossen Georgiev / Mark Jessop / Michaela Wheeler / Luke Prior" />
         <link rel="search" type="application/opensearchdescription+xml" href="opensearchspec.xml" title="Search on Sondebhub Tracker">
         <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1"/>
-        <meta name="apple-mobile-web-app-title" content="Habhub Tracker">
+        <meta name="apple-mobile-web-app-title" content="SondeHub Tracker">
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="theme-color" content="#00a3d3" />
         <link rel="apple-touch-icon" sizes="57x57" href="img/apple-touch-icon.png" />
         <link rel="apple-touch-icon" sizes="72x72" href="img/apple-touch-icon.png" />
         <link rel="apple-touch-icon" sizes="114x114" href="img/apple-touch-icon.png" />
         <link rel="apple-touch-icon" sizes="144x144" href="img/apple-touch-icon.png" />
         <link rel="fluid-icon" href="img/fluidicon.png" title="Mobile Tracker" />
         <link rel="icon" type="image/x-icon" href="favicon.ico" />
-        
-        <!--
-        <link rel="stylesheet" href="css/base.css"/>
-        <link rel="stylesheet" href="css/skeleton.css"/>
-        <link rel="stylesheet" href="css/layout.css"/>
-        <link rel="stylesheet" href="css/habitat-font.css"/>
-        <link rel="stylesheet" href="css/main.css"/>
-        -->
+        <link rel="manifest" href="manifest.json">
         
         <link rel="stylesheet" href="css/mobile.css"/>
+        <link rel="stylesheet" href="css/leaflet.css" />
+        <link rel="stylesheet" href="css/leaflet.fullscreen.css" />
     </head>
     <body>
 
@@ -77,52 +73,46 @@
             <div id="motda">
                 <h4>Radiosondes?</h4>
                 To learn more check out our 
-                <a href="https://www.youtube.com/watch?v=YBy-bXEWZeM" target="_blank">LCA video</a>.
+                <a href="https://www.youtube.com/watch?v=YBy-bXEWZeM" target="_blank" rel="noopener">LCA video</a>.
                                 
                 <h4>How do I receive?</h4>
                 Set up a receiver station using 
-                <a href="https://github.com/projecthorus/radiosonde_auto_rx/wiki" target="_blank">auto_rx</a>.
+                <a href="https://github.com/projecthorus/radiosonde_auto_rx/wiki" target="_blank" rel="noopener">auto_rx</a> or <a href="https://github.com/dl9rdz/rdz_ttgo_sonde" target="_blank" rel="noopener">rdzTTGOsonde</a>.
                 <br/>
-                <b>Note that you must be running at least <a href="https://github.com/projecthorus/radiosonde_auto_rx/releases" target="_blank">v1.5.1</a> to show up on Sondehub v2!</b>
                 
                 <h4>Recovered a Sonde?</h4>
                 Click the 'car' icon on the top-right to submit a recovery notification.
 
                 <h4>Support Us!</h4>
-                Google Maps and AWS hosting unfortunately does not come cheap. If you're seeing a greyed out map, that's because we've exceeded our free Google Maps page loads. <br/>
-                If you use SondeHub regularly, please consider <a href="https://www.patreon.com/sondehub" target="_blank">supporting us on Patreon</a>, or with a <a href="https://sondehub.org/go/donate" target="_blank">donation on Paypal</a>.
+                AWS hosting unfortunately does not come cheap. 
+                If you use SondeHub regularly, please consider <a href="https://www.patreon.com/sondehub" target="_blank" rel="noopener">supporting us on Patreon</a>, or with a <a href="https://sondehub.org/go/donate" target="_blank" rel="noopener">donation on Paypal</a>.
 
                 <h4>Amateur HAB Launches?</h4>
-                You can find Amateur High-Altitude Balloon launches on the <a href="https://tracker.habhub.org/" target="_blank">HabHub Tracker</a>.
+                You can find Amateur High-Altitude Balloon launches on the <a href="https://tracker.habhub.org/" target="_blank" rel="noopener">HabHub Tracker</a>.
                 
-                <h4>SondeHub Status Page</h4>
-                You can find the status of the SondeHub Database on the <a href="https://sondehub.org/go/status" target="_blank">SondeHub Status Page</a>.
+                <h4>SondeHub Status Pages</h4>
+                You can find the status of the SondeHub Database on the <a href="https://sondehub.org/go/status" target="_blank" rel="noopener">SondeHub Dashboard</a>.<br/>
+                You can view outages of the SondeHub Database at <a href="https://sondehub.statuspage.io/" target="_blank" rel="noopener">SondeHub Status</a>.
+
+                <h4>Info</h4>
+                This site uses data from the <a href="https://github.com/projecthorus/sondehub-infra/wiki" target="_blank" rel="noopener">SondeHub v2</a> database, which will remove the radiosonde  
+                load from the Habitat tracking database.
+
+                <h4>Chase Cars</h4>
+                Chase Cars can show up on the map using this tracker's chase-car features (look for the car icon at top-right) 
+                or upload their position from <a href="https://github.com/projecthorus/chasemapper" target="_blank" rel="noopener">Chasemapper</a> or <a href="https://github.com/dl9rdz/rdz_ttgo_sonde" target="_blank" rel="noopener">rdzTTGOsonde</a>.
 
             </div>
-            <br/>
-            <h2>Under Beta!</h2>
-            <hr/>
-            Welcome to the new SondeHub Tracker v2!
-            <br/>
-            This site uses data from the <a href="https://github.com/projecthorus/sondehub-infra/wiki" target="_blank">SondeHub v2</a> database, which will remove the radiosonde  
-            load from the Habitat tracking database. We are still working to being this tracker up to feature-parity with the previous
-            tracker, so some features like filtering by serial and type are still in-progress.
-            <br/>
-            Chase Cars can show up on the map using this tracker's chase-car features (look for the car icon at top-right) 
-            or upload their position from <a href="https://github.com/projecthorus/chasemapper" target="_blank">Chasemapper</a>.
-            <br/>
-            Please be patient as we work to build up the feature set, and expect some bugs!
-            <br/>
             <h2>Contribute</h2>
             <hr/>
             <p>
                 Did you know the tracker is open-source? Check it out on
-                <a href="https://github.com/projecthorus/sondehub-tracker" target="_blank">github/sondehub-tracker</a>.
+                <a href="https://github.com/projecthorus/sondehub-tracker" target="_blank" rel="noopener">github/sondehub-tracker</a>.
                 Bug reports, suggestions and pull requests are welcome. 
-                <br/>
+                <br/><br/>
                 A huge thanks to RGP for developing the mobile tracker that this site is based on.
-                <br/>
-                You can also find us on IRC in <a href="https://kiwiirc.com/nextclient/irc.libera.chat/highaltitude" target="_blank">#highaltitude</a> at <b>libera.chat</b>.
+                <br/><br/>
+                You can also find us on IRC in <a href="https://kiwiirc.com/nextclient/irc.libera.chat/highaltitude" target="_blank" rel="noopener">#highaltitude</a> at <b>libera.chat</b>.
             </p>
         </div>
     </div>
@@ -193,6 +183,13 @@
                     <input type="checkbox" id="opt_hide_horizon">
                 </div>
             </div>
+            <div class="row option">
+                <span><b>Hide Titles</b></span>
+                <div class="switch off" id="sw_hide_titles">
+                    <span class="thumb"></span>
+                    <input type="checkbox" id="opt_hide_titles">
+                </div>
+            </div>
             <h4>Overlays</h4>
             <hr/>
             <div class="row option">
@@ -205,26 +202,14 @@
             <h4>Other</h4>
             <hr/>
             <div class="row option">
-                <span><b>Availability offline</b></span>
-                <div class="switch off" id="sw_offline">
+                <span><b>Show Launch Sites</b></span>
+                <div class="switch off" id="sw_layers_launches">
                     <span class="thumb"></span>
-                    <input type="checkbox" id="opt_offline">
+                    <input type="checkbox" id="opt_layers_launches">
                 </div>
             </div>
             <div class="row option">
-                <span><b>Mobile station</b></span>
-                <div class="switch off" id="sw_station">
-                    <span class="thumb"></span>
-                    <input type="checkbox" id="opt_station">
-                </div>
-            </div>
-            <div class="row info">
-                <span>
-                Chase car equipped with radio receiver
-                </span>
-            </div>
-            <div class="row option">
-                <span><b>Force check for new  version</b></span>
+                <span><b>Force check for new version</b></span>
                 <div class="switch off" id="sw_cache">
                     <span class="thumb"></span>
                     <input type="checkbox" id="opt_cache">
@@ -247,7 +232,7 @@
                 </svg>
             </h2>
             <hr>
-            <p>Here you can access various weather overlays. This an <b>experimental feature</b>. Mobile users be aware that this can quickly eat your data allowance.</p>
+            <p>Here you can access various weather overlays.</p>
         </div>
     </div>
     <div id="chasecarbox" style="display: none" class="flatpage">
@@ -266,7 +251,7 @@
                 <span class="r"><input type="text" id="cc_callsign" style="width: 140px;"/></span>
             </div>
             <div class="row">
-                <span><b>Notice: If you enable this, your location will be uploaded to habitat; making it publicly visible on the map.</b></span>
+                <span><b>Notice: If you enable this, your location will be uploaded to SondeHub; making it publicly visible on the map.</b></span>
             </div>
             <hr>
             <div class="row">
@@ -374,34 +359,24 @@
         </div>
     </div>
     <!-- Was 3.31-->
-    <script src="https://maps.google.com/maps/api/js?v=3.44&libraries=map,common,controls,util,marker,onion,kml,ga,infowindow,stats,poly,overlay,weather,weather_impl,geometry&language=en_us&key=AIzaSyCiFklq0gbg7DqUn81NqYBN17bwgK4YFf0" type="text/javascript"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <script type="text/javascript" language="javascript" src="js/mobile.js"></script>
-    <script src="https://xc5dqkj2cgb1.statuspage.io/embed/script.js"></script>
+    <script type="text/javascript" language="javascript" src="js/leaflet.js"></script>
+    <script type="text/javascript" language="javascript" src="js/Leaflet.fullscreen.min.js"></script>
+    <script type="text/javascript" language="javascript" src="js/L.Terminator.js"></script>
+    <script src="https://xc5dqkj2cgb1.statuspage.io/embed/script.js" async defer></script>
     <!--
-    <script type="text/javascript" language="javascript" src="js/gmaps_extentions.js"></script>
+    <script type="text/javascript" language="javascript" src="js/iscroll.js"></script>
     <script type="text/javascript" language="javascript" src="js/jquery-1.12.4-min.js"></script>
     <script type="text/javascript" language="javascript" src="js/chasecar.lib.js"></script>
-    <script type="text/javascript" language="javascript" src="js/iscroll.js"></script>
-    <script type="text/javascript" language="javascript" src="js/nite-overlay.js"></script>
     <script type="text/javascript" language="javascript" src="js/tracker.js"></script>
     <script type="text/javascript" language="javascript" src="js/app.js"></script>
     -->
-
-    <!--
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-38761552-1']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-
-    </script>
-    -->
+    <script type="text/javascript" language="javascript" src="js/mobile.js"></script>
+    <script type="text/javascript" language="javascript" src="js/rbush.js"></script>
+    <script>var module = {};</script>
+    <script src="js/leaflet.canvas-markers.js"></script>
+    <script>module.exports(L);</script>
+    <script type="text/javascript" language="javascript" src="js/pwa.js"></script>
+    
     </body>
 </html>

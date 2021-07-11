@@ -67,28 +67,21 @@ function updateLegend(pos) {
         legend.eq(i).text(series.label.replace(/=.*/, "= " + y));
     }
 
-    if(!polyMarker) {
-        polyMarker = new google.maps.Marker({
-            clickable: true,
-            flat: true,
-            map: map,
-            visible: true,
-            icon: null
-        });
-        google.maps.event.addListener(polyMarker, 'click', function() { mapInfoBox_handle_path({latLng: this.getPosition()}); });
-    }
-
-    // this loop finds an existing data point, so we can get coordinates
-    // if the crosshair happens to be over null area, we snap to the previous data point
-    //
-    // to snap accurate to the corresponding LatLng, we need to count the number of null data points
-    // then we remove them form the count and we get the index we need for the positions array
     if(follow_vehicle !== null && vehicles[follow_vehicle].positions.length) {
         // adjust index for null data points
         var null_count = 0;
 
+        if (!map.hasLayer(polyMarker) && polyMarker) {
+            map.addLayer(polyMarker);
+        }
+
         if(outside && pij !== undefined) {
-            polyMarker.setPosition(vehicles[follow_vehicle].prediction_polyline.getPath().getArray()[pij]);
+            if(!polyMarker) {
+                try {polyMarker = new L.Marker(vehicles[follow_vehicle].prediction_polyline.getLatLngs()[pij]).addTo(map);} catch (e) {};
+            } else {
+                try {polyMarker.setLatLng(vehicles[follow_vehicle].prediction_polyline.getLatLngs()[pij]);} catch (e) {};
+            }
+            
         }
         else {
             var data_ref = vehicles[follow_vehicle].graph_data[0];
@@ -105,15 +98,15 @@ function updateLegend(pos) {
             ij -= null_count + ((null_count===0||null_count===data_ref.nulls) ? 0 : 1);
             if(ij < 0) ij = 0;
 
-            polyMarker.setPosition(vehicles[follow_vehicle].positions[ij]);
+            if(!polyMarker) {
+                try {polyMarker = new L.Marker(vehicles[follow_vehicle].positions[ij]).addTo(map);} catch (e) {};
+            } else {
+                try {polyMarker.setLatLng(vehicles[follow_vehicle].positions[ij]);} catch (e) {};
+            }
         }
 
-        // adjust nite overlay
-        var date = new Date(pos.x1);
-
-        nite.setDate(date);
-        nite.refresh();
         // set timebox
+        var date = new Date(pos.x1);
         $('#timebox').removeClass('present').addClass('past');
         updateTimebox(date);
     }

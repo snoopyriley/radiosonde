@@ -20,6 +20,11 @@ var receivers = [];
 var recovery_names = [];
 var recoveries = [];
 
+var launches = null;
+var receiverCanvas = null;
+
+var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ", "chase"];
+
 var got_positions = false;
 var zoomed_in = false;
 var max_positions = 0; // maximum number of positions that ajax request should return (0 means no maximum)
@@ -43,13 +48,16 @@ var layer_clouds = null;
 
 var notamOverlay = null;
 
+var svgRenderer = L.svg();
+
 var modeList = [
 //    "Position",
     "1 hour",
     "3 hours",
     "6 hours",
     "12 hours",
-    "1 day"
+    "1 day",
+    "3 days"
 ];
 var modeDefault = "3 hours";
 var modeDefaultMobile = "1 hour";
@@ -112,41 +120,23 @@ var plot_options = {
     ]
 };
 
-// aprs overlay
-var overlayAPRS = new google.maps.ImageMapType({
-    getTileUrl: function(coord, zoom) {
-        var n = Math.pow(2,zoom);
-        return (coord.y<0 || coord.y>=n || zoom > 6) ? null : "http://" +
-                                                              ['a','b','c'][Math.abs(coord.x+coord.y)%3] +
-                                                              ".tiles.tracker.habhub.org/aprs/tile_" +
-                                                              zoom + "_" +
-                                                              wrapTiles(coord.x,zoom) + "_" +
-                                                              coord.y + ".png";
-    },
-    tileSize: new google.maps.Size(256,256)
+// aprs overlay (not used)
+var overlayARPS = new L.tileLayer('http://{s}.tiles.tracker.habhub.org/aprs/tile_{z}_{x}_{y}.png', {
+	subdomains: 'abc',
+    maxZoom: 6,
+    attribution: '&copy; <a href="https://tracker.habhub.org/">HabHub</a>'
 });
 
-// weather
-var weatherOverlayId = "nexrad-n0q-900913";
-var weatherOverlay = new google.maps.ImageMapType({
-    getTileUrl: function(tile, zoom) {
-        return "http://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/"+weatherOverlayId+"/" + zoom + "/" + tile.x + "/" + tile.y +".png";
-    },
-    tileSize: new google.maps.Size(256, 256),
-    opacity:0.8,
-    isPng: true
+//Global Precipitation Weather
+var RainRadar = new L.tileLayer('https://tilecache.rainviewer.com/v2/radar/' + (Math.floor(new Date().getTime() / 600000) * 600) + '/512/{z}/{x}/{y}/1/1_0.png', {
+    opacity: 0.6,
+    attribution: '&copy; <a href="https://www.rainviewer.com/sources.html">RainViewer</a> sources'
 });
 
-var weatherImageOverlayList = {
-    'nrl-global-cloudtop': ['http://www.nrlmry.navy.mil/archdat/global/stitched/cloudtop/LATEST.jpg', [[-76, -179.9999], [76, 179.75]]],
-    'nrl-global-ir': ['http://www.nrlmry.navy.mil/archdat/global/stitched/ir/LATEST.jpg', [[-65, -179.9999], [65, 179.75]]],
-    'nrl-global-vapor': ['http://www.nrlmry.navy.mil/archdat/global/stitched/vapor/LATEST.jpg', [[-65, -179.9999], [65, 179.75]]],
-    'meteosat-Odeg-MPE': ['http://oiswww.eumetsat.int/IPPS/html/GE/MET0D/GE_MET0D_VP-MPE.png', [[-57.492200, -57.492200], [57.492200, 57.492200]]],
-    'meteosat-iodc-MPE': ['http://oiswww.eumetsat.int/IPPS/html/GE/IODC/GE_IODC_VP-MPE.png', [[-59.7901, -2.7919], [59.7901, 116.7913]]]
-};
-
-var weatherImageOverlay = new google.maps.GroundOverlay();
-var weatherGoogleRadar = new google.maps.KmlLayer({url:'http://mw1.google.com/mw-weather/radar/root.kmz', preserveViewport: true});
+var RainRadarCoverage = new L.tileLayer('https://tilecache.rainviewer.com/v2/coverage/0/512/{z}/{x}/{y}/0/0_0.png', {
+    opacity: 0.6,
+    attribution: '&copy; <a href="https://www.rainviewer.com/sources.html">RainViewer</a>'
+});
 
 var offline = {
     get: function(key) {
@@ -250,63 +240,65 @@ function makeQuad(x, y, zoom) {
     return quad;
 }
 
-// wraps tiles horizontally, returns x
-function wrapTiles(x, zoom) {
-    var n = Math.pow(2,zoom);
-    return (x<0) ? (n+(x%n))%n : x%n;
+// map type list
+
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	maxZoom: 19,
+	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+osm.id="Mapnik";
+
+var dark_matter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+    minZoom: 1,
+    maxZoom: 19,
+});
+dark_matter.id="DarkMatter";
+
+var worldimagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});
+worldimagery.id="WorldImagery";
+
+var stamen_terrain = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.png', {
+	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	subdomains: 'abcd',
+	minZoom: 0,
+	maxZoom: 18,
+});
+stamen_terrain.id="Terrain";
+
+var cartodb_voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+	subdomains: 'abcd',
+	maxZoom: 19
+});
+cartodb_voyager.id="Voyager";
+
+var opentopomap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+	maxZoom: 17,
+	attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+});
+opentopomap.id = "OpenTopoMap";
+
+//not used
+var getlost = L.tileLayer('https://live.getlost.com.au/{z}/{x}/{y}.jpg', {
+	attribution: '&copy; <a href="https://www.getlost.com.au/current-map-information/">Getlost Maps</a>',
+	minZoom: 4,
+	maxZoom: 16,
+});
+getlost.id = "GetLost";
+
+var baseMaps = {
+    "Mapnik": osm,
+    "DarkMatter": dark_matter,
+    "WorldImagery": worldimagery,
+    "Terrain": stamen_terrain,
+    "Voyager": cartodb_voyager,
+    "OpenTopoMap": opentopomap,
 }
 
-// map type list
-// format: [ name, attr, minZoom, maxZoom, getTileUrl function ]
-var maptypes = {
-    bing_os: [
-        'Ord. Survey',
-        'Bing.com & Ordnance Survey',
-         10,
-         17,
-         function(xy,z) { return 'http://ecn.t'+((Math.abs(xy.x+xy.y)%3)+1)+'.tiles.virtualearth.net/tiles/r'+makeQuad(xy.x, xy.y, z)+'?g=3483&productSet=mmOS&key=AhN7I60Jff9-gQEnDk6CORUyr66zjb5LFc0zS0KPsEIfaDRAVVIeDvk1H6jUx25l'; }
-    ],
-    osm: [
-        'OSM',
-        'OpenStreetMaps.org',
-         1,
-         19,
-         function(xy,z) { var n = Math.pow(2,z); return (xy.y<0 || xy.y>=n) ? null : 'http://'+['a','b','c'][Math.abs(xy.x+xy.y)%3]+'.tile.openstreetmap.org/'+z+'/'+wrapTiles(xy.x,z)+'/'+xy.y+'.png'; }
-    ],
-    dark_matter: [
-        'Dark Matter',
-        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-         1,
-         19,
-         function(xy,z) { var n = Math.pow(2,z); return (xy.y<0 || xy.y>=n) ? null : 'http://'+['a','b','c'][Math.abs(xy.x+xy.y)%3]+'.basemaps.cartocdn.com/dark_all/'+z+'/'+wrapTiles(xy.x,z)+'/'+xy.y+'.png'; }
-    ],
-    osm_toner: [
-        'Toner',
-        'Stamen.org Toner',
-         1,
-         18,
-         function(xy,z) { var n = Math.pow(2,z); return (xy.y<0 || xy.y>=n) ? null : 'http://'+['a','b','c','d'][Math.abs(xy.x+xy.y)%4]+'.tile.stamen.com/toner/'+z+'/'+wrapTiles(xy.x,z)+'/'+xy.y+'.png'; }
-    ],
-    osm_watercolor: [
-        'Watercolor',
-        'Stamen.org Watercolor',
-         1,
-         18,
-         function(xy,z) { var n = Math.pow(2,z); return (xy.y<0 || xy.y>=n) ? null : 'http://'+['a','b','c','d'][Math.abs(xy.x+xy.y)%4]+'.tile.stamen.com/watercolor/'+z+'/'+wrapTiles(xy.x,z)+'/'+xy.y+'.png'; }
-    ],
-    getlost: [
-        'GetLost',
-        '&copy; <a href="https://www.getlost.com.au/current-map-information/">Getlost Maps</a>',
-         2,
-         16,
-         function(xy,z) { var n = Math.pow(2,z); return (xy.y<0 || xy.y>=n) ? null : 'http://live.getlost.com.au/'+z+'/'+wrapTiles(xy.x,z)+'/'+xy.y+'.jpg'; }
-    ],
-};
-
-// generate a list of names for the UI
-var maptype_ids = ["roadmap","satellite","terrain"];
-for(var i in maptypes) maptype_ids.push(i);
-
+var selectedLayer = "Mapnik";
 
 // mousemove event throttle hack for smoother maps pan on firefox and IE
 // taken from: http://stackoverflow.com/questions/22306130/how-to-limit-google-maps-api-lag-when-panning-the-map-with-lots-of-markers-and-p
@@ -343,30 +335,28 @@ function clean_refresh(text, force, history_step) {
     history_step = !!history_step;
 
     if(text == wvar.mode && !force) return false;
-    if(ajax_inprogress) return false;
-
     stopAjax();
 
     // reset mode if, invalid mode is specified
     if(modeList.indexOf(text) == -1) text = (is_mobile) ? modeDefaultMobile : modeDefault;
 
     wvar.mode = text;
-    tmpC.select(text);
+    document.getElementById("timeperiod").value = text;
+    document.getElementById("timeperiod").disabled = true;
 
     position_id = 0;
 
-    mapInfoBox.close();
+    map.removeLayer(mapInfoBox);
 
     // clear vehicles
     var callsign;
     for(callsign in vehicles) {
-        removePrediction(callsign);
         vehicles[callsign].kill();
     }
 
     // clear hysplit
     for(callsign in hysplit) {
-        hysplit[callsign].setMap(null);
+        map.removeLayer(hysplit[callsign]);
     }
 
     car_index = 0;
@@ -385,6 +375,7 @@ function clean_refresh(text, force, history_step) {
     lhash_update(history_step);
 
     clearTimeout(periodical);
+    clearTimeout(periodical_focus);
     clearTimeout(periodical_receivers);
     clearTimeout(periodical_recoveries);
 
@@ -393,115 +384,144 @@ function clean_refresh(text, force, history_step) {
     return true;
 }
 
-var tmpC;
-
 function load() {
     //initialize map object
-    map = new google.maps.Map(document.getElementById('map'), {
+    map = new L.map(document.getElementById('map'), {
         zoom: 5,
-        center: new google.maps.LatLng(53.467511,-2.2338940),
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
-        mapTypeControlOptions: {
-            mapTypeIds: maptype_ids,
-            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
-        },
-        gestureHandling: 'greedy',
-        keyboardShortcuts: false,
-        streetViewControl: false,
-        rotateControl: false,
-        panControl: false,
-        scaleControl: true,
-        zoomControl: true,
-        zoomControlOptions: {
-            style: google.maps.ZoomControlStyle.DEFAULT
-        },
-        fullscreenControl: true,
-        fullscreenControlOptions: {
-            position: google.maps.ControlPosition.LEFT_BOTTOM
-        },
-        scrollwheel: true
+        zoomControl: false,
+        center: [53.467511,-2.2338940],
+        layers: [osm],
+        preferCanvas: true,
     });
 
-    if(window.performance && window.performance.now && window.navigator.userAgent.indexOf("Firefox") != -1) {
-        document.getElementById('map').addEventListener("mousemove", throttle_events, true);
+    // fullscreen button
+    map.addControl(new L.Control.Fullscreen({ position: 'bottomleft' }));
+
+    // scale (would be better if integrated into attirbution bar)
+    L.control.scale({position:'bottomright', imperial:false}).addTo(map);
+
+    // zoom controls
+    new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
+
+    // map selector
+    layers = L.control.layers(baseMaps, null, {position: "topleft"}).addTo(map);
+
+    // update time div
+    L.Control.Status = L.Control.extend({
+        onAdd: function(map) {
+            var div = L.DomUtil.create('div');
+    
+            div.innerHTML = "<span id='stText'></span><span> Updated: </span><i class='friendly-dtime' id='stTimer'>never</i>";
+            div.style = "opacity: 0.7; background-color: rgb(245, 245, 245); padding-right: 6px; padding-left: 6px; font-family: Roboto, Arial, sans-serif; color: rgb(68, 68, 68);";
+    
+            return div;
+        },
+    
+        onRemove: function(map) {
+            // Nothing to do here
+        }
+    });
+    
+    L.control.status = function(opts) {
+        return new L.Control.Status(opts);
     }
-
-    // register custom map types
-    for(var i in maptypes) {
-        map.mapTypes.set(i, new google.maps.ImageMapType({
-            name: maptypes[i][0],
-            minZoom: maptypes[i][2],
-            maxZoom: maptypes[i][3],
-            getTileUrl: maptypes[i][4],
-            tileSize: new google.maps.Size(256, 256),
-        }));
-    }
-
-    var customTileAttr = new google.maps.StatusTextControl({
-        text: '',
-        map: map,
-        position: google.maps.ControlPosition.BOTTOM_RIGHT,
-    });
-
-    google.maps.event.addListener(map, 'maptypeid_changed', function() {
-        var id = this.getMapTypeId();
-        customTileAttr.setText((id in maptypes) ? maptypes[id][1] : '');
-    });
+    
+    L.control.status({ position: 'bottomright' }).addTo(map);
 
     // update current position if we geolocation is available
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
+    //Receiver canvas
+    receiverCanvas = new L.canvasIconLayer();
+    receiverCanvas.addTo(map);
+    
     // initalize nite overlay
-    nite.init(map);
-    if(!offline.get('opt_daylight')) nite.hide();
-    setInterval(function() { nite.refresh(); }, 30000); // 30s
-
-    // we need a dummy overlay to access getProjection()
-    overlay = new google.maps.OverlayView();
-    overlay.draw = function() {};
-    overlay.setMap(map);
-
-    // status message boxes
-    var statusElm = new google.maps.StatusTextControl({
-        map: map,
-        position: google.maps.ControlPosition.RIGHT_BOTTOM,
-        text: "<span id='stText'></span><span> Updated: </span><i class='friendly-dtime' id='stTimer'>never</i>"
+    nite = new L.terminator({ 
+        renderer: svgRenderer,
+        interactive: false,
     });
 
+    if (offline.get("opt_daylight")) {
+        map.addLayer(nite);
+    }
 
-    google.maps.event.addListener(map, 'zoom_changed', function() {
+    if (offline.get("opt_layers_launches")) {
+        showLaunchSites();
+        map.addLayer(launches);
+    }
+
+    map.on('baselayerchange', function (e) {
+        selectedLayer = e.layer.id;
+    });
+
+    map.on('zoomend', function() {
+        //do check for horizon labels
+        if (!offline.get("opt_hide_horizon")) {
+            for (key in vehicles) {
+                if (vehicles[key]["vehicle_type"] == "balloon") {
+                    if (vehicles[key]["horizon_circle"]["_map"]) 
+                    {
+                        try {
+                            var zoom = map.getZoom();
+                            var horizonzoom = (Math.abs(Math.log(vehicles[key]["horizon_circle"].getRadius()/2000000)/0.75));
+                            var subhorizonzoom = (Math.abs(Math.log(vehicles[key]["subhorizon_circle"].getRadius()/2000000)/0.75));
+                            if (horizonzoom > zoom) {
+                                map.removeLayer(vehicles[key]["horizon_circle_title"]);
+                            } else {
+                                map.addLayer(vehicles[key]["horizon_circle_title"]);
+                            }
+                            if (subhorizonzoom > zoom) {
+                                map.removeLayer(vehicles[key]["subhorizon_circle_title"]);
+                            } else {
+                                map.addLayer(vehicles[key]["subhorizon_circle_title"]);
+                            }
+                        } catch(e){};
+                    }
+                }
+            }
+        }
         updateZoom();
     });
 
-    google.maps.event.addListener(map, 'dragstart', function() {
+    map.on('movestart', function() {
         if(!wvar.embeded) manual_pan = true;
     });
 
     // only start population the map, once its completely loaded
-    google.maps.event.addListenerOnce(map, 'idle', function(){
+    var callBack = function() {
         load_hash(null);
 
-        // initialize period menu
-        tmpC = new google.maps.DropDownControl({
-            map: map,
-            title: "Show activity for given period",
-            //position: google.maps.ControlPosition.TOP_RIGHT,
-            position: google.maps.ControlPosition.LEFT_TOP,
-            headerPrefix: "Last: ",
-            list: modeList,
-            listDefault: modeList.indexOf(wvar.mode),
-            callback: clean_refresh,
+        L.Control.PeriodControl = L.Control.extend({
+            onAdd: function(map) {
+                var div = L.DomUtil.create('div');
+        
+                div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
+        
+                return div;
+            },
+        
+            onRemove: function(map) {
+                // Nothing to do here
+            }
         });
 
-        google.maps.event.addListener(map, 'idle', function() {
+        L.control.periodcontrol = function(opts) {
+            return new L.Control.PeriodControl(opts);
+        }
+        
+        L.control.periodcontrol({ position: 'topleft' }).addTo(map);
+
+        map.on('idle', function() {
             lhash_update();
         });
-        google.maps.event.addListener(map, 'maptypeid_changed', function() {
+        map.on('baselayerchange', function() {
             lhash_update();
         });
 
         startAjax();
-    });
+    };
+
+    map.whenReady(callBack);
 
     // animate-in the timebox,
     setTimeout(function() {
@@ -539,9 +559,59 @@ function load() {
         if(!is_mobile && !offline.get('opt_nowelcome') && $(window).width() > 900) $('.nav li.about').click();
 
     }, 500);
+}
 
-    // load if aprs layer, if selected
-    if(offline.get('opt_layers_aprs')) map.overlayMapTypes.setAt("1", overlayAPRS);
+function showLaunchSites() {
+    if (!launches) {
+        launches = new L.layerGroup([], {attribution: "© <a href='https://github.com/rs1729/RS/issues/15' target='_blank' rel='noopener'>rs1729</a>"});
+        $.getJSON("launchSites.json", function(json) {
+            for (var key in json) {
+                if (json.hasOwnProperty(key)) {
+                    var latlon = [json[key].lat, json[key].lon];
+                    var sondes = json[key].rs_types.toString();
+                    sondes = sondes.replace(new RegExp("\\b07\\b"), "iMet-1 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b11\\b"), "LMS6-403 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b13\\b"), "RS92 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b14\\b"), "RS92 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b17\\b"), "DFM-09 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b19\\b"), "MRZ-N1 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b21\\b"), "RS-11G (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b22\\b"), "RS-11G (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b23\\b"), "RS41 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b24\\b"), "RS41 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b34\\b"), "iMet-4 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b35\\b"), "iMS-100 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b41\\b"), "RS41 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b42\\b"), "RS41 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b52\\b"), "RS92-NGP (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b54\\b"), "DFM-17 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b62\\b"), "MRZ-3MK (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b63\\b"), "M20 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b77\\b"), "M10 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b82\\b"), "LMS6-1680 (possible to track)");
+                    sondes = sondes.replace(new RegExp("\\b84\\b"), "iMet-54 (possible to track)");
+                    var marker = new L.circleMarker(latlon, {color: 'black', radius: 8});
+                    var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes);
+                    marker.bindPopup(popup);
+                    launches.addLayer(marker);
+                }
+            }
+        });
+    }
+}
+
+function shareVehicle(callsign) {
+    const shareData = {
+        title: 'SondeHub: ' + vehicles[callsign].marker.options.title + ' Flight Information',
+        text: 'You can view the flight path and sensor data for ' + vehicles[callsign].marker.options.title + ' on the SondeHub tracker!',
+        url: window.location.origin + '/' + callsign,
+    }
+    try {
+        navigator.share(shareData);
+    } catch (e) {
+        console.log("Error sharing: " + e);
+    }
+    
 }
 
 function panTo(vcallsign) {
@@ -551,9 +621,27 @@ function panTo(vcallsign) {
     update_lookangles(vcallsign);
 
     // pan map
-    //if(vehicles[vcallsign].marker_shadow) map.panTo(vehicles[vcallsign].marker_shadow.getPosition());
-    //else map.panTo(vehicles[vcallsign].marker.getPosition());
-    map.panTo(vehicles[vcallsign].marker.getPosition());
+    if (map.getZoom() > 10) {
+        map.setView(vehicles[vcallsign].marker.getLatLng());
+    } else {
+        map.setView(vehicles[vcallsign].marker.getLatLng(), 10);
+    }
+}
+
+function panToRecovery(rcallsign) {
+    if(offline.get('opt_hide_recoveries')) alert("Recovered Sonde Hidden, enable in settings");
+    //if mobile close panel
+    if (is_mobile) {
+        $('.flatpage, #homebox').hide();
+    }
+    for (let i = 0; i < recoveries.length; i++) {
+        if (recoveries[i].hasOwnProperty('serial')) {
+            if (recoveries[i]['serial'] == rcallsign) {
+                //pan map
+                map.setView(recoveries[i]['marker'].getLatLng(), 10);
+            }
+        }
+    }
 }
 
 function title_case(s) {
@@ -711,7 +799,7 @@ function updateAltitude(vcallsign) {
   var position = vehicle.curr_position;
 
   if(vehicle.marker.mode == 'landed') {
-      vehicle.marker.setPosition(vehicle.marker.getPosition());
+      vehicle.marker.setLatLng(vehicle.marker.getLatLng());
       return;
   }
 
@@ -724,7 +812,6 @@ function updateAltitude(vcallsign) {
   } else if(position.gps_alt > 55000) {
     position.gps_alt = 55000;
   }
-  vehicle.marker.setAltitude(pixel_altitude);
 }
 
 function updateZoom() {
@@ -734,11 +821,11 @@ function updateZoom() {
         if(vehicle.vehicle_type == "balloon") {
           updateAltitude(vcallsign);
         } else {
-            vehicle.marker.setPosition(vehicle.marker.getPosition());
+            vehicle.marker.setLatLng(vehicle.marker.getLatLng());
         }
 
         if(vehicle.marker_shadow)
-            vehicle.marker_shadow.setPosition(vehicle.marker_shadow.getPosition());
+            vehicle.marker_shadow.setLatLng(vehicle.marker_shadow.getLatLng());
     }
 }
 
@@ -746,7 +833,7 @@ var los_polylines = [];
 
 function drawLOSPaths(vcallsign) {
     los_polylines.forEach(function(polyline) {
-        polyline.setMap(null);
+        polyline.remove(map);
     });
     los_polylines = [];
 
@@ -771,24 +858,20 @@ function drawLOSPaths(vcallsign) {
         if(r_index === -1) return;
 
         var path = [
-            vehicle.marker_shadow.getPosition(),
-            receivers[r_index].marker.getPosition(),
+            vehicle.marker_shadow.getLatLng(),
+            receivers[r_index].marker.getLatLng(),
         ];
 
-        var p = new google.maps.Polyline({
-            map: map,
-            path: path,
-            zIndex: Z_PATH,
-            strokeColor: '#0F0',
-            strokeOpacity: 0.8,
-            strokeWeight: 3,
-            clickable: true,
-            draggable: false,
-            geodesic: true
-        });
-        p.path_length = google.maps.geometry.spherical.computeDistanceBetween(path[0], path[1]);
+        var p = new L.Polyline(path, {
+            color: '#0F0',
+            opacity: 0.8,
+            weight: 3,
+        }).addTo(map);
+        p.path_length = path[0].distanceTo(path[1]);
         los_polylines.push(p);
-        google.maps.event.addListener(p, 'click', mapInfoBox_handle_prediction_path);
+        p.on('click', function (e) {
+            mapInfoBox_handle_prediction_path(e);
+        });
     });
 }
 
@@ -801,15 +884,21 @@ function focusVehicle(vcallsign, ignoreOpt) {
     for(var i in vehicles) {
         var vehicle = vehicles[i], j;
 
-        if(i == vcallsign || vcallsign === null) {
-            if(vehicle.horizon_circle) vehicle.horizon_circle.setOptions({zIndex:Z_RANGE,strokeOpacity:opacityFocused * 0.6});
-            if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setOptions({zIndex:Z_RANGE,strokeOpacity:opacityFocused * 0.8});
-            for(j in vehicle.polyline) vehicle.polyline[j].setOptions({zIndex:Z_PATH-j,strokeOpacity:opacityFocused});
-        }
-        else {
-            if(vehicle.horizon_circle) vehicle.horizon_circle.setOptions({zIndex:1,strokeOpacity:opacityOther * 0.6});
-            if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setOptions({zIndex:1,strokeOpacity:opacityOther * 0.8});
-            for(j in vehicle.polyline) vehicle.polyline[j].setOptions({zIndex:1,strokeOpacity:opacityOther});
+        if (vehicle.vehicle_type == "balloon") {
+            if(i == vcallsign || vcallsign === null) {
+                if(vehicle.horizon_circle) vehicle.horizon_circle.setStyle({opacity:opacityFocused * 0.6});
+                if(vehicle.horizon_circle_title) vehicle.horizon_circle_title.setOpacity(opacityFocused * 0.8);
+                if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setStyle({opacity:opacityFocused * 0.8});
+                if(vehicle.subhorizon_circle_title) vehicle.subhorizon_circle_title.setOpacity(opacityFocused * 0.8);
+                for(j in vehicle.polyline) vehicle.polyline[j].setStyle({opacity:opacityFocused});
+            }
+            else {
+                if(vehicle.horizon_circle) vehicle.horizon_circle.setStyle({opacity:opacityOther * 0.6});
+                if(vehicle.horizon_circle_title) vehicle.horizon_circle_title.setOpacity(opacityOther * 0.6);
+                if(vehicle.subhorizon_circle) vehicle.subhorizon_circle.setStyle({opacity:opacityOther * 0.8});
+                if(vehicle.subhorizon_circle_title) vehicle.subhorizon_circle_title.setOpacity(opacityOther * 0.8);
+                for(j in vehicle.polyline) vehicle.polyline[j].setStyle({opacity:opacityOther});
+            }
         }
     }
 }
@@ -829,6 +918,9 @@ function stopFollow(no_data_reset) {
             graph_vehicle = null;
             wvar.focus = "";
         }
+
+        //stop detailed data
+        clearTimeout(periodical_focus);
 
         // clear graph
         if(plot) plot = $.plot(plot_holder, {}, plot_options);
@@ -859,6 +951,8 @@ function followVehicle(vcallsign, noPan, force) {
     }
 
     if(follow_vehicle != vcallsign || force) {
+        clearTimeout(periodical_focus);
+        refreshSingle(vcallsign, true);
         focusVehicle(vcallsign);
 
 		follow_vehicle = vcallsign;
@@ -915,7 +1009,9 @@ function formatDate(date,utc) {
 
 function updateVehicleInfo(vcallsign, newPosition) {
   var vehicle = vehicles[vcallsign];
-  var latlng = new google.maps.LatLng(newPosition.gps_lat, newPosition.gps_lon);
+  if (!isNaN(newPosition.gps_lat) && !isNaN(newPosition.gps_lon)){
+    var latlng = new L.LatLng(newPosition.gps_lat, newPosition.gps_lon);
+  }
 
   // update market z-index based on latitude, 90 being background and -90 foreground
   // the first 2 decimal digits are included for added accuracy
@@ -923,30 +1019,52 @@ function updateVehicleInfo(vcallsign, newPosition) {
 
   // update position
   if(vehicle.marker_shadow) {
-      vehicle.marker_shadow.setPosition(latlng);
-      vehicle.marker_shadow.setZIndex(Z_SHADOW + zIndex);
+      vehicle.marker_shadow.setLatLng(latlng);
+      //vehicle.marker_shadow.setZIndex(Z_SHADOW + zIndex);
   }
-  vehicle.marker.setPosition(latlng);
-  vehicle.marker.setZIndex(((vehicle.vehicle_type=="car")? Z_CAR : Z_PAYLOAD) + zIndex);
+  vehicle.marker.setLatLng(latlng);
+  //vehicle.marker.setZIndex(((vehicle.vehicle_type=="car")? Z_CAR : Z_PAYLOAD) + zIndex);
 
-  if(!!vehicle.marker.setCourse) vehicle.marker.setCourse((vehicle.curr_position.gps_heading !== "") ? parseInt(vehicle.curr_position.gps_heading) : 90);
+  if(!!vehicle.marker.setCourse) {
+    if (vehicle.curr_position.gps_heading) {
+        vehicle.marker.setCourse((vehicle.curr_position.gps_heading !== "") ? parseInt(vehicle.curr_position.gps_heading) : 90);
+    }
+  } 
 
   // update horizon circles and icon
   if(vehicle.vehicle_type == "balloon") {
-    updateAltitude(vcallsign);
+    //updateAltitude(vcallsign);
     var horizon_km = Math.sqrt(12.756 * newPosition.gps_alt);
-    vehicle.horizon_circle.setRadius(Math.round(horizon_km)*1000);
+    if (!isNaN(horizon_km)) {
+        vehicle.horizon_circle.setRadius(Math.round(horizon_km)*1000);
+        vehicle.horizon_circle.setLatLng(latlng);
+
+        horizon_circle_title_icon = new L.DivIcon({
+            className: "horizon_circle_title",
+            html: '<span style="position:relative;left:-50%;top:-5px;color:black;border:1px solid rgb(0, 0, 255);border-radius:5px;font-size:9px;padding:2px;background-color:white;">' + Math.round(horizon_km) + 'km</span>'
+        });
+
+        vehicle.horizon_circle_title.setIcon(horizon_circle_title_icon);
+    }
 
     if(vehicle.subhorizon_circle) {
-      // see: http://ukhas.org.uk/communication:lineofsight
-      var el = 5.0; // elevation above horizon
-      var h = parseFloat(newPosition.gps_alt); // height above ground
+        // see: http://ukhas.org.uk/communication:lineofsight
+        var el = 5.0; // elevation above horizon
+        var h = parseFloat(newPosition.gps_alt); // height above ground
 
-      var elva = el * DEG_TO_RAD;
-      var slant = EARTH_RADIUS*(Math.cos(Math.PI/2+elva)+Math.sqrt(Math.pow(Math.cos(Math.PI/2+elva),2)+h*(2*EARTH_RADIUS+h)/Math.pow(EARTH_RADIUS,2)));
-      var subhorizon_km = Math.acos((Math.pow(EARTH_RADIUS,2)+Math.pow(EARTH_RADIUS+h,2)-Math.pow(slant,2))/(2*EARTH_RADIUS*(EARTH_RADIUS+h)))*EARTH_RADIUS;
+        var elva = el * DEG_TO_RAD;
+        var slant = EARTH_RADIUS*(Math.cos(Math.PI/2+elva)+Math.sqrt(Math.pow(Math.cos(Math.PI/2+elva),2)+h*(2*EARTH_RADIUS+h)/Math.pow(EARTH_RADIUS,2)));
+        var subhorizon_km = Math.acos((Math.pow(EARTH_RADIUS,2)+Math.pow(EARTH_RADIUS+h,2)-Math.pow(slant,2))/(2*EARTH_RADIUS*(EARTH_RADIUS+h)))*EARTH_RADIUS;
 
-      vehicle.subhorizon_circle.setRadius(Math.round(subhorizon_km));
+        vehicle.subhorizon_circle.setRadius(Math.round(subhorizon_km));
+        vehicle.subhorizon_circle.setLatLng(latlng);
+
+        subhorizon_circle_title_icon = new L.DivIcon({
+            className: "subhorizon_circle_title",
+            html: '<span style="position:relative;left:-50%;top:-5px;color:black;border:1px solid rgb(0, 255, 0);border-radius:5px;font-size:9px;padding:2px;background-color:white;">' + Math.round(subhorizon_km/1000) + 'km</span>'
+        });
+
+        vehicle.subhorizon_circle_title.setIcon(subhorizon_circle_title_icon);
     }
 
     // indicates whenever a payload has landed
@@ -974,40 +1092,39 @@ function updateVehicleInfo(vcallsign, newPosition) {
             // We already have a marker initialized.
             if(newPosition.gps_alt > 350){
                 // Balloon is still in flight, so update the marker.
-                vehicle.landing_marker.setPosition(new google.maps.LatLng(newPosition.data.pred_lat, newPosition.data.pred_lon));
+                vehicle.landing_marker.setLatLng(new L.LatLng(newPosition.data.pred_lat, newPosition.data.pred_lon));
                 // Re-add to map if it's been removed previously.
                 if (vehicle.landing_marker.getMap() == null){
-                    vehicle.landing_marker.setMap(map);
+                    map.addLayer(vehicle.landing_marker);
                 }
             }else{
                 // Balloon has landed, so hide the marker.
                 // Should we do this? Can we re-add it safely?
-                vehicle.landing_marker.setMap(null);
+                map.removeLayer(vehicle.landing_marker);
             }
         } else{
             // Landing marker has not been initialised yet.
             if((newPosition.data.pred_lat !== 0.0) && (newPosition.data.pred_lon !== 0.0)){
 
                 landing_image_src = host_url + markers_url + "balloon-xmark.png";
-                landing_image_src_size = new google.maps.Size(48,38);
-                landing_image_src_offset = new google.maps.Point(0,-38);
+                landing_image_src_size = [48,38];
+                landing_image_src_offset = [0,-38];
 
-                landing_marker = new google.maps.Marker({
-                    icon: {
-                        url: landing_image_src,
-                        size: landing_image_src_size,
-                        scaledSize: landing_image_src_size,
-                        anchor: new google.maps.Point(24,18)
-                    },
-                    zIndex: Z_CAR,
-                    position: new google.maps.LatLng(position.data.pred_lat, position.data.pred_lon),
-                    map: map,
-                    optimized: false,
-                    title: vcallsign + " Onboard Landing Prediction"
+                latlngs = new L.latLng(position.data.pred_lat, position.data.pred_lon);
+
+                landing_icon = new L.icon({
+                    iconUrl: landing_image_src,
+                    iconSize: landing_image_src_size,
+                    iconAnchor: [24, 18],
                 });
 
-                // Add the marker to the map, and to the vehicle object.
-                landing_marker.setMap(map);
+                landing_marker = new L.Marker(latlngs, {
+                    zIndexOffset: Z_CAR,
+                    icon: landing_icon,
+                    title: vcallsign + " Onboard Landing Prediction",
+                }).addTo(map);
+
+                // Add the marker to the vehicle object.
                 vehicle.landing_marker = landing_marker;
             }
 
@@ -1019,9 +1136,18 @@ function updateVehicleInfo(vcallsign, newPosition) {
   var elm = $('.vehicle' + vehicle.uuid);
 
   // if the vehicle doesn't exist in the list
+  // style="top:80px"
+  // if (vehicle["vehicle_type"] == "car") {
   if (elm.length === 0) {
-    $('.portrait').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
-    $('.landscape').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+    if (vehicle.vehicle_type!="car") {
+        $('.portrait').prepend('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.landscape').prepend('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+    } else {
+        $('.portrait').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.landscape').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+    }
+    
+
 
   } else if(elm.attr('data-vcallsign') === undefined) {
     elm.attr('data-vcallsign', vcallsign);
@@ -1097,22 +1223,30 @@ function updateVehicleInfo(vcallsign, newPosition) {
     callsign_list = callsign_list.join(", ");
   }
 
+  //desktop
   var a    = '<div class="header">' +
            '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
-           //'<span>' + vcallsign + ' <i class="icon-target"></i></span>' +
            '<canvas class="graph"></canvas>' +
            '<i class="arrow"></i></div>' +
            '<div class="data">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
-           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' +
-               ' style="top:'+(vehicle.image_src_size.height+55)+'px">Path</span>' +
-           ((vcallsign in hysplit) ? '<span class="vbutton hysplit '+((hysplit[vcallsign].getMap()) ? 'active' : '')+'"' +
-                ' data-vcallsign="'+vcallsign+'" style="top:'+(vehicle.image_src_size.height+55+21+10)+'px">HYSPLIT</span>' : '') +
-           ((vcallsign.substr(0, 6) in ssdv) ? '<a class="vbutton active" href="//ssdv.habhub.org/' + vcallsign.substr(0, 6) + '"' +
-                ' target="_blank" style="top:'+(vehicle.image_src_size.height+55+((vcallsign in hysplit) ? 42 : 21)+10)+'px">SSDV</a>' : '') +
+           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">Share</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">Plot</span>' : '') +
            '<div class="left">' +
            '<dl>';
-  // end
+  //mobile
+  var aa    = '<div class="header">' +
+           '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
+           '<canvas class="graph"></canvas>' +
+           '<i class="arrow"></i></div>' +
+           '<div class="data">' +
+           '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
+           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:55px">Path</span>' +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:85px">Share</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="window.open(\'https://sondehub.org/card/' + vcallsign + '\')" style="top:115px">Plot</span>' : '') +
+           '<div class="left">' +
+           '<dl>';
   var b    = '</dl>' +
            '</div>' + // right
            '</div>' + // data
@@ -1145,13 +1279,17 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '';
 
   // update html
-  $('.portrait .vehicle'+vehicle.uuid).html(a + p + b);
+  $('.portrait .vehicle'+vehicle.uuid).html(aa + p + b);
   $('.landscape .vehicle'+vehicle.uuid).html(a + l + b);
 
   // redraw canvas
   if(wvar.mode != "Position" && vehicle.graph_data.length) {
       var can = $('.vehicle'+vehicle.uuid+' .graph');
-      drawAltitudeProfile(can.get(0), can.get(1), vehicle.graph_data[0], vehicle.max_alt);
+      if (vehicle.vehicle_type!="car") {
+        drawAltitudeProfile(can.get(0), can.get(1), vehicle.graph_data[0], vehicle.max_alt, true);
+      } else {
+        drawAltitudeProfile(can.get(0), can.get(1), vehicle.graph_data[0], vehicle.max_alt, true);
+      }
   }
 
   // mark vehicles as redrawn
@@ -1164,22 +1302,29 @@ function set_polyline_visibility(vcallsign, val) {
     var vehicle = vehicles[vcallsign];
     vehicle.polyline_visible = val;
 
-    for(var k in vehicle.polyline) vehicle.polyline[k].setVisible(val);
+    for(var k in vehicle.polyline) {
+        if (val) {
+            map.addLayer(vehicle.polyline[k]);
+            vehicle.polyline[k].bringToBack();
+        } else {
+            map.removeLayer(vehicle.polyline[k]);
+        }
+    }
 
-    mapInfoBox.close();
+    map.removeLayer(mapInfoBox);
 }
 
 function removePrediction(vcallsign) {
   if(vehicles[vcallsign].prediction_polyline) {
-    vehicles[vcallsign].prediction_polyline.setMap(null);
+    map.removeLayer(vehicles[vcallsign].prediction_polyline);
     vehicles[vcallsign].prediction_polyline = null;
   }
   if(vehicles[vcallsign].prediction_target) {
-    vehicles[vcallsign].prediction_target.setMap(null);
+    map.removeLayer(vehicles[vcallsign].prediction_target);
     vehicles[vcallsign].prediction_target = null;
   }
   if(vehicles[vcallsign].prediction_burst) {
-    vehicles[vcallsign].prediction_burst.setMap(null);
+    map.removeLayer(vehicles[vcallsign].prediction_burst);
     vehicles[vcallsign].prediction_burst = null;
   }
 }
@@ -1198,7 +1343,7 @@ function redrawPrediction(vcallsign) {
     var path_length = 0;
 
     for(var i = 0, ii = data.length; i < ii; i++) {
-        latlng = new google.maps.LatLng(data[i].lat, data[i].lon);
+        latlng = new L.LatLng(data[i].lat, data[i].lon);
         line.push(latlng);
 
         // pred.alt for graph
@@ -1215,7 +1360,7 @@ function redrawPrediction(vcallsign) {
             latlng_burst = latlng;
             burst_index = i;
         }
-        if(i > 1) path_length += google.maps.geometry.spherical.computeDistanceBetween(line[i-1], line[i]);
+        if(i > 1) path_length += line[i-1].distanceTo(line[i]);
     }
 
     vehicle.graph_data[1].data = graph_data;
@@ -1223,19 +1368,16 @@ function redrawPrediction(vcallsign) {
     vehicle.prediction_path = line;
 
     if(vehicle.prediction_polyline !== null) {
-        vehicle.prediction_polyline.setPath(line);
+        vehicle.prediction_polyline.setLatLngs(line);
     } else {
-        vehicle.prediction_polyline = new google.maps.Polyline({
-            map: map,
-            zIndex: Z_PATH,
-            path: line,
-            strokeColor: balloon_colors[vehicle.color_index],
-            strokeOpacity: 0.4,
-            strokeWeight: 3,
-            clickable: true,
-            draggable: false,
+        vehicle.prediction_polyline = new L.Polyline(line, {
+            color: balloon_colors[vehicle.color_index],
+            opacity: 0.4,
+            weight: 3,
+        }).addTo(map);
+        vehicle.prediction_polyline.on('click', function (e) {
+            mapInfoBox_handle_prediction_path(e);
         });
-        google.maps.event.addListener(vehicle.prediction_polyline, 'click', mapInfoBox_handle_prediction_path);
     }
 
     vehicle.prediction_polyline.path_length = path_length;
@@ -1244,23 +1386,21 @@ function redrawPrediction(vcallsign) {
     if(vcallsign != "wb8elk2") { // WhiteStar
         var html = "";
         if(vehicle.prediction_target) {
-            vehicle.prediction_target.setPosition(latlng);
+            vehicle.prediction_target.setLatLng(latlng);
         } else {
             image_src = host_url + markers_url + "target-" + balloon_colors_name[vehicle.color_index] + ".png";
-            vehicle.prediction_target = new google.maps.Marker({
-                position: latlng,
-                optimized: false,
-                zIndex: Z_SHADOW,
-                icon: {
-                    url: image_src,
-                    scaledSize: new google.maps.Size(20,20),
-                    size: new google.maps.Size(20,20),
-                    anchor: new google.maps.Point(10, 10)
-                },
-                map: map,
-                clickable: true
+            predictionIcon = new L.icon({
+                iconUrl: image_src,
+                iconSize: [20,20],
+                iconAnchor: [10, 10],
             });
-            google.maps.event.addListener(vehicle.prediction_target, 'click', mapInfoBox_handle_prediction);
+            vehicle.prediction_target = new L.Marker(latlng, {
+                zIndexOffset: Z_SHADOW,
+                icon: predictionIcon,
+            }).addTo(map);
+            vehicle.prediction_target.on('click', function (e) {
+                mapInfoBox_handle_prediction(e);
+            });
         }
         vehicle.prediction_target.pdata = data[data.length-1];
     } else {
@@ -1269,23 +1409,21 @@ function redrawPrediction(vcallsign) {
 
     if(burst_index !== 0 && vcallsign != "wb8elk2") {
         if(vehicle.prediction_burst) {
-            vehicle.prediction_burst.setPosition(latlng_burst);
+            vehicle.prediction_burst.setLatLng(latlng_burst);
         } else {
             image_src = host_url + markers_url + "balloon-pop.png";
-            vehicle.prediction_burst =  new google.maps.Marker({
-                position: latlng_burst,
-                optimized: false,
-                zIndex: Z_SHADOW,
-                icon: {
-                    url: image_src,
-                    scaledSize: new google.maps.Size(20,20),
-                    size: new google.maps.Size(20,20),
-                    anchor: new google.maps.Point(10, 10)
-                },
-                map: map,
-                clickable: true
+            burstIcon = new L.icon({
+                iconUrl: image_src,
+                iconSize: [20,20],
+                iconAnchor: [10, 10],
             });
-            google.maps.event.addListener(vehicle.prediction_burst, 'click', mapInfoBox_handle_prediction);
+            vehicle.prediction_burst = new L.Marker(latlng_burst, {
+                zIndexOffset: Z_SHADOW,
+                icon: burstIcon,
+            }).addTo(map);
+            vehicle.prediction_burst.on('click', function (e) {
+                mapInfoBox_handle_prediction(e);
+            });
         }
         vehicle.prediction_burst.pdata = data[burst_index];
     } else {
@@ -1293,13 +1431,16 @@ function redrawPrediction(vcallsign) {
     }
 }
 
-function updatePolyline(vcallsign) {
+function updatePolyline(vcallsign, flag) {
     for(var k in vehicles[vcallsign].polyline) {
-        vehicles[vcallsign].polyline[k].setPath(vehicles[vcallsign].positions);
+        if (flag) {
+            vehicles[vcallsign].polyline[k].setLatLngs([]);
+        }
+        vehicles[vcallsign].polyline[k].setLatLngs(vehicles[vcallsign].positions);
     }
 }
 
-function drawAltitudeProfile(c1, c2, series, alt_max) {
+function drawAltitudeProfile(c1, c2, series, alt_max, chase) {
     alt_max = (alt_max < 2000) ? 2000 : alt_max;
     var alt_list = series.data;
     var len = alt_list.length;
@@ -1320,12 +1461,21 @@ function drawAltitudeProfile(c1, c2, series, alt_max) {
     c1.attr('width', cw1).attr('height', ch1);
     c2.attr('width', cw2).attr('height', ch2);
 
-    ctx1.fillStyle = "#d6f0f9";
-    ctx1.lineWidth = 2 * ratio;
-    ctx1.strokeStyle= "#33B5F5";
-    ctx2.fillStyle = "#d6f0f9";
-    ctx2.lineWidth = 2 * ratio;
-    ctx2.strokeStyle= "#33B5F5";
+    if (chase) {
+        ctx1.fillStyle = "#d6f0f9";
+        ctx1.lineWidth = 2 * ratio;
+        ctx1.strokeStyle= "#33B5F5";
+        ctx2.fillStyle = "#d6f0f9";
+        ctx2.lineWidth = 2 * ratio;
+        ctx2.strokeStyle= "#33B5F5";
+    } else {
+        ctx1.fillStyle = "#f9d6d6";
+        ctx1.lineWidth = 2 * ratio;
+        ctx1.strokeStyle= "#f53333";
+        ctx2.fillStyle = "#f9d6d6";
+        ctx2.lineWidth = 2 * ratio;
+        ctx2.strokeStyle= "#f53333";
+    }
 
     var xt1 = (cw1 - (2 * ratio)) / real_len;
     var yt1 = (ch1 - (6 * ratio)) / alt_max;
@@ -1394,12 +1544,12 @@ function drawAltitudeProfile(c1, c2, series, alt_max) {
 }
 
 // infobox
-var mapInfoBox = new google.maps.InfoWindow({
+var mapInfoBox = new L.popup({
     maxWidth: 260
 });
 
-var mapInfoBox_handle_prediction_path = function(event) {
-    var value = this.path_length;
+function mapInfoBox_handle_prediction_path(event) {
+    var value = event.target.path_length;
 
     if(offline.get('opt_imperial')) {
         value = Math.round(value*0.000621371192) + " miles";
@@ -1408,17 +1558,17 @@ var mapInfoBox_handle_prediction_path = function(event) {
     }
 
     mapInfoBox.setContent("<pre><b>Length:</b> " + value  + "</pre>");
-    mapInfoBox.setPosition(event.latLng);
-    mapInfoBox.open(map);
+    mapInfoBox.setLatLng(event.latlng);
+    mapInfoBox.openOn(map);
 };
 
-var mapInfoBox_handle_path = function(event) {
-    var vehicle = this.vehicle || vehicles[follow_vehicle];
-    var target = event.latLng;
+function mapInfoBox_handle_path(event) {
+    var vehicle = event.target.vehicle || vehicles[follow_vehicle];
+    var target = event.latlng;
     var p = vehicle.positions;
 
     var p1_dist = 0;
-    var p2_dist = google.maps.geometry.spherical.computeDistanceBetween(p[0], target);
+    var p2_dist = p[0].distanceTo(target);
 
     var mindiff = Number.MAX_VALUE;
     var minidx = 0;
@@ -1427,8 +1577,8 @@ var mapInfoBox_handle_path = function(event) {
     // find the closest existing point to snap to
     for(var i = 1, ii = p.length; i < ii; i++ ) {
         p1_dist = p2_dist;
-        p2_dist = google.maps.geometry.spherical.computeDistanceBetween(p[i], target);
-        dist = google.maps.geometry.spherical.computeDistanceBetween(p[i], p[i-1]);
+        p2_dist = p[i].distanceTo(target);
+        dist = p[i].distanceTo(p[i-1]);
         diff = Math.abs(dist - (p1_dist + p2_dist));
 
         if(diff >= 0 && mindiff > diff) {
@@ -1437,21 +1587,20 @@ var mapInfoBox_handle_path = function(event) {
         }
     }
 
-    p1_dist = google.maps.geometry.spherical.computeDistanceBetween(p[minidx-1], target);
-    p2_dist = google.maps.geometry.spherical.computeDistanceBetween(p[minidx], target);
+    p1_dist = p[minidx-1].distanceTo(target);
+    p2_dist = p[minidx].distanceTo(target);
 
     var point = (p1_dist < p2_dist) ? p[minidx-1] : p[minidx];
     var id = (p1_dist < p2_dist) ? vehicle.positions_ids[minidx-1] : vehicle.positions_ids[minidx];
 
     mapInfoBox.setContent("<img style='width:60px;height:20px' src='img/hab-spinner.gif' />");
-    mapInfoBox.setPosition(point);
-    mapInfoBox.setMap(map);
-    mapInfoBox.open(map);
+    mapInfoBox.setLatLng(point);
+    mapInfoBox.openOn(map);
 
     mapInfoBox_handle_path_fetch(id, vehicle);
 };
 
-var mapInfoBox_handle_path_fetch = function(id,vehicle) {
+function mapInfoBox_handle_path_fetch(id,vehicle) {
     var ishabitat = id.length == 64
 
     if(ishabitat) {
@@ -1473,7 +1622,7 @@ var mapInfoBox_handle_path_fetch = function(id,vehicle) {
 
         if('positions' in data && data.positions.position.length === 0) {
             mapInfoBox.setContent("not&nbsp;found");
-            mapInfoBox.open(map);
+            mapInfoBox.openOn(map);
             return;
         }
 
@@ -1482,9 +1631,6 @@ var mapInfoBox_handle_path_fetch = function(id,vehicle) {
         div = document.createElement('div');
 
         html = "<div style='line-height:16px;position:relative;'>";
-        html += "<img style='position:absolute;top:"+vehicle.image_src_offset.y+"px;left:"+vehicle.image_src_offset.x+"px;" +
-                "width:"+vehicle.image_src_size.width+"px;height:"+vehicle.image_src_size.height+"px'" +
-                " src='"+vehicle.image_src+"' />";
         html += "<div>"+data.vehicle+"<span style=''>("+data.position_id+")</span></div>";
         html += "<hr style='margin:5px 0px'>";
         html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.gps_lat, 5) + ',&nbsp;' + roundNumber(data.gps_lon, 5)+"</div>";
@@ -1520,7 +1666,6 @@ var mapInfoBox_handle_path_fetch = function(id,vehicle) {
             var callsign_list = []
             for(var rxcall in data.callsign){
                 if(data.callsign.hasOwnProperty(rxcall)) {
-                    _new_call += "<b>Received via:&nbsp;</b> ";
                     _new_call = rxcall;
                     if(data.callsign[rxcall].hasOwnProperty('snr')){
                         if(data.callsign[rxcall].snr){
@@ -1546,7 +1691,7 @@ var mapInfoBox_handle_path_fetch = function(id,vehicle) {
         div.innerHTML = html;
 
         mapInfoBox.setContent(div);
-        mapInfoBox.open(map);
+        mapInfoBox.openOn(map);
 
         setTimeout(function() {
             div.parentElement.style.overflow = "";
@@ -1555,8 +1700,8 @@ var mapInfoBox_handle_path_fetch = function(id,vehicle) {
     });
 };
 
-var mapInfoBox_handle_prediction = function(event) {
-    var data = this.pdata;
+function mapInfoBox_handle_prediction(event) {
+    var data = event.target.pdata;
     var altitude;
 
     if(offline.get('opt_imperial')) {
@@ -1572,23 +1717,22 @@ var mapInfoBox_handle_prediction = function(event) {
                         "<b>Longtitude:</b> " + data.lon + "\n" +
                         "</pre>"
                         );
-    mapInfoBox.setPosition(event.latLng);
-    mapInfoBox.open(map);
+    mapInfoBox.setLatLng(event.latlng);
+    mapInfoBox.openOn(map);
 };
 
-var mapInfoBox_handle_horizons = function(event, obj,  title) {
+function mapInfoBox_handle_horizons(event, obj,  title) {
     var value = "";
-
+    
     if(offline.get('opt_imperial')) {
-        value = Math.round(obj.getRadius()*0.000621371192) + "miles";
+        value = Math.round(event.target.getRadius()*0.000621371192) + "miles";
     } else {
-        value = Math.round(obj.getRadius()/10)/100 + "km";
+        value = Math.round(event.target.getRadius()/10)/100 + "km";
     }
 
-
     mapInfoBox.setContent("<pre>" + title + "\nr = "+ value + "</pre>");
-    mapInfoBox.setPosition(event.latLng);
-    mapInfoBox.open(map);
+    mapInfoBox.setLatLng(event.latlng);
+    mapInfoBox.openOn(map);
 };
 
 var mapInfoBox_handle_truehorizon = function(event) { mapInfoBox_handle_horizons(event, this, "True Horizon"); };
@@ -1614,13 +1758,14 @@ var marker_rotate_func = function(deg) {
     ctx.drawImage(img, -img.width/2, -img.height*0.95);
     ctx.restore();
 
-    var size = new google.maps.Size(canvas.width*0.5, canvas.height*0.5);
-    this.setIcon({
-        url: canvas.toDataURL(),
-        size: size,
-        scaledSize: size,
-        anchor: new google.maps.Point(canvas.width*0.25, canvas.height*0.25)
+    var size = [canvas.width*0.5, canvas.height*0.5];
+    newIcon = L.icon({
+        iconUrl: canvas.toDataURL(),
+        iconSize: size,
+        iconAnchor: [canvas.width*0.25, canvas.height*0.25],
+        tooltipAnchor: [0,-32],
     });
+    this.setIcon(newIcon);
 };
 
 var marker_rotate_setup = function(marker, image_src) {
@@ -1629,14 +1774,14 @@ var marker_rotate_setup = function(marker, image_src) {
     if(image_src in icon_cache) {
         marker.iconImg = icon_cache[image_src];
         marker.setCourse(90);
-        marker.setPosition(marker.getPosition());
+        marker.setLatLng(marker.getLatLng());
     }
     else {
         marker.iconImg = new Image();
         icon_cache[image_src] = marker.iconImg;
         marker.iconImg.onload = function() {
             if(!marker.rotated) marker.setCourse(90);
-            marker.setPosition(marker.getPosition());
+            marker.setLatLng(marker.getLatLng());
         };
         marker.iconImg.src = image_src;
     }
@@ -1660,121 +1805,120 @@ function addPosition(position) {
         var vehicle_type = "";
         var horizon_circle = null;
         var subhorizon_circle = null;
-        var point = new google.maps.LatLng(position.gps_lat, position.gps_lon);
+        var point = new L.LatLng(position.gps_lat, position.gps_lon);
         var image_src = "", image_src_size, image_src_offset;
         var color_index = 0;
-        var gmaps_elements = [];
         var polyline = null;
         var polyline_visible = false;
+        var horizon_circle_title = null;
+        var subhorizon_circle_title = null;
         if(vcallsign.search(/(chase)/i) != -1) {
             vehicle_type = "car";
             color_index = car_index++ % car_colors.length;
             image_src = host_url + markers_url + "car-" + car_colors[color_index] + ".png";
-            image_src_size = new google.maps.Size(55,25);
-            image_src_offset = new google.maps.Point(0,-25);
+            image_src_size = [55,25];
+            image_src_offset = [0,-25];
 
-            marker = new google.maps.Marker({
-                zIndex: Z_CAR,
-                position: point,
-                map: map,
-                clickable: false,
-                optimized: false,
-                title: vcallsign
-            });
+            marker = new L.Marker(point, {
+                title: vcallsign,
+                zIndexOffset: Z_CAR,
+            }).addTo(map).on('click', onClick);
+
+            // Scroll list stuff here.
+            function onClick(e) {
+                _vehicle_id = e.target.options.title;
+                _vehicle_idname = ".vehicle"+vehicles[_vehicle_id].uuid;
+                $(_vehicle_idname).addClass('active');
+                listScroll.refresh();
+                listScroll.scrollToElement(_vehicle_idname);
+                panTo(vcallsign);
+            };
 
             if(!!!window.HTMLCanvasElement) {
-                marker.setIcon({
-                    url: image_src,
-                    size: image_src_size,
-                    scaledSize: image_src_size,
-                    anchor: new google.maps.Point(27,22)
+                carIcon = L.icon({
+                    iconUrl: image_src,
+                    iconSize: image_src_size,
+                    iconAnchor: [27.22],
+                    tooltipAnchor: [0,-32],
                 });
+                marker.setIcon(new carIcon);
             } else {
                 marker_rotate_setup(marker, image_src);
             }
-            gmaps_elements.push(marker);
+            marker.addTo(map);
             polyline = [
-                new google.maps.Polyline({
-                map: map,
-                zIndex: Z_PATH,
-                strokeColor: car_colors[color_index],
-                strokeOpacity: 1,
-                strokeWeight: 3,
-                clickable: true,
-                draggable: false,
-                visible: polyline_visible,
-                geodesic: true
-                }),
+                new L.Polyline(point, {
+                    color: car_colors[color_index],
+                    opacity: 1,
+                    weight: 3,
+                })
             ];
         }
         else if(vcallsign == "XX") {
             vehicle_type = "xmark";
             image_src = host_url + markers_url + "balloon-xmark.png";
-            image_src_size = new google.maps.Size(48,38);
-            image_src_offset = new google.maps.Point(0,-38);
+            image_src_size = [48,38];
+            image_src_offset = [0,-38];
 
-            marker = new google.maps.Marker({
-                icon: {
-                    url: image_src,
-                    size: image_src_size,
-                    scaledSize: image_src_size,
-                    anchor: new google.maps.Point(24,18)
-                },
-                zIndex: Z_CAR,
-                position: point,
-                map: map,
-                optimized: false,
-                title: vcallsign
+            xmarkIcon = new L.icon({
+                iconUrl: image_src,
+                iconSize: image_src_size,
+                iconAnchor: [24, 18],
             });
-            gmaps_elements.push(marker);
+
+            marker = new L.Marker(point, {
+                icon: xmarkIcon,
+                title: vcallsign,
+                zIndexOffset: Z_CAR,
+            });
+
+            marker.addTo(map);
         } else {
             vehicle_type = "balloon";
             color_index = balloon_index++ % balloon_colors.length;
 
             image_src = host_url + markers_url + "balloon-" +
                         ((vcallsign == "PIE") ? "rpi" : balloon_colors_name[color_index]) + ".png";
-            image_src_size = new google.maps.Size(46,84);
-            image_src_offset = new google.maps.Point(-35,-46);
+            image_src_size = [46,84];
+            image_src_offset = [-35,-46];
 
-            marker_shadow = new google.maps.Marker({
-                map: map,
-                zIndex: Z_SHADOW,
-                optimized: false,
-                position: point,
-                icon: {
-                    url: host_url + markers_url + "shadow.png",
-                    size: new google.maps.Size(24,16),
-                    scaledSize: new google.maps.Size(24,16),
-                    anchor: new google.maps.Point(12,8)
-                },
-                clickable: false
+            shadowIcon = new L.icon({
+                iconUrl: host_url + markers_url + "shadow.png",
+                iconSize: [24,16],
+                iconAnchor: [12, 8],
             });
-            gmaps_elements.push(marker_shadow);
-            marker = new google.maps.Marker({
-                map: map,
-                optimized: false,
-                zIndex: Z_PAYLOAD,
-                position: point,
-                icon: {
-                    url: image_src,
-                    size: image_src_size,
-                    scaledSize: image_src_size,
-                },
+
+            marker_shadow = new L.Marker(point, {
+                icon: shadowIcon,
+                zIndexOffset: Z_SHADOW,
+            }).addTo(map);
+
+            balloonIcon = new L.icon({
+                iconUrl: image_src,
+                iconSize: image_src_size,
+                tooltipAnchor: [0,-98],
+                iconAnchor: [23,90],
+            });
+
+            marker = new L.Marker(point, {
+                icon: balloonIcon,
                 title: position.type + ' ' + vcallsign,
-            });
+                zIndexOffset: Z_PAYLOAD,
+            }).addTo(map).on('click', onClick);
 
             // Scroll list stuff here.
-            google.maps.event.addDomListener(marker, 'click', function() {
+            function onClick(e) {
                 $(".row.active").removeClass('active');
-                _vehicle_id = marker.title.split(' ')[1];
+                _vehicle_id = e.target.options.title.split(' ')[1];
                 _vehicle_idname = ".vehicle"+vehicles[_vehicle_id].uuid;
                 $(_vehicle_idname).addClass('active');
                 listScroll.refresh();
                 listScroll.scrollToElement(_vehicle_idname);
                 followVehicle($(_vehicle_idname).attr('data-vcallsign'));
-            });
+                clearTimeout(periodical_focus);
+                refreshSingle(_vehicle_id, true);
+            };
 
-            gmaps_elements.push(marker);
             marker.shadow = marker_shadow;
             marker.balloonColor = (vcallsign == "PIE") ? "rpi" : balloon_colors_name[color_index];
             marker.mode = 'balloon';
@@ -1784,49 +1928,45 @@ function addPosition(position) {
                 this.mode = mode;
                 var img;
                 if(mode == "landed") {
-                    vehicle.marker.shadow.setVisible(false);
-                    vehicle.horizon_circle.setVisible(false);
-                    vehicle.horizon_circle.label.set('visible', false);
-                    vehicle.subhorizon_circle.setVisible(false);
-                    vehicle.subhorizon_circle.label.set('visible', false);
+                    map.removeLayer(vehicle.marker.shadow);
+                    map.removeLayer(vehicle.horizon_circle);
+                    map.removeLayer(vehicle.subhorizon_circle);
+                    map.removeLayer(vehicle.horizon_circle_title);
+                    map.removeLayer(vehicle.subhorizon_circle_title);
 
-                    img = {
-                        url: host_url + markers_url + "payload-" + this.balloonColor + ".png",
-                        size: new google.maps.Size(17,18),
-                        scaledSize: new google.maps.Size(17,18),
-                        anchor: new google.maps.Point(8,14)
-                    };
+                    img = new L.icon ({
+                        iconUrl: host_url + markers_url + "payload-" + this.balloonColor + ".png",
+                        iconSize: [17,18],
+                        iconAnchor: [8,14],
+                        tooltipAnchor: [0,-20],
+                    });
                 } else {
-                    vehicle.marker.shadow.setVisible(true);
+                    map.addLayer(vehicle.marker.shadow);
 
                     if(offline.get('opt_hide_horizon') == false){
-                        vehicle.horizon_circle.setVisible(true);
-                        vehicle.horizon_circle.label.set('visible', true);
-                        vehicle.subhorizon_circle.setVisible(true);
-                        vehicle.subhorizon_circle.label.set('visible', true);
+                        map.addLayer(vehicle.horizon_circle);
+                        map.addLayer(vehicle.subhorizon_circle);
+                        map.addLayer(vehicle.horizon_circle_title);
+                        map.addLayer(vehicle.subhorizon_circle_title);
                     }
 
                     if(mode == "parachute") {
-                        img = {
-                            url: host_url + markers_url + "parachute-" + this.balloonColor + ".png",
-                            size: new google.maps.Size(46,84),
-                            scaledSize: new google.maps.Size(46,84)
-                        };
+                        img = new L.icon ({
+                            iconUrl: host_url + markers_url + "parachute-" + this.balloonColor + ".png",
+                            iconSize: [46,84],
+                            tooltipAnchor: [0,-98],
+                            iconAnchor: [23,90],
+                        });
                     } else {
-                        img = {
-                            url: host_url + markers_url + "balloon-" + this.balloonColor + ".png",
-                            size: new google.maps.Size(46,84),
-                            scaledSize: new google.maps.Size(46,84)
-                        };
+                        img = new L.icon ({
+                            iconUrl: host_url + markers_url + "balloon-" + this.balloonColor + ".png",
+                            iconSize: [46,84],
+                            tooltipAnchor: [0,-98],
+                            iconAnchor: [23,90],
+                        });
                     }
                 }
-                this.setIcon(img);
-                this.setPosition(this.getPosition());
-            };
-            marker.setAltitude = function(alt) {
-                var pos = overlay.getProjection().fromLatLngToDivPixel(this.shadow.getPosition());
-                pos.y -= alt;
-                this.setPosition(overlay.getProjection().fromDivPixelToLatLng(pos));
+                if (!wvar.nyan) {this.setIcon(img);};
             };
 
             // Add landing marker if the payload provides a predicted landing position.
@@ -1834,23 +1974,22 @@ function addPosition(position) {
                 // Only create the marker if the pred lat/lon are not zero (as will be the case during ascent).
                 if ((position.data.pred_lat !== 0.0) && (position.data.pred_lon !== 0.0)){
                     landing_image_src = host_url + markers_url + "balloon-xmark.png";
-                    landing_image_src_size = new google.maps.Size(48,38);
-                    landing_image_src_offset = new google.maps.Point(0,-38);
+                    landing_image_src_size = [48,38];
+                    landing_image_src_offset = [0,-38];
 
-                    landing_marker = new google.maps.Marker({
-                        icon: {
-                            url: landing_image_src,
-                            size: landing_image_src_size,
-                            scaledSize: landing_image_src_size,
-                            anchor: new google.maps.Point(24,18)
-                        },
-                        zIndex: Z_CAR,
-                        position: new google.maps.LatLng(position.data.pred_lat, position.data.pred_lon),
-                        map: map,
-                        optimized: false,
-                        title: vcallsign + " Onboard Landing Prediction"
+                    landingIcon = new L.icon({
+                        iconUrl: landing_image_src,
+                        iconSize: landing_image_src_size,
+                        iconAnchor: [24, 18],
                     });
-                    gmaps_elements.push(landing_marker);
+
+                    var latlng = new L.LatLng(position.data.pred_lat, position.data.pred_lon);
+
+                    landing_marker = new L.Marker(latlng, {
+                        icon: landingIcon,
+                        title: vcallsign + " Onboard Landing Prediction",
+                        zIndexOffset: Z_CAR,
+                      }).addTo(map);
                 } else {
                     landing_marker = null;
                 }
@@ -1858,152 +1997,105 @@ function addPosition(position) {
                 landing_marker = null;
             }
 
-            horizon_circle = new google.maps.Circle({
-                map: map,
-                zIndex: Z_RANGE,
+            horizon_circle = new L.Circle(point, {
+                zIndexOffset: Z_RANGE,
                 radius: 1,
+                color: '#00F',
                 fillColor: '#00F',
                 fillOpacity: 0,
-                strokeColor: '#00F',
-                strokeOpacity: 0.6,
-                strokeWeight: 3,
-                clickable: false,
-                editable: false
+                opacity: 0.6,
+                interactive: false,
             });
-            gmaps_elements.push(horizon_circle);
-            horizon_circle.bindTo('center', marker_shadow, 'position');
 
-            // label
-            horizon_circle.label = new google.maps.Label({
-                map: map,
-                strokeColor: horizon_circle.get('strokeColor'),
-                visible: false
+            horizon_circle_title_icon = new L.DivIcon({
+                className: "horizon_circle_title",
+                html: '<span style="position:relative;left:-50%;top:-5px;color:black;border:1px solid rgb(0, 0, 255);border-radius:5px;font-size:9px;padding:2px;background-color:white;">km</span>'
             });
-            gmaps_elements.push(horizon_circle.label);
-            horizon_circle.label.bindTo('opacity', horizon_circle, 'strokeOpacity');
-            horizon_circle.label.bindTo('zIndex', horizon_circle, 'zIndex');
-            horizon_circle.label.bindTo('strokeColor', horizon_circle, 'strokeColor');
 
-            var refresh_func = function() {
-                if(!this.getVisible()) {
-                    this.label.set('visible', false);
-                    return;
-                }
-
-                var north = google.maps.geometry.spherical.computeOffset(this.getCenter(), this.getRadius(), 0);
-                var south = google.maps.geometry.spherical.computeOffset(this.getCenter(), this.getRadius(), 180);
-
-                var projection = this.label.getProjection();
-                var dist = projection.fromLatLngToDivPixel(south).y -
-                           projection.fromLatLngToDivPixel(north).y;
-
-                var val = this.getRadius() / 1000;
-                val = offline.get('opt_imperial') ? Math.round(val * 0.621371192) + "mi" : Math.round(val) + "km";
-
-                this.label.set('visible', (75 < dist));
-                this.label.set('position', google.maps.geometry.spherical.computeOffset(this.getCenter(), this.getRadius(), 180));
-                this.label.set('text', val);
-            };
-
-            google.maps.event.addListener(horizon_circle, 'center_changed', refresh_func);
-            google.maps.event.addListener(horizon_circle, 'radius_changed', refresh_func);
-
-            subhorizon_circle = new google.maps.Circle({
-                map: map,
-                radius: 1,
-                zIndex: Z_RANGE,
-                fillColor: '#0F0',
-                fillOpacity: 0,
-                strokeColor: '#0F0',
-                strokeOpacity: 0.8,
-                strokeWeight: 3,
-                clickable: false,
-                editable: false
+            horizon_circle_title = new L.Marker(point, {
+                icon: horizon_circle_title_icon,
+                interactive: false,
             });
-            subhorizon_circle.bindTo('center', marker_shadow, 'position');
-            gmaps_elements.push(subhorizon_circle);
 
-            subhorizon_circle.label = new google.maps.Label({
-                map: map,
-                strokeColor: subhorizon_circle.get('strokeColor'),
-                visible: false
-            });
-            gmaps_elements.push(subhorizon_circle.label);
-            subhorizon_circle.label.bindTo('opacity', subhorizon_circle, 'strokeOpacity');
-            subhorizon_circle.label.bindTo('zIndex', subhorizon_circle, 'zIndex');
-            subhorizon_circle.label.bindTo('strokeColor', subhorizon_circle, 'strokeColor');
-
-            google.maps.event.addListener(subhorizon_circle, 'center_changed', refresh_func);
-            google.maps.event.addListener(subhorizon_circle, 'radius_changed', refresh_func);
-
-            if(offline.get("opt_hide_horizon")){
-                horizon_circle.setVisible(false);
-                horizon_circle.label.set('visible', false);
-                subhorizon_circle.setVisible(false);
-                subhorizon_circle.label.set('visible', false);
+            if (!offline.get("opt_hide_horizon")) {
+                horizon_circle.addTo(map);
+                horizon_circle_title.addTo(map);
             }
 
-            marker.setAltitude(0);
+            horizon_circle.on('move', function (e) {
+                try { 
+                    var latlng = L.latLng(e.target.getBounds()._southWest.lat, ((e.target.getBounds()._northEast.lng + e.target.getBounds()._southWest.lng)/2));
+                    horizon_circle_title.setLatLng(latlng);
+                } catch (err) {}
+            });  
+
+            subhorizon_circle = new L.Circle(point, {
+                zIndexOffset: Z_RANGE,
+                radius: 1,
+                color: '#0F0',
+                fillColor: '#0F0',
+                fillOpacity: 0,
+                opacity: 0.8,
+                interactive: false,
+            });
+
+            subhorizon_circle_title_icon = new L.DivIcon({
+                className: "subhorizon_circle_title",
+                html: '<span style="position:relative;left:-50%;top:-5px;color:black;border:1px solid rgb(0, 255, 0);border-radius:5px;font-size:9px;padding:2px;background-color:white;">km</span>',
+            });
+
+            subhorizon_circle_title = new L.Marker(point, {
+                icon: subhorizon_circle_title_icon,
+                interactive: false,
+            });
+
+            if (!offline.get("opt_hide_horizon")) {
+                subhorizon_circle.addTo(map);
+                subhorizon_circle_title.addTo(map);
+            }
+
+            subhorizon_circle.on('move', function (e) {
+                try { 
+                    var latlng = L.latLng(e.target.getBounds()._southWest.lat, ((e.target.getBounds()._northEast.lng + e.target.getBounds()._southWest.lng)/2));
+                    subhorizon_circle_title.setLatLng(latlng);
+                } catch (err) {}
+            });  
+            
             polyline_visible = true;
             polyline = [
-                new google.maps.Polyline({
-                map: map,
-                zIndex: Z_PATH,
-                strokeColor: balloon_colors[color_index],
-                strokeOpacity: 1,
-                strokeWeight: 3,
-                clickable: true,
-                draggable: false,
-                visible: polyline_visible,
-                geodesic: true
-                }),
-                new google.maps.Polyline({
-                map: map,
-                zIndex: Z_PATH - 1,
-                strokeColor: (['cyan','yellow'].indexOf(balloon_colors_name[color_index]) > -1 ? '#888888' : "#ffffff"),
-                strokeOpacity: 1,
-                strokeWeight: 5,
-                clickable: true,
-                draggable: false,
-                visible: polyline_visible,
-                geodesic: true
-                }),
+                new L.Polyline(point, {
+                    color: balloon_colors[color_index],
+                    opacity: 1,
+                    weight: 3,
+                }).addTo(map)
             ];
         }
 
-        // add label above every marker
-        var mlabel = new google.maps.Label({map: map, textOnly: true, position: marker.getPosition() });
-        gmaps_elements.push(mlabel);
-        mlabel.bindTo('text', marker, 'title');
-        mlabel.bindTo('zIndex', marker, 'zIndex');
-        google.maps.event.addListener(marker, 'position_changed', function() {
-            if(!!!marker.icon) return;
-
-            var pos = mlabel.getProjection().fromLatLngToDivPixel(marker.getPosition());
-
-            if(!!marker.iconImg) {
-                pos.y -= marker.icon.size.height * 0.5 + 5;
+        if (!offline.get("opt_hide_titles")) {
+            if (vehicle_type == "car") {
+                title = marker.bindTooltip(vcallsign, {direction: 'center', permanent: 'true', className: 'serialtooltip'});
             } else {
-                pos.y -= marker.icon.size.height + 10;
+                title = marker.bindTooltip((position.type + ' ' + vcallsign), {direction: 'center', permanent: 'true', className: 'serialtooltip'});
             }
-
-            mlabel.set('position',mlabel.getProjection().fromDivPixelToLatLng(pos));
-        });
-        marker._label = mlabel;
-        marker.setPosition(marker.getPosition()); // activates the logic above to reposition the label
+        } else {
+            title = null;
+        }
 
         var vehicle_info = {
                             callsign: vcallsign,
                             uuid: elm_uuid++,
                             vehicle_type: vehicle_type,
                             marker: marker,
+                            title: title,
                             marker_shadow: marker_shadow,
                             landing_marker: landing_marker,
                             image_src: image_src,
                             image_src_size: image_src_size,
                             image_src_offset: image_src_offset,
                             horizon_circle: horizon_circle,
+                            horizon_circle_title: horizon_circle_title,
                             subhorizon_circle: subhorizon_circle,
+                            subhorizon_circle_title: subhorizon_circle_title,
                             num_positions: 0,
                             positions: [],
                             positions_ts: [],
@@ -2013,21 +2105,15 @@ function addPosition(position) {
                             line: [],
                             polyline_visible: polyline_visible,
                             polyline: polyline !== null ? polyline : [
-                                new google.maps.Polyline({
-                                map: map,
-                                zIndex: Z_PATH,
-                                strokeColor: "#ffffff",
-                                strokeOpacity: 1,
-                                strokeWeight: 3,
-                                clickable: true,
-                                draggable: false,
-                                visible: polyline_visible,
-                                geodesic: true
+                                new L.Polyline(point, {
+                                    color: "#ffffff",
+                                    opacity: 1,
+                                    weight: 3,
                                 }),
                             ],
                             prediction: null,
                             prediction_polyline: null,
-                            prediction_traget: null,
+                            prediction_target: null,
                             prediction_burst: null,
                             ascent_rate: 0.0,
                             horizontal_rate: 0.0,
@@ -2041,105 +2127,104 @@ function addPosition(position) {
                             updated: false,
                             start_time: 2147483647000
                             };
-
+                    
         // deep copy yaxes config for graph
-        plot_options.yaxes.forEach(function(v) { vehicle_info.graph_yaxes.push($.extend({}, v)); });
+        plot_options.yaxes.forEach(function(v) { vehicle_info.graph_yaxes.push($.extend({}, v)); });     
 
-        // nyan mod
+        //nyan cat (very important feature)
         if(wvar.nyan && vehicle_info.vehicle_type == "balloon") {
-            // form a nyancat
-            vehicle_info.marker.setMode = function(mode) { this.mode = mode; this.setPosition(this.getPosition()); };
-            vehicle_info.marker.setAltitude = function(derp) { this.setPosition(this.getPosition()); };
-
-
             var nyan = nyan_colors[nyan_color_index] + ".gif";
             nyan_color_index = (nyan_color_index + 1) % nyan_colors.length;
             var nyanw = (nyan_color_index == 4) ? 104 : 55;
 
-            vehicle_info.marker.setIcon({
-                 url: host_url + markers_url + nyan,
-                 size: new google.maps.Size(nyanw,39),
-                 scaledSize: new google.maps.Size(nyanw,39),
-                 anchor: new google.maps.Point(26,20)
-             });
-            vehicle_info.marker.iconImg = 1;
+            nyanIcon = new L.icon ({
+                iconUrl: host_url + markers_url + nyan,
+                iconSize: [nyanw,39],
+                iconAnchor: [26,20],
+                tooltipAnchor: [0,-29],
+            });
+
+            vehicle_info.marker.setIcon(nyanIcon);
 
             vehicle_info.image_src = host_url + markers_url + "hab_nyan.gif";
-            vehicle_info.image_src_offset = new google.maps.Point(-34,-70);
+            vehicle_info.image_src_offset = [-34,-70];
 
-            // remove all polylines
             var k;
             for(k in vehicle_info.polyline) {
-                vehicle_info.polyline[k].setMap(null);
+                map.removeLayer(vehicle_info.polyline[k]);
             }
 
             vehicle_info.polyline = [];
 
             for(k in rainbow) {
-                vehicle_info.polyline.push(new google.maps.Polyline({
-                                map: map,
-                                zIndex: (Z_PATH - (k * 1)),
-                                strokeColor: rainbow[k],
-                                strokeOpacity: 1,
-                                strokeWeight: (k*4) + 2,
-                                clickable: true,
-                                draggable: false,
-                                geodesic: true
-                            }));
+                vehicle_info.polyline.push(new L.Polyline(point, {
+                    zIndexOffset: (Z_PATH - (k * 1)),
+                    color: rainbow[k],
+                    opacity: 1,
+                    weight: (k*4) + 2,
+                }).addTo(map));
+                vehicle_info.polyline[k].bringToBack();
             }
         }
-
-        vehicle_info.gmaps_elements = gmaps_elements.concat(vehicle_info.polyline);
+        
         vehicle_info.kill = function() {
             $(".vehicle"+vehicle_info.uuid).remove();
-            vehicle_info.gmaps_elements.forEach(function(elm) { elm.setMap(null); });
+            potentialobjects = [marker, marker_shadow, landing_marker, horizon_circle, horizon_circle_title, subhorizon_circle, subhorizon_circle_title, polyline];
+            if (map.hasLayer(vehicle_info["prediction_polyline"])) { 
+                map.removeLayer(vehicle_info["prediction_polyline"]);
+            }
+            if (map.hasLayer(vehicle_info["prediction_target"])) { 
+                map.removeLayer(vehicle_info["prediction_target"]);
+            }
+            if (map.hasLayer(vehicle_info["prediction_burst"])) { 
+                map.removeLayer(vehicle_info["prediction_burst"]);
+            }
+            try {
+                for(var p in vehicle_info.polyline) {
+                    map.removeLayer(vehicle_info.polyline[p]);
+                }
+            } catch (e) {};
+            for (let i = 0; i < potentialobjects.length; i++) {
+                if (map.hasLayer(potentialobjects[i])) { 
+                    map.removeLayer(potentialobjects[i]);
+                }
+              }
             delete vehicles[vehicle_info.callsign];
         };
 
         // polyline
         for(var pkey in vehicle_info.polyline) {
             vehicle_info.polyline[pkey].vehicle = vehicle_info;
-            google.maps.event.addListener(vehicle_info.polyline[pkey], 'click', mapInfoBox_handle_path);
+            vehicle_info.polyline[pkey].on('click', function (e) {
+                mapInfoBox_handle_path(e);
+            });
         }
-
-        // horizon circles
-        if(vehicle_info.horizon_circle) google.maps.event.addListener(vehicle_info.horizon_circle, 'click', mapInfoBox_handle_truehorizon);
-        if(vehicle_info.subhorizon_circle) google.maps.event.addListener(vehicle_info.subhorizon_circle, 'click', mapInfoBox_handle_horizon);
-
-        // let the nyan free
-        vehicles[vcallsign] = vehicle_info;
+        
+        vehicles[vcallsign] = vehicle_info;    
     }
 
     var vehicle = vehicles[vcallsign];
 
-    var new_latlng = new google.maps.LatLng(position.gps_lat, position.gps_lon);
+    var new_latlng = new L.LatLng(position.gps_lat, position.gps_lon);
     var new_ts = convert_time(position.gps_time);
     var curr_ts = convert_time(vehicle.curr_position.gps_time);
     var dt = (new_ts - curr_ts) / 1000; // convert to seconds
 
-    if(dt === 0 && vehicle.num_positions) {
-        // Removed the below. Don't think its needed anymore.
-        // var callsigns = [];
-        // for (var rxcall in vehicle.curr_position.callsign){
-        //     if (vehicle.curr_position.callsign.hasOwnProperty(rxcall)){
-        //         callsigns.push(rxcall);
-        //     }
-        // }
-        // console.log(position);
-        // var newcalls = callsigns.concat(position.callsign.split(', '));
-
-        // vehicle.curr_position.callsign = array_unique(callsigns).join(', ');
-    }
-    else if(dt >= 0) {
+    if(dt >= 0) {
         if(vehicle.num_positions > 0) {
             // calculate vertical rate
             // TODO - Make this average over more points rather than use a FIR.
             var rate = (position.gps_alt - vehicle.curr_position.gps_alt) / dt;
-            vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
+            if (!isNaN(rate)) {
+                vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
+            }
+
 
             // calculate horizontal rate
-            vehicle.horizontal_rate = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(position.gps_lat, position.gps_lon),
-                                                                                            new google.maps.LatLng(vehicle.curr_position.gps_lat, vehicle.curr_position.gps_lon)) / dt;
+            horizontal_rate_temp = new_latlng.distanceTo(new L.LatLng(vehicle.curr_position.gps_lat, vehicle.curr_position.gps_lon)) / dt;
+            if (!isNaN(horizontal_rate_temp)) {
+                vehicle.horizontal_rate = horizontal_rate_temp;
+            }
          }
 
         // add the new position
@@ -2156,13 +2241,46 @@ function addPosition(position) {
 
         // increment length
         var poslen = vehicle.num_positions;
-        if(poslen > 1) vehicle.path_length += google.maps.geometry.spherical.computeDistanceBetween(vehicle.positions[poslen-2], vehicle.positions[poslen-1]);
+        if(poslen > 1) vehicle.path_length += vehicle.positions[poslen-2].distanceTo(vehicle.positions[poslen-1]);
+
+        L.LatLng.prototype.bearingTo = function(other) {
+            var d2r  = L.LatLng.DEG_TO_RAD;
+            var r2d  = L.LatLng.RAD_TO_DEG;
+            var lat1 = this.lat * d2r;
+            var lat2 = other.lat * d2r;
+            var dLon = (other.lng-this.lng) * d2r;
+            var y    = Math.sin(dLon) * Math.cos(lat2);
+            var x    = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+            var brng = Math.atan2(y, x);
+            brng = parseInt( brng * r2d );
+            brng = (brng + 360) % 360;
+            return brng;
+        };
+
+        function toDegrees(radians) {
+            return radians * 180 / Math.PI;
+        };
+
+        function toRadians(degrees) {
+            return degrees * Math.PI / 180;
+        };
 
         // if car doesn't report heading, we calculate it from the last position
         if(vehicle.num_positions > 1 && vehicle.vehicle_type == 'car' && 'gps_heading' in position && position.gps_heading === "") {
-            var latlng = new google.maps.LatLng(position.gps_lat, position.gps_lon);
-            var old_latlng = new google.maps.LatLng(vehicle.curr_position.gps_lat, vehicle.curr_position.gps_lon);
-            position.gps_heading = google.maps.geometry.spherical.computeHeading(old_latlng, latlng);
+
+            // Source
+            var startLat = toRadians(vehicle.curr_position.gps_lat);
+            var startLng = toRadians(vehicle.curr_position.gps_lon);
+
+            // destination
+            var destLat = toRadians(position.gps_lat);
+            var destLng = toRadians(position.gps_lon);
+
+            y = Math.sin(destLng - startLng) * Math.cos(destLat);
+            x = Math.cos(startLat) * Math.sin(destLat) - Math.sin(startLat) * Math.cos(destLat) * Math.cos(destLng - startLng);
+            brng = Math.atan2(y, x);
+            brng = toDegrees(brng);
+            if (brng != 0) { position.gps_heading = brng; };
         }
 
         vehicle.curr_position = position;
@@ -2186,14 +2304,14 @@ function addPosition(position) {
 
         // recalculate the distance in the section where we insert
         if(idx === 0) {
-            vehicle.path_length += google.maps.geometry.spherical.computeDistanceBetween(vehicle.positions[0], new_latlng);
+            vehicle.path_length += vehicle.positions[0].distanceTo(new_latlng);
         } else {
             // subtracked the distance between the two points where we gonna insert the new one
-            vehicle.path_length -= google.maps.geometry.spherical.computeDistanceBetween(vehicle.positions[idx-1], vehicle.positions[idx]);
+            vehicle.path_length -= vehicle.positions[idx-1].distanceTo(vehicle.positions[idx]);
 
             // calculate the distance with the new point in place
-            vehicle.path_length += google.maps.geometry.spherical.computeDistanceBetween(vehicle.positions[idx-1], new_latlng);
-            vehicle.path_length += google.maps.geometry.spherical.computeDistanceBetween(vehicle.positions[idx], new_latlng);
+            vehicle.path_length += vehicle.positions[idx-1].distanceTo(new_latlng);
+            vehicle.path_length += vehicle.positions[idx].distanceTo(new_latlng);
         }
 
         // insert the new position into our arrays
@@ -2230,12 +2348,8 @@ function updateGraph(vcallsign, reset_selection) {
     if(reset_selection) {
         if(vcallsign !== null) delete plot_options.xaxis;
 
-        if(polyMarker) polyMarker.setPosition(null);
+        if(polyMarker) map.removeLayer(polyMarker);
         plot_crosshair_locked = false;
-
-        // reset nite overlay
-        nite.setDate(null);
-        nite.refresh();
 
         $("#timebox").removeClass('past').addClass('present');
         updateTimebox(new Date());
@@ -2491,7 +2605,11 @@ function graphAddPosition(vcallsign, new_data) {
 }
 
 var ajax_positions = null;
+var ajax_positions_single = null;
+var ajax_positions_old = null;
 var ajax_inprogress = false;
+var ajax_inprogress_single = false;
+var ajax_inprogress_old = "none";
 
 function refresh() {
   if(ajax_inprogress) {
@@ -2500,22 +2618,37 @@ function refresh() {
     return;
   }
 
+  if (ajax_inprogress_old == wvar.query) {
+    if (vehicles.hasOwnProperty(wvar.query)) {
+        return;
+    }
+  }
+    
+  if (ajax_inprogress_old != wvar.query) {
+     document.getElementById("timeperiod").disabled = false;
+  }
+  
   ajax_inprogress = true;
 
   $("#stText").text("checking |");
 
   if(/[a-z0-9]{32}/ig.exec(wvar.query)) {
-      tmpC.setVisible(false);
       initHabitat();
       return;
-  } else {
-      tmpC.setVisible(true);
   }
 
   var mode = wvar.mode.toLowerCase();
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
-  var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
+  if (wvar.query) {
+    if (sondePrefix.indexOf(wvar.query) > -1) {
+        var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=";
+    } else {
+        var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
+    }
+  } else {
+    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
+  }
 
   ajax_positions = $.ajax({
     type: "GET",
@@ -2525,7 +2658,22 @@ function refresh() {
     success: function(response, textStatus) {
         $("#stText").text("loading |");
         response.fetch_timestamp = Date.now();
-        update(response);
+        if (sondePrefix.indexOf(wvar.query) > -1) {
+            ajax_inprogress_old = "none";
+            update(response);
+        } else if (wvar.query != null) {
+            if (JSON.stringify(response).indexOf(wvar.query) == -1) {
+                //check using new API
+                ajax_inprogress = false;
+                refreshSingleOld(wvar.query);
+            } else {
+                ajax_inprogress_old = wvar.query;
+                update(response);
+            }       
+        } else {
+            ajax_inprogress_old = "none";
+            update(response);
+        }
         $("#stText").text("");
         $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
     },
@@ -2538,19 +2686,177 @@ function refresh() {
             $("#stText").text("no connection |");
             $("#stTimer").attr("data-timestamp", data.fetch_timestamp);
         }
+
+        ajax_inprogress = false;
     },
     complete: function(request, textStatus) {
+        if (ajax_inprogress_old != wvar.query) {
+            document.getElementById("timeperiod").disabled = false;
+        }
         clearTimeout(periodical);
         periodical = setTimeout(refresh, timer_seconds * 1000);
     }
   });
 }
 
+function refreshSingle(serial, first) {
+    if(ajax_inprogress_single) {
+        clearTimeout(periodical_focus);
+        if (first) {
+            periodical_focus = setTimeout(refreshSingle, 2000, serial, first);
+        } else {
+            periodical_focus = setTimeout(refreshSingle, 2000, serial);
+        }
+        return;
+    }
+
+    if (ajax_inprogress_old == wvar.query) {
+        if (vehicles.hasOwnProperty(wvar.query)) {
+            return;
+        }
+    }
+  
+    if (first === undefined) {
+        first = false;
+    }
+  
+    ajax_inprogress_single = true;
+  
+    var mode = wvar.mode.toLowerCase();
+    mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
+  
+    if (first){
+      var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(serial);
+    } else {
+      var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(serial); 
+    }
+  
+    ajax_positions_single = $.ajax({
+      type: "GET",
+      url: data_url,
+      data: data_str,
+      dataType: "json",
+      success: function(response, textStatus) {
+          response.fetch_timestamp = Date.now();
+          if (!first) {update(response, false);} else {
+              update(response, true);
+          }
+      },
+      complete: function(request, textStatus) {
+          clearTimeout(periodical_focus);
+          periodical_focus = setTimeout(refreshSingle, timer_seconds_focus * 1000, serial);
+      }
+    });
+}
+
+function refreshSingleOld(serial) {
+
+    if (ajax_inprogress_old == wvar.query) {
+        return;
+    }
+
+    document.getElementById("timeperiod").disabled = true;
+  
+    var data_url = "https://api.v2.sondehub.org/sonde/" + encodeURIComponent(serial); 
+
+    ajax_inprogress_old = serial;
+  
+    ajax_positions_old = $.ajax({
+      type: "GET",
+      url: data_url,
+      dataType: "json",
+      success: function(data, textStatus) {
+          var response = {};
+          response.positions = {};
+          var dataTemp = [];
+          for (var i = data.length - 1; i >= 0; i--) {
+            if (data[i].hasOwnProperty('subtype')) {
+              if (data[i].subtype != "SondehubV1") {
+                var dataTempEntry = {};
+                var station = data[i].uploader_callsign;
+                dataTempEntry.callsign = {};
+                dataTempEntry.callsign[station] = {};
+                dataTempEntry.callsign[station].snr = data[i].snr;
+                dataTempEntry.callsign[station].rssi = data[i].rssi;
+                dataTempEntry.gps_alt = data[i].alt;
+                dataTempEntry.gps_heading = data[i].heading;
+                dataTempEntry.gps_lat = data[i].lat;
+                dataTempEntry.gps_lon = data[i].lon;
+                dataTempEntry.gps_time = data[i].datetime;
+                dataTempEntry.server_time = data[i].datetime;
+                dataTempEntry.vehicle = data[i].serial;
+                dataTempEntry.position_id = data[i].serial + "-" + data[i].datetime;
+                dataTempEntry.data = {};
+                if (data[i].batt) {
+                    dataTempEntry.data.batt = data[i].batt;
+                }
+                if (data[i].burst_timer) {
+                    dataTempEntry.data.burst_timer = data[i].burst_timer;
+                }
+                if (data[i].frequency) {
+                    dataTempEntry.data.burst_timer = data[i].frequency;
+                }
+                if (data[i].humidity) {
+                    dataTempEntry.data.humidity = data[i].humidity;
+                }
+                if (data[i].manufacturer) {
+                    dataTempEntry.data.manufacturer = data[i].manufacturer;
+                }
+                if (data[i].sats) {
+                    dataTempEntry.data.sats = data[i].sats;
+                }
+                if (data[i].temp) {
+                    dataTempEntry.data.temperature_external = data[i].temp;
+                }
+                if (data[i].type) {
+                    dataTempEntry.data.type = data[i].type;
+                    dataTempEntry.type = data[i].type;
+                }
+                if (data[i].pressure) {
+                    dataTempEntry.data.pressure = data[i].pressure;
+                }
+                if (data[i].xdata) {
+                    dataTempEntry.data.xdata = data[i].xdata;
+                }
+                dataTemp.push(dataTempEntry);
+              } else {
+                var dataTempEntry = {};
+                var station = data[i].uploader_callsign;
+                dataTempEntry.callsign = {};
+                dataTempEntry.callsign[station] = {};
+                dataTempEntry.gps_alt = parseFloat(data[i].alt);
+                dataTempEntry.gps_lat = parseFloat(data[i].lat);
+                dataTempEntry.gps_lon = parseFloat(data[i].lon);
+                dataTempEntry.gps_time = data[i].time_received;
+                dataTempEntry.server_time = data[i].time_received;
+                dataTempEntry.vehicle = data[i].serial;
+                dataTempEntry.position_id = data[i].serial + "-" + data[i].time_received;
+                dataTempEntry.data = {};
+                if (data[i].humidity) {
+                    dataTempEntry.data.humidity = parseFloat(data[i].humidity);
+                }
+                if (data[i].temp) {
+                    dataTempEntry.data.temperature_external = parseFloat(data[i].temp);
+                }
+                dataTemp.push(dataTempEntry);
+              }
+            }
+          }
+          response.positions.position = dataTemp;
+          response.fetch_timestamp = Date.now();
+          if (response.positions.position.length == 0) {
+            update(response);
+          } else {
+            update(response, "old");
+          }
+          
+      }
+    });
+}
+
 function refreshReceivers() {
     // if options to hide receivers is selected do nothing
     if(offline.get('opt_hide_receivers')) return;
-
-    //if(typeof _gaq == 'object') _gaq.push(['_trackEvent', 'ajax', 'refresh', 'Recievers']);
 
     $.ajax({
         type: "GET",
@@ -2616,7 +2922,6 @@ function initRecoveryPane() {
 var ajax_predictions = null;
 
 function refreshPredictions() {
-    //if(typeof _gaq == 'object') _gaq.push(['_trackEvent', 'ajax', 'refresh', 'Predictions']);
     if(ajax_inprogress) {
       clearTimeout(periodical_predictions);
       periodical_predictions = setTimeout(refreshPredictions, 1000);
@@ -2808,13 +3113,15 @@ function habitat_doc_step(hab_docs) {
 }
 
 
-var periodical, periodical_receivers, periodical_recoveries;
+var periodical, periodical_focus, periodical_receivers, periodical_recoveries;
 var periodical_predictions = null;
 var timer_seconds = 5;
+var timer_seconds_focus = 1;
 
 function startAjax() {
     // prevent insane clicks to start numerous requests
     clearTimeout(periodical);
+    clearTimeout(periodical_focus);
     clearTimeout(periodical_receivers);
     clearTimeout(periodical_recoveries);
     clearTimeout(periodical_predictions);
@@ -2831,7 +3138,17 @@ function startAjax() {
 function stopAjax() {
     // stop our timed ajax
     clearTimeout(periodical);
+    periodical = null;
+    ajax_inprogress = false;
     if(ajax_positions) ajax_positions.abort();
+
+    clearTimeout(periodical_focus);
+    periodical_focus = null;
+    ajax_inprogress_single = false;
+    if(ajax_positions_single) ajax_positions_single.abort();
+
+    if(ajax_positions_old) ajax_positions_old.abort();
+    ajax_inprogress_old = "none";
 
     clearTimeout(periodical_predictions);
     periodical_predictions = null;
@@ -2841,59 +3158,58 @@ function stopAjax() {
 var currentPosition = null;
 
 function updateCurrentPosition(lat, lon) {
-    var latlng = new google.maps.LatLng(lat, lon);
+    var latlng = new L.LatLng(lat, lon);
 
     if(!currentPosition) {
         currentPosition = {marker: null, lat: lat, lon: lon};
-        currentPosition.marker = new google.maps.Marker({
-            icon: {
-                url: "img/marker-you.png",
-                size: new google.maps.Size(21,50),
-                scaledSize: new google.maps.Size(21,50),
-                anchor: new google.maps.Point(10,50)
-            },
-            zIndex: Z_ME,
-            position: latlng,
-            map: map,
-            optimized: false,
+        youIcon = new L.icon({
+            iconUrl: "img/marker-you.png",
+            iconSize: [21, 50],
+            iconAnchor: [10, 50]
+        });
+        currentPosition.marker = new L.Marker(latlng, {
+            icon: youIcon,
             title: "Your current position",
-            animation: google.maps.Animation.DROP
+            zIndexOffset: Z_ME, 
         });
     } else {
       currentPosition.lat = lat;
       currentPosition.lon = lon;
-      currentPosition.marker.setMap(map);
-      currentPosition.marker.setPosition(latlng);
+      currentPosition.marker.addTo(map);
+      currentPosition.marker.setLatLng(latlng);
     }
 }
 
 function updateReceiverMarker(receiver) {
-  var latlng = new google.maps.LatLng(receiver.lat, receiver.lon);
+  var latlng = new L.LatLng(receiver.lat, receiver.lon);
 
   // init a marker if the receiver doesn't already have one
   if(!receiver.marker) {
-    receiver.marker = new google.maps.Marker({
-        icon: {
-            url: host_url + markers_url + "antenna-green.png",
-            size: new google.maps.Size(26,34),
-            scaledSize: new google.maps.Size(26,34),
-            anchor: new google.maps.Point(13,34),
-        },
-        zIndex: Z_STATION,
-        position: latlng,
-        map: map,
-        optimized: false,
+    
+    if (!receiver.description.includes("radiosonde_auto_rx")) {
+        //future option to show different icon per software
+    }
+
+    receiverIcon = new L.icon({
+        iconUrl: host_url + markers_url + "antenna-green.png",
+        iconSize: [26, 34],
+        iconAnchor: [13, 34],
+        popupAnchor: [0, -34]
+    }),
+
+    receiver.marker = new L.Marker(latlng, {
+        icon: receiverIcon,
         title: receiver.name,
-        animation: google.maps.Animation.DROP
+        zIndexOffset: Z_STATION, 
     });
-    receiver.infobox = new google.maps.InfoWindow({
-        content: receiver.description
-    });
-    receiver.infobox_handle = google.maps.event.addListener(receiver.marker, 'click', function() {
-              receiver.infobox.open(map, receiver.marker);
-    });
+    
+    receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
+
+    receiver.marker.bindPopup(receiver.infobox);
+
+    receiverCanvas.addMarker(receiver.marker);
   } else {
-    receiver.marker.setPosition(latlng);
+    receiver.marker.setLatLng(latlng);
   }
 }
 
@@ -2942,10 +3258,8 @@ function updateReceivers(r) {
             i++;
         }
         else {
-            // close box, remove event handle, and remove marker
-            e.infobox.close();
-            e.infobox_handle.remove();
-            e.marker.setMap(null);
+            map.removeLayer(e.infobox);
+            receiverCanvas.removeMarker(e.marker);
 
             // remove from arrays
             receivers.splice(i,1);
@@ -2957,35 +3271,32 @@ function updateReceivers(r) {
 }
 
 function updateRecoveryMarker(recovery) {
-    var latlng = new google.maps.LatLng(recovery.lat, recovery.lon);
+    var latlng = new L.LatLng(recovery.lat, recovery.lon);
   
     // init a marker if the recovered payload doesn't already have one
     if(!recovery.marker) {
       if(recovery.recovered == true){
-        _recovery_icon = "payload-recovered.png";
+        _recovery_icon = host_url + markers_url + "payload-recovered.png";
       }else{
-        _recovery_icon = "payload-not-recovered.png";
+        _recovery_icon = host_url + markers_url + "payload-not-recovered.png";
       }
 
-      recovery.marker = new google.maps.Marker({
-          icon: {
-              url: host_url + markers_url + _recovery_icon,
-              size: new google.maps.Size(17,19),
-              scaledSize: new google.maps.Size(17,18),
-              anchor: new google.maps.Point(8,14)
-          },
-          zIndex: Z_RECOVERY,
-          position: latlng,
-          map: map,
-          optimized: false,
-          title: recovery.serial,
-          animation: google.maps.Animation.DROP
+      recoveryIcon = new L.icon({
+        iconUrl: _recovery_icon,
+        iconSize: [17, 19],
+        iconAnchor: [8, 14],
+        popupAnchor: [0, -19]
       });
 
-      recovery.infobox = new google.maps.InfoWindow({
-          content: recovery.description
-      });
+      recovery.marker = new L.Marker(latlng, {
+        icon: recoveryIcon,
+        title: recovery.serial,
+        zIndexOffset: Z_RECOVERY, 
+      }).addTo(map);
 
+      recovery.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(recovery.description);
+
+      recovery.marker.bindPopup(recovery.infobox);
 
       div = document.createElement('div');
 
@@ -3001,7 +3312,7 @@ function updateRecoveryMarker(recovery) {
       html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(recovery.datetime))+"</div>";
       html += "<div><b>Reported by:&nbsp;</b>"+recovery.recovered_by+"</div>";
       html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(recovery.description).html()+"</div>";
-      html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+recovery.serial+"' target='_blank'>"+recovery.serial+"</a></div>";
+      html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+recovery.serial+"' target='_blank' rel='noopener'>"+recovery.serial+"</a></div>";
 
       html += "</div>";
 
@@ -3009,11 +3320,8 @@ function updateRecoveryMarker(recovery) {
 
       recovery.infobox.setContent(div);
 
-      recovery.infobox_handle = google.maps.event.addListener(recovery.marker, 'click', function() {
-                recovery.infobox.open(map, recovery.marker);
-      });
     } else {
-      recovery.marker.setPosition(latlng);
+      recovery.marker.setLatLng(latlng);
     }
   }
   
@@ -3061,9 +3369,9 @@ function updateRecoveryMarker(recovery) {
           }
           else {
               // close box, remove event handle, and remove marker
-              e.infobox.close();
-              e.infobox_handle.remove();
-              e.marker.setMap(null);
+              //e.infobox.close();
+              //e.infobox_handle.remove();
+              map.removeLayer(e.marker);
   
               // remove from arrays
               recoveries.splice(i,1);
@@ -3097,7 +3405,7 @@ function updateRecoveryPane(r){
 
         html += "<div style='line-height:16px;position:relative;'>";
         html += "<div><b><u>"+r[i].serial+(r[i].recovered ? " Recovered by " : " Not Recovered by ")+r[i].recovered_by+"</u></b></div>";
-        html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(lat, 5) + ',&nbsp;' + roundNumber(lon, 5)+"</div>";
+        html += "<div style='margin-bottom:5px;'><b><button style='margin-bottom:0px;' onclick='panToRecovery(\"" + r[i].serial + "\")'><i class='icon-location'></i></button>&nbsp;</b>"+roundNumber(lat, 5) + ',&nbsp;' + roundNumber(lon, 5)+"</div>";
   
         var imp = offline.get('opt_imperial');
         var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(alt)) : parseInt(alt)).toLocaleString("us");
@@ -3106,7 +3414,7 @@ function updateRecoveryPane(r){
         html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(r[i].datetime))+"</div>";
         html += "<div><b>Reported by:&nbsp;</b>"+r[i].recovered_by+"</div>";
         html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(r[i].description).html()+"</div>";
-        html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+r[i].serial+"' target='_blank'>"+r[i].serial+"</a></div>";
+        html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+r[i].serial+"' target='_blank' rel='noopener'>"+r[i].serial+"</a></div>";
         html += "<hr style='margin:5px 0px'>";
         html += "</div>";
     }
@@ -3152,7 +3460,6 @@ function refreshUI() {
         updateVehicleInfo(vcallsign, vehicles[vcallsign].curr_position);
     }
 
-    mapInfoBox.close();
     if(follow_vehicle !== null) update_lookangles(follow_vehicle);
 }
 
@@ -3160,20 +3467,35 @@ function refreshUI() {
 function hideHorizonRings(){
     for(var vcallsign in vehicles) {
         if(vehicles[vcallsign].vehicle_type == "balloon"){
-            vehicles[vcallsign].horizon_circle.setVisible(false);
-            vehicles[vcallsign].horizon_circle.label.set('visible', false);
-            vehicles[vcallsign].subhorizon_circle.setVisible(false);
-            vehicles[vcallsign].subhorizon_circle.label.set('visible', false);
+            map.removeLayer(vehicles[vcallsign].horizon_circle);
+            map.removeLayer(vehicles[vcallsign].subhorizon_circle);
+            map.removeLayer(vehicles[vcallsign].horizon_circle_title);
+            map.removeLayer(vehicles[vcallsign].subhorizon_circle_title);
         }
     }
 }
 function showHorizonRings(){
     for(var vcallsign in vehicles) {
         if(vehicles[vcallsign].vehicle_type == "balloon"){
-            vehicles[vcallsign].horizon_circle.setVisible(true);
-            vehicles[vcallsign].horizon_circle.label.set('visible', true);
-            vehicles[vcallsign].subhorizon_circle.setVisible(true);
-            vehicles[vcallsign].subhorizon_circle.label.set('visible', true);
+            map.addLayer(vehicles[vcallsign].horizon_circle);
+            map.addLayer(vehicles[vcallsign].subhorizon_circle);
+            map.addLayer(vehicles[vcallsign].horizon_circle_title);
+            map.addLayer(vehicles[vcallsign].subhorizon_circle_title);
+        }
+    }
+}
+
+function hideTitles(){
+    for(var vcallsign in vehicles) {
+        if(vehicles[vcallsign].vehicle_type == "balloon" || vehicles[vcallsign].vehicle_type == "car"){
+            vehicles[vcallsign].title.unbindTooltip();
+        }
+    }
+}
+function showTitles(){
+    for(var vcallsign in vehicles) {
+        if(vehicles[vcallsign].vehicle_type == "balloon" || vehicles[vcallsign].vehicle_type == "car"){
+            vehicles[vcallsign].title = vehicles[vcallsign].marker.bindTooltip(vehicles[vcallsign]["marker"]["options"]["title"], {direction: 'center', permanent: 'true', className: 'serialtooltip'});
         }
     }
 }
@@ -3182,18 +3504,34 @@ var ssdv = {};
 var status = "";
 var bs_idx = 0;
 
-function update(response) {
+function update(response, flag) {
     if (response === null ||
         !response.positions ||
         !response.positions.position ||
         !response.positions.position.length) {
 
-        // if no vehicles are found, this will remove the spinner and put a friendly message
-        $("#main .empty").html("<span>No vehicles :(</span>");
+        if (flag != "old") {
+            // if no vehicles are found, this will remove the spinner and put a friendly message
+            $("#main .empty").html("<span>No vehicles :(</span>");
 
-        ajax_inprogress = false;
+            if (flag === undefined) {
+                ajax_inprogress = false;
+            } else {
+                ajax_inprogress_single = false;
+            }
 
-        return;
+            return;
+        }
+    }
+
+    if (sondePrefix.indexOf(wvar.query) > -1) {
+        for (var i = response.positions.position.length - 1; i >= 0; i--) {
+            try {
+                if (!response.positions.position[i].type.includes(wvar.query)) {
+                    response.positions.position.splice(i, 1)
+                }
+            } catch (e) {}
+        }
     }
 
     ssdv = (!response.ssdv) ? {} : response.ssdv;
@@ -3253,7 +3591,8 @@ function update(response) {
             if(vehicle === undefined) return;
 
             if(vehicle.updated) {
-                updatePolyline(vcallsign);
+                updatePolyline(vcallsign, flag);
+                
                 updateVehicleInfo(vcallsign, vehicle.curr_position);
 
                 // remember last position for each vehicle
@@ -3288,7 +3627,13 @@ function update(response) {
 
           if(periodical_predictions === null) refreshPredictions();
 
-          ajax_inprogress = false;
+          if (flag != "old") {
+            if (flag === undefined) {
+                ajax_inprogress = false;
+            } else {
+                ajax_inprogress_single = false;
+            }
+          }
         }
     };
 
@@ -3320,7 +3665,7 @@ function zoom_on_payload() {
     if(fallback) {
         if(target) {
             // find the bounds of the ballons first and last positions
-            var bounds = new google.maps.LatLngBounds();
+            var bounds = new L.LatLngBounds();
             bounds.extend(target.positions[0]);
             bounds.extend(target.positions[target.positions.length - 1]);
 
