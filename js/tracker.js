@@ -450,6 +450,10 @@ function load() {
         map.addLayer(launches);
     }
 
+    map.on('moveend', function (e) {
+        lhash_update();
+    });
+
     map.on('baselayerchange', function (e) {
         selectedLayer = e.layer.id;
     });
