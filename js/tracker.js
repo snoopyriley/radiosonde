@@ -449,15 +449,7 @@ function load() {
         showLaunchSites();
         map.addLayer(launches);
     }
-
-    map.on('moveend', function (e) {
-        lhash_update();
-    });
-
-    map.on('baselayerchange', function (e) {
-        selectedLayer = e.layer.id;
-    });
-
+    
     map.on('zoomend', function() {
         //do check for horizon labels
         if (!offline.get("opt_hide_horizon")) {
@@ -516,10 +508,11 @@ function load() {
         
         L.control.periodcontrol({ position: 'topleft' }).addTo(map);
 
-        map.on('idle', function() {
+        map.on('moveend', function() {
             lhash_update();
         });
-        map.on('baselayerchange', function() {
+        map.on('baselayerchange', function(e) {
+            selectedLayer = e.layer.id;
             lhash_update();
         });
 
