@@ -108,7 +108,7 @@ function load_hash(no_refresh) {
                 manual_pan = true;
                 v = v.split(',');
                 var latlng = new L.LatLng(v[0], v[1]);
-                map.setView(latlng);
+                map.panTo(latlng);
                 break;
             case "f":
                 refocus = (follow_vehicle != v);
