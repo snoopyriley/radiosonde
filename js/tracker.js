@@ -2628,12 +2628,6 @@ function refresh() {
     periodical = setTimeout(refresh, 2000);
     return;
   }
-
-  if (ajax_inprogress_old == wvar.query) {
-    if (vehicles.hasOwnProperty(wvar.query)) {
-        return;
-    }
-  }
     
   if (ajax_inprogress_old != wvar.query) {
      document.getElementById("timeperiod").disabled = false;
