@@ -389,10 +389,13 @@ function load() {
     map = new L.map(document.getElementById('map'), {
         zoom: 5,
         zoomControl: false,
-        center: [53.467511,-2.2338940],
+        zoomAnimationThreshold: 0,
+        center: [53.467511,-2.233894],
         layers: [osm],
         preferCanvas: true,
     });
+
+    map.setView([53.467511,-2.233894], 5, {animate: false});
 
     // fullscreen button
     map.addControl(new L.Control.Fullscreen({ position: 'bottomleft' }));
@@ -427,6 +430,27 @@ function load() {
     }
     
     L.control.status({ position: 'bottomright' }).addTo(map);
+
+    L.Control.PeriodControl = L.Control.extend({
+        onAdd: function(map) {
+            var div = L.DomUtil.create('div');
+    
+            div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
+            div.innerHTML.onload = setTimeValue();
+
+            return div;
+        },
+    
+        onRemove: function(map) {
+            // Nothing to do here
+        }
+    });
+
+    L.control.periodcontrol = function(opts) {
+        return new L.Control.PeriodControl(opts);
+    }
+    
+    L.control.periodcontrol({ position: 'topleft' }).addTo(map);
 
     // update current position if we geolocation is available
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
@@ -494,29 +518,9 @@ function load() {
     // only start population the map, once its completely loaded
     var callBack = function() {
         load_hash(null);
+        map.options.zoomAnimationThreshold = 4;
 
-        L.Control.PeriodControl = L.Control.extend({
-            onAdd: function(map) {
-                var div = L.DomUtil.create('div');
-        
-                div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
-                div.innerHTML.onload = setTimeValue();
-
-                return div;
-            },
-        
-            onRemove: function(map) {
-                // Nothing to do here
-            }
-        });
-
-        L.control.periodcontrol = function(opts) {
-            return new L.Control.PeriodControl(opts);
-        }
-        
-        L.control.periodcontrol({ position: 'topleft' }).addTo(map);
-
-        map.on('idle', function() {
+        map.on('moveend', function() {
             lhash_update();
         });
         map.on('baselayerchange', function() {
