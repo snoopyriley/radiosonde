@@ -428,27 +428,6 @@ function load() {
     
     L.control.status({ position: 'bottomright' }).addTo(map);
 
-    L.Control.PeriodControl = L.Control.extend({
-        onAdd: function(map) {
-            var div = L.DomUtil.create('div');
-    
-            div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
-            div.innerHTML.onload = setTimeValue();
-
-            return div;
-        },
-    
-        onRemove: function(map) {
-            // Nothing to do here
-        }
-    });
-
-    L.control.periodcontrol = function(opts) {
-        return new L.Control.PeriodControl(opts);
-    }
-    
-    L.control.periodcontrol({ position: 'topleft' }).addTo(map);
-
     // update current position if we geolocation is available
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
@@ -470,7 +449,15 @@ function load() {
         showLaunchSites();
         map.addLayer(launches);
     }
-    
+
+    map.on('moveend', function (e) {
+        lhash_update();
+    });
+
+    map.on('baselayerchange', function (e) {
+        selectedLayer = e.layer.id;
+    });
+
     map.on('zoomend', function() {
         //do check for horizon labels
         if (!offline.get("opt_hide_horizon")) {
@@ -504,20 +491,42 @@ function load() {
         if(!wvar.embeded) manual_pan = true;
     });
 
-    map.once('move', function() {
+    // only start population the map, once its completely loaded
+    var callBack = function() {
         load_hash(null);
 
-        map.on('moveend', function() {
-            lhash_update();
-        });  
+        L.Control.PeriodControl = L.Control.extend({
+            onAdd: function(map) {
+                var div = L.DomUtil.create('div');
+        
+                div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
+                div.innerHTML.onload = setTimeValue();
 
-        map.on('baselayerchange', function(e) {
-            selectedLayer = e.layer.id;
+                return div;
+            },
+        
+            onRemove: function(map) {
+                // Nothing to do here
+            }
+        });
+
+        L.control.periodcontrol = function(opts) {
+            return new L.Control.PeriodControl(opts);
+        }
+        
+        L.control.periodcontrol({ position: 'topleft' }).addTo(map);
+
+        map.on('idle', function() {
             lhash_update();
         });
-        
+        map.on('baselayerchange', function() {
+            lhash_update();
+        });
+
         startAjax();
-    });  
+    };
+
+    map.whenReady(callBack);
 
     // animate-in the timebox,
     setTimeout(function() {
@@ -2618,6 +2627,12 @@ function refresh() {
     clearTimeout(periodical);
     periodical = setTimeout(refresh, 2000);
     return;
+  }
+
+  if (ajax_inprogress_old == wvar.query) {
+    if (vehicles.hasOwnProperty(wvar.query)) {
+        return;
+    }
   }
     
   if (ajax_inprogress_old != wvar.query) {

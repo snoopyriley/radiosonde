@@ -14,7 +14,7 @@ function lhash_update(history_step) {
 
     // generate hash
     hash += "mt=" + selectedLayer;
-    hash += "&mz=" + roundNumber(map.getZoom(),0);
+    hash += "&mz=" + map.getZoom();
 
     if(!/^[a-z0-9]{32}$/ig.exec(wvar.query)) {
         hash += "&qm=" + wvar.mode.replace(/ /g, '_');
@@ -22,7 +22,8 @@ function lhash_update(history_step) {
 
     if(follow_vehicle === null || manual_pan) {
         var latlng = map.getCenter();
-        hash += "&mc=" + roundNumber(latlng.lat, 5) + "," + roundNumber(latlng.lng, 5); 
+        hash += "&mc=" + roundNumber(latlng.lat, 5) +
+                "," + roundNumber(latlng.lng, 5);
     }
 
     if(follow_vehicle !== null) {
@@ -107,7 +108,7 @@ function load_hash(no_refresh) {
                 manual_pan = true;
                 v = v.split(',');
                 var latlng = new L.LatLng(v[0], v[1]);
-                map.panTo(latlng, {animate: false});
+                map.setView(latlng);
                 break;
             case "f":
                 refocus = (follow_vehicle != v);
