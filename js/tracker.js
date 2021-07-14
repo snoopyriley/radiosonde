@@ -2753,7 +2753,7 @@ function refreshSingle(serial, first) {
       },
       complete: function(request, textStatus) {
           clearTimeout(periodical_focus);
-          periodical_focus = setTimeout(refreshSingle, timer_seconds_focus * 1000, serial);
+          periodical_focus = setTimeout(refreshSingle, timer_seconds * 1000, serial);
       }
     });
 }
@@ -3125,7 +3125,6 @@ function habitat_doc_step(hab_docs) {
 var periodical, periodical_focus, periodical_receivers, periodical_recoveries;
 var periodical_predictions = null;
 var timer_seconds = 5;
-var timer_seconds_focus = 1;
 
 function startAjax() {
     // prevent insane clicks to start numerous requests
