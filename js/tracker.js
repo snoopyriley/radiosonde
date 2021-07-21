@@ -2724,29 +2724,22 @@ function refresh() {
     periodical = setTimeout(refresh, 2000);
     return;
   }
-    
+
   if (ajax_inprogress_old != wvar.query) {
-     document.getElementById("timeperiod").disabled = false;
+    document.getElementById("timeperiod").disabled = false;
   }
   
   ajax_inprogress = true;
 
   $("#stText").text("checking |");
 
-  if(/[a-z0-9]{32}/ig.exec(wvar.query)) {
-      initHabitat();
-      return;
-  }
-
   var mode = wvar.mode.toLowerCase();
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
-  if (wvar.query) {
-    if (sondePrefix.indexOf(wvar.query) > -1) {
-        var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=";
-    } else {
-        var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
-    }
+  if (wvar.query && sondePrefix.indexOf(wvar.query) > -1) {
+    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0";
+  } else if (wvar.query) {
+    var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
   } else {
     var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
   }
@@ -2759,17 +2752,13 @@ function refresh() {
     success: function(response, textStatus) {
         $("#stText").text("loading |");
         response.fetch_timestamp = Date.now();
-        if (sondePrefix.indexOf(wvar.query) > -1) {
-            ajax_inprogress_old = "none";
-            update(response);
-        } else if (wvar.query != null) {
+        if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
             if (JSON.stringify(response).indexOf(wvar.query) == -1) {
                 //check using new API
                 ajax_inprogress = false;
                 refreshSingleOld(wvar.query);
             } else {
                 ajax_inprogress_old = wvar.query;
-                console.log(response);
                 update(response);
             }       
         } else {
@@ -2782,14 +2771,11 @@ function refresh() {
     error: function() {
         $("#stText").text("error |");
 
-        if(!zoomed_in && offline.get('opt_offline')) {
-            var data = offline.get('positions');
-            update(data);
-            $("#stText").text("no connection |");
-            $("#stTimer").attr("data-timestamp", data.fetch_timestamp);
-        }
-
         ajax_inprogress = false;
+
+        if (ajax_inprogress_old != wvar.query) {
+            document.getElementById("timeperiod").disabled = false;
+        }
     },
     complete: function(request, textStatus) {
         if (ajax_inprogress_old != wvar.query) {
@@ -3071,72 +3057,6 @@ function habitat_payload_step(remove_current) {
             habitat_translation_layer(response, prefix);
     });
 }
-
-function initHabitat() {
-    $("#stText").text("loading |");
-
-    habitat_payload_step_data = {
-        idx: 0,
-        payloads: [],
-    };
-    var habitat_docs = [];
-
-    wvar.query.split(";").forEach(function(v) {
-        v = v.trim();
-        if(/^[a-z0-9]{32}$/ig.exec(v)) habitat_docs.push(v);
-    })
-
-    habitat_doc_step(habitat_docs);
-}
-
-
-function habitat_doc_step(hab_docs) {
-    var docid = hab_docs.shift();
-
-    ajax_positions = $.ajax({
-        type: "GET",
-        url: habitat_url + docid,
-        data: "",
-        dataType: "json",
-        success: function(response, textStatus) {
-            if(response.type == "flight") {
-                if(response.payloads.length > 0) {
-                    ts_start = convert_time(response.start) / 1000;
-                    ts_end = convert_time(response.end) / 1000;
-
-
-                    response.payloads.forEach( function(payload_id) {
-                        var url = habitat_url_payload_telemetry.replace(/\{ID\}/g, payload_id);
-                        url = url.replace("{START}", ts_start).replace("{END}", ts_end);
-
-                        habitat_payload_step_data.payloads.push({
-                            prefix: response._id.substr(-4) + "/",
-                            url: url,
-                            skip: 0,
-                        });
-                    });
-                }
-            }
-            else {
-                if(hab_docs.length === 0) update(null);
-                console.error("tracker: docid", docid, " is not a flight_doc");
-            }
-
-            if(hab_docs.length === 0) {
-                habitat_payload_step();
-            } else {
-                habitat_doc_step(hab_docs);
-            }
-        },
-        error: function() {
-            if(hab_docs.length === 0) update(null);
-            console.error("tracker: error trying to load docid", docid);
-        },
-        complete: function(request, textStatus) {
-        }
-    });
-}
-
 
 var periodical, periodical_focus, periodical_receivers, periodical_recoveries;
 var periodical_predictions = null;
