@@ -2724,6 +2724,10 @@ function refresh() {
     periodical = setTimeout(refresh, 2000);
     return;
   }
+
+  if (ajax_inprogress_old != wvar.query) {
+    document.getElementById("timeperiod").disabled = false;
+  }
   
   ajax_inprogress = true;
 
@@ -2732,7 +2736,9 @@ function refresh() {
   var mode = wvar.mode.toLowerCase();
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
-  if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
+  if (wvar.query && sondePrefix.indexOf(wvar.query) > -1) {
+    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0";
+  } else if (wvar.query) {
     var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
   } else {
     var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
