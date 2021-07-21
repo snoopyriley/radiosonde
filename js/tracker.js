@@ -2619,6 +2619,98 @@ function graphAddPosition(vcallsign, new_data) {
     }
 }
 
+function formatData(data) {
+    var response = {};
+    response.positions = {};
+    var dataTemp = [];
+    for (var i = data.length - 1; i >= 0; i--) {
+        if (data[i].hasOwnProperty('subtype')) {
+            if (data[i].subtype != "SondehubV1") {
+            var dataTempEntry = {};
+            var station = data[i].uploader_callsign;
+            dataTempEntry.callsign = {};
+            dataTempEntry.callsign[station] = {};
+            if (data[i].snr) {
+                dataTempEntry.callsign[station].snr = data[i].snr;
+            }
+            if (data[i].rssi) {
+                dataTempEntry.callsign[station].rssi = data[i].rssi;
+            }
+            dataTempEntry.gps_alt = data[i].alt;
+            dataTempEntry.gps_lat = data[i].lat;
+            dataTempEntry.gps_lon = data[i].lon;
+            if (data[i].heading) {
+                dataTempEntry.gps_heading = data[i].heading;
+            }
+            dataTempEntry.gps_time = data[i].datetime;
+            dataTempEntry.server_time = data[i].datetime;
+            dataTempEntry.vehicle = data[i].serial;
+            dataTempEntry.position_id = data[i].serial + "-" + data[i].datetime;
+            dataTempEntry.data = {};
+            if (data[i].batt) {
+                dataTempEntry.data.batt = data[i].batt;
+            }
+            if (data[i].burst_timer) {
+                dataTempEntry.data.burst_timer = data[i].burst_timer;
+            }
+            if (data[i].frequency) {
+                dataTempEntry.data.burst_timer = data[i].frequency;
+            }
+            if (data[i].humidity) {
+                dataTempEntry.data.humidity = data[i].humidity;
+            }
+            if (data[i].manufacturer) {
+                dataTempEntry.data.manufacturer = data[i].manufacturer;
+            }
+            if (data[i].sats) {
+                dataTempEntry.data.sats = data[i].sats;
+            }
+            if (data[i].temp) {
+                dataTempEntry.data.temperature_external = data[i].temp;
+            }
+            if (data[i].type) {
+                dataTempEntry.data.type = data[i].type;
+                dataTempEntry.type = data[i].type;
+            }
+            if (data[i].subtype) {
+                dataTempEntry.data.type = data[i].subtype;
+                dataTempEntry.type = data[i].subtype;
+            }
+            if (data[i].pressure) {
+                dataTempEntry.data.pressure = data[i].pressure;
+            }
+            if (data[i].xdata) {
+                dataTempEntry.data.xdata = data[i].xdata;
+            }
+            dataTemp.push(dataTempEntry);
+            } else {
+            var dataTempEntry = {};
+            var station = data[i].uploader_callsign;
+            dataTempEntry.callsign = {};
+            dataTempEntry.callsign[station] = {};
+            dataTempEntry.gps_alt = parseFloat(data[i].alt);
+            dataTempEntry.gps_lat = parseFloat(data[i].lat);
+            dataTempEntry.gps_lon = parseFloat(data[i].lon);
+            dataTempEntry.gps_time = data[i].time_received;
+            dataTempEntry.server_time = data[i].time_received;
+            dataTempEntry.vehicle = data[i].serial;
+            dataTempEntry.position_id = data[i].serial + "-" + data[i].time_received;
+            dataTempEntry.data = {};
+            if (data[i].humidity) {
+                dataTempEntry.data.humidity = parseFloat(data[i].humidity);
+            }
+            if (data[i].temp) {
+                dataTempEntry.data.temperature_external = parseFloat(data[i].temp);
+            }
+            dataTemp.push(dataTempEntry);
+            }
+        }
+    }
+    response.positions.position = dataTemp;
+    response.fetch_timestamp = Date.now();
+    return response;
+}
+
 var ajax_positions = null;
 var ajax_positions_single = null;
 var ajax_positions_old = null;
@@ -2677,6 +2769,7 @@ function refresh() {
                 refreshSingleOld(wvar.query);
             } else {
                 ajax_inprogress_old = wvar.query;
+                console.log(response);
                 update(response);
             }       
         } else {
@@ -2753,7 +2846,7 @@ function refreshSingle(serial, first) {
       },
       complete: function(request, textStatus) {
           clearTimeout(periodical_focus);
-          periodical_focus = setTimeout(refreshSingle, timer_seconds_focus * 1000, serial);
+          periodical_focus = setTimeout(refreshSingle, timer_seconds * 1000, serial);
       }
     });
 }
@@ -2775,84 +2868,7 @@ function refreshSingleOld(serial) {
       url: data_url,
       dataType: "json",
       success: function(data, textStatus) {
-          var response = {};
-          response.positions = {};
-          var dataTemp = [];
-          for (var i = data.length - 1; i >= 0; i--) {
-            if (data[i].hasOwnProperty('subtype')) {
-              if (data[i].subtype != "SondehubV1") {
-                var dataTempEntry = {};
-                var station = data[i].uploader_callsign;
-                dataTempEntry.callsign = {};
-                dataTempEntry.callsign[station] = {};
-                dataTempEntry.callsign[station].snr = data[i].snr;
-                dataTempEntry.callsign[station].rssi = data[i].rssi;
-                dataTempEntry.gps_alt = data[i].alt;
-                dataTempEntry.gps_heading = data[i].heading;
-                dataTempEntry.gps_lat = data[i].lat;
-                dataTempEntry.gps_lon = data[i].lon;
-                dataTempEntry.gps_time = data[i].datetime;
-                dataTempEntry.server_time = data[i].datetime;
-                dataTempEntry.vehicle = data[i].serial;
-                dataTempEntry.position_id = data[i].serial + "-" + data[i].datetime;
-                dataTempEntry.data = {};
-                if (data[i].batt) {
-                    dataTempEntry.data.batt = data[i].batt;
-                }
-                if (data[i].burst_timer) {
-                    dataTempEntry.data.burst_timer = data[i].burst_timer;
-                }
-                if (data[i].frequency) {
-                    dataTempEntry.data.burst_timer = data[i].frequency;
-                }
-                if (data[i].humidity) {
-                    dataTempEntry.data.humidity = data[i].humidity;
-                }
-                if (data[i].manufacturer) {
-                    dataTempEntry.data.manufacturer = data[i].manufacturer;
-                }
-                if (data[i].sats) {
-                    dataTempEntry.data.sats = data[i].sats;
-                }
-                if (data[i].temp) {
-                    dataTempEntry.data.temperature_external = data[i].temp;
-                }
-                if (data[i].type) {
-                    dataTempEntry.data.type = data[i].type;
-                    dataTempEntry.type = data[i].type;
-                }
-                if (data[i].pressure) {
-                    dataTempEntry.data.pressure = data[i].pressure;
-                }
-                if (data[i].xdata) {
-                    dataTempEntry.data.xdata = data[i].xdata;
-                }
-                dataTemp.push(dataTempEntry);
-              } else {
-                var dataTempEntry = {};
-                var station = data[i].uploader_callsign;
-                dataTempEntry.callsign = {};
-                dataTempEntry.callsign[station] = {};
-                dataTempEntry.gps_alt = parseFloat(data[i].alt);
-                dataTempEntry.gps_lat = parseFloat(data[i].lat);
-                dataTempEntry.gps_lon = parseFloat(data[i].lon);
-                dataTempEntry.gps_time = data[i].time_received;
-                dataTempEntry.server_time = data[i].time_received;
-                dataTempEntry.vehicle = data[i].serial;
-                dataTempEntry.position_id = data[i].serial + "-" + data[i].time_received;
-                dataTempEntry.data = {};
-                if (data[i].humidity) {
-                    dataTempEntry.data.humidity = parseFloat(data[i].humidity);
-                }
-                if (data[i].temp) {
-                    dataTempEntry.data.temperature_external = parseFloat(data[i].temp);
-                }
-                dataTemp.push(dataTempEntry);
-              }
-            }
-          }
-          response.positions.position = dataTemp;
-          response.fetch_timestamp = Date.now();
+          response = formatData(data);
           if (response.positions.position.length == 0) {
             update(response);
           } else {
@@ -3125,7 +3141,6 @@ function habitat_doc_step(hab_docs) {
 var periodical, periodical_focus, periodical_receivers, periodical_recoveries;
 var periodical_predictions = null;
 var timer_seconds = 5;
-var timer_seconds_focus = 1;
 
 function startAjax() {
     // prevent insane clicks to start numerous requests
