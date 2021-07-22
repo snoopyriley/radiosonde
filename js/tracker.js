@@ -2619,6 +2619,98 @@ function graphAddPosition(vcallsign, new_data) {
     }
 }
 
+function formatData(data) {
+    var response = {};
+    response.positions = {};
+    var dataTemp = [];
+    for (var i = data.length - 1; i >= 0; i--) {
+        if (data[i].hasOwnProperty('subtype')) {
+            if (data[i].subtype != "SondehubV1") {
+            var dataTempEntry = {};
+            var station = data[i].uploader_callsign;
+            dataTempEntry.callsign = {};
+            dataTempEntry.callsign[station] = {};
+            if (data[i].snr) {
+                dataTempEntry.callsign[station].snr = data[i].snr;
+            }
+            if (data[i].rssi) {
+                dataTempEntry.callsign[station].rssi = data[i].rssi;
+            }
+            dataTempEntry.gps_alt = data[i].alt;
+            dataTempEntry.gps_lat = data[i].lat;
+            dataTempEntry.gps_lon = data[i].lon;
+            if (data[i].heading) {
+                dataTempEntry.gps_heading = data[i].heading;
+            }
+            dataTempEntry.gps_time = data[i].datetime;
+            dataTempEntry.server_time = data[i].datetime;
+            dataTempEntry.vehicle = data[i].serial;
+            dataTempEntry.position_id = data[i].serial + "-" + data[i].datetime;
+            dataTempEntry.data = {};
+            if (data[i].batt) {
+                dataTempEntry.data.batt = data[i].batt;
+            }
+            if (data[i].burst_timer) {
+                dataTempEntry.data.burst_timer = data[i].burst_timer;
+            }
+            if (data[i].frequency) {
+                dataTempEntry.data.burst_timer = data[i].frequency;
+            }
+            if (data[i].humidity) {
+                dataTempEntry.data.humidity = data[i].humidity;
+            }
+            if (data[i].manufacturer) {
+                dataTempEntry.data.manufacturer = data[i].manufacturer;
+            }
+            if (data[i].sats) {
+                dataTempEntry.data.sats = data[i].sats;
+            }
+            if (data[i].temp) {
+                dataTempEntry.data.temperature_external = data[i].temp;
+            }
+            if (data[i].type) {
+                dataTempEntry.data.type = data[i].type;
+                dataTempEntry.type = data[i].type;
+            }
+            if (data[i].subtype) {
+                dataTempEntry.data.type = data[i].subtype;
+                dataTempEntry.type = data[i].subtype;
+            }
+            if (data[i].pressure) {
+                dataTempEntry.data.pressure = data[i].pressure;
+            }
+            if (data[i].xdata) {
+                dataTempEntry.data.xdata = data[i].xdata;
+            }
+            dataTemp.push(dataTempEntry);
+            } else {
+            var dataTempEntry = {};
+            var station = data[i].uploader_callsign;
+            dataTempEntry.callsign = {};
+            dataTempEntry.callsign[station] = {};
+            dataTempEntry.gps_alt = parseFloat(data[i].alt);
+            dataTempEntry.gps_lat = parseFloat(data[i].lat);
+            dataTempEntry.gps_lon = parseFloat(data[i].lon);
+            dataTempEntry.gps_time = data[i].time_received;
+            dataTempEntry.server_time = data[i].time_received;
+            dataTempEntry.vehicle = data[i].serial;
+            dataTempEntry.position_id = data[i].serial + "-" + data[i].time_received;
+            dataTempEntry.data = {};
+            if (data[i].humidity) {
+                dataTempEntry.data.humidity = parseFloat(data[i].humidity);
+            }
+            if (data[i].temp) {
+                dataTempEntry.data.temperature_external = parseFloat(data[i].temp);
+            }
+            dataTemp.push(dataTempEntry);
+            }
+        }
+    }
+    response.positions.position = dataTemp;
+    response.fetch_timestamp = Date.now();
+    return response;
+}
+
 var ajax_positions = null;
 var ajax_positions_single = null;
 var ajax_positions_old = null;
@@ -2632,29 +2724,22 @@ function refresh() {
     periodical = setTimeout(refresh, 2000);
     return;
   }
-    
+
   if (ajax_inprogress_old != wvar.query) {
-     document.getElementById("timeperiod").disabled = false;
+    document.getElementById("timeperiod").disabled = false;
   }
   
   ajax_inprogress = true;
 
   $("#stText").text("checking |");
 
-  if(/[a-z0-9]{32}/ig.exec(wvar.query)) {
-      initHabitat();
-      return;
-  }
-
   var mode = wvar.mode.toLowerCase();
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
-  if (wvar.query) {
-    if (sondePrefix.indexOf(wvar.query) > -1) {
-        var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=";
-    } else {
-        var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
-    }
+  if (wvar.query && sondePrefix.indexOf(wvar.query) > -1) {
+    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0";
+  } else if (wvar.query) {
+    var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
   } else {
     var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
   }
@@ -2667,10 +2752,7 @@ function refresh() {
     success: function(response, textStatus) {
         $("#stText").text("loading |");
         response.fetch_timestamp = Date.now();
-        if (sondePrefix.indexOf(wvar.query) > -1) {
-            ajax_inprogress_old = "none";
-            update(response);
-        } else if (wvar.query != null) {
+        if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
             if (JSON.stringify(response).indexOf(wvar.query) == -1) {
                 //check using new API
                 ajax_inprogress = false;
@@ -2689,14 +2771,11 @@ function refresh() {
     error: function() {
         $("#stText").text("error |");
 
-        if(!zoomed_in && offline.get('opt_offline')) {
-            var data = offline.get('positions');
-            update(data);
-            $("#stText").text("no connection |");
-            $("#stTimer").attr("data-timestamp", data.fetch_timestamp);
-        }
-
         ajax_inprogress = false;
+
+        if (ajax_inprogress_old != wvar.query) {
+            document.getElementById("timeperiod").disabled = false;
+        }
     },
     complete: function(request, textStatus) {
         if (ajax_inprogress_old != wvar.query) {
@@ -2753,7 +2832,7 @@ function refreshSingle(serial, first) {
       },
       complete: function(request, textStatus) {
           clearTimeout(periodical_focus);
-          periodical_focus = setTimeout(refreshSingle, timer_seconds_focus * 1000, serial);
+          periodical_focus = setTimeout(refreshSingle, timer_seconds * 1000, serial);
       }
     });
 }
@@ -2775,84 +2854,7 @@ function refreshSingleOld(serial) {
       url: data_url,
       dataType: "json",
       success: function(data, textStatus) {
-          var response = {};
-          response.positions = {};
-          var dataTemp = [];
-          for (var i = data.length - 1; i >= 0; i--) {
-            if (data[i].hasOwnProperty('subtype')) {
-              if (data[i].subtype != "SondehubV1") {
-                var dataTempEntry = {};
-                var station = data[i].uploader_callsign;
-                dataTempEntry.callsign = {};
-                dataTempEntry.callsign[station] = {};
-                dataTempEntry.callsign[station].snr = data[i].snr;
-                dataTempEntry.callsign[station].rssi = data[i].rssi;
-                dataTempEntry.gps_alt = data[i].alt;
-                dataTempEntry.gps_heading = data[i].heading;
-                dataTempEntry.gps_lat = data[i].lat;
-                dataTempEntry.gps_lon = data[i].lon;
-                dataTempEntry.gps_time = data[i].datetime;
-                dataTempEntry.server_time = data[i].datetime;
-                dataTempEntry.vehicle = data[i].serial;
-                dataTempEntry.position_id = data[i].serial + "-" + data[i].datetime;
-                dataTempEntry.data = {};
-                if (data[i].batt) {
-                    dataTempEntry.data.batt = data[i].batt;
-                }
-                if (data[i].burst_timer) {
-                    dataTempEntry.data.burst_timer = data[i].burst_timer;
-                }
-                if (data[i].frequency) {
-                    dataTempEntry.data.burst_timer = data[i].frequency;
-                }
-                if (data[i].humidity) {
-                    dataTempEntry.data.humidity = data[i].humidity;
-                }
-                if (data[i].manufacturer) {
-                    dataTempEntry.data.manufacturer = data[i].manufacturer;
-                }
-                if (data[i].sats) {
-                    dataTempEntry.data.sats = data[i].sats;
-                }
-                if (data[i].temp) {
-                    dataTempEntry.data.temperature_external = data[i].temp;
-                }
-                if (data[i].type) {
-                    dataTempEntry.data.type = data[i].type;
-                    dataTempEntry.type = data[i].type;
-                }
-                if (data[i].pressure) {
-                    dataTempEntry.data.pressure = data[i].pressure;
-                }
-                if (data[i].xdata) {
-                    dataTempEntry.data.xdata = data[i].xdata;
-                }
-                dataTemp.push(dataTempEntry);
-              } else {
-                var dataTempEntry = {};
-                var station = data[i].uploader_callsign;
-                dataTempEntry.callsign = {};
-                dataTempEntry.callsign[station] = {};
-                dataTempEntry.gps_alt = parseFloat(data[i].alt);
-                dataTempEntry.gps_lat = parseFloat(data[i].lat);
-                dataTempEntry.gps_lon = parseFloat(data[i].lon);
-                dataTempEntry.gps_time = data[i].time_received;
-                dataTempEntry.server_time = data[i].time_received;
-                dataTempEntry.vehicle = data[i].serial;
-                dataTempEntry.position_id = data[i].serial + "-" + data[i].time_received;
-                dataTempEntry.data = {};
-                if (data[i].humidity) {
-                    dataTempEntry.data.humidity = parseFloat(data[i].humidity);
-                }
-                if (data[i].temp) {
-                    dataTempEntry.data.temperature_external = parseFloat(data[i].temp);
-                }
-                dataTemp.push(dataTempEntry);
-              }
-            }
-          }
-          response.positions.position = dataTemp;
-          response.fetch_timestamp = Date.now();
+          response = formatData(data);
           if (response.positions.position.length == 0) {
             update(response);
           } else {
@@ -3056,76 +3058,9 @@ function habitat_payload_step(remove_current) {
     });
 }
 
-function initHabitat() {
-    $("#stText").text("loading |");
-
-    habitat_payload_step_data = {
-        idx: 0,
-        payloads: [],
-    };
-    var habitat_docs = [];
-
-    wvar.query.split(";").forEach(function(v) {
-        v = v.trim();
-        if(/^[a-z0-9]{32}$/ig.exec(v)) habitat_docs.push(v);
-    })
-
-    habitat_doc_step(habitat_docs);
-}
-
-
-function habitat_doc_step(hab_docs) {
-    var docid = hab_docs.shift();
-
-    ajax_positions = $.ajax({
-        type: "GET",
-        url: habitat_url + docid,
-        data: "",
-        dataType: "json",
-        success: function(response, textStatus) {
-            if(response.type == "flight") {
-                if(response.payloads.length > 0) {
-                    ts_start = convert_time(response.start) / 1000;
-                    ts_end = convert_time(response.end) / 1000;
-
-
-                    response.payloads.forEach( function(payload_id) {
-                        var url = habitat_url_payload_telemetry.replace(/\{ID\}/g, payload_id);
-                        url = url.replace("{START}", ts_start).replace("{END}", ts_end);
-
-                        habitat_payload_step_data.payloads.push({
-                            prefix: response._id.substr(-4) + "/",
-                            url: url,
-                            skip: 0,
-                        });
-                    });
-                }
-            }
-            else {
-                if(hab_docs.length === 0) update(null);
-                console.error("tracker: docid", docid, " is not a flight_doc");
-            }
-
-            if(hab_docs.length === 0) {
-                habitat_payload_step();
-            } else {
-                habitat_doc_step(hab_docs);
-            }
-        },
-        error: function() {
-            if(hab_docs.length === 0) update(null);
-            console.error("tracker: error trying to load docid", docid);
-        },
-        complete: function(request, textStatus) {
-        }
-    });
-}
-
-
 var periodical, periodical_focus, periodical_receivers, periodical_recoveries;
 var periodical_predictions = null;
 var timer_seconds = 5;
-var timer_seconds_focus = 1;
 
 function startAjax() {
     // prevent insane clicks to start numerous requests
