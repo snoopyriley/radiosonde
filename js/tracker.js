@@ -2225,7 +2225,7 @@ function addPosition(position) {
     var curr_ts = convert_time(vehicle.curr_position.gps_time);
     var dt = (new_ts - curr_ts) / 1000; // convert to seconds
 
-    if(dt >= 0) {
+    if(dt > 0) {
         if(vehicle.num_positions > 0) {
             // calculate vertical rate
             // TODO - Make this average over more points rather than use a FIR.
