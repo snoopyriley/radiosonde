@@ -5,11 +5,6 @@ var receivers_url = "https://api.v2.sondehub.org/listeners";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 
-var habitat_max = 400;
-//var habitat_url = "//habitat.habhub.org/habitat/";
-var habitat_url = "/habitat/";
-var habitat_url_payload_telemetry = habitat_url + "_design/payload_telemetry/_view/payload_time?startkey=[%22{ID}%22,{START}]&endkey=[%22{ID}%22,{END}]&include_docs=true&limit=" + habitat_max + "&skip=";
-
 var host_url = "";
 var markers_url = "img/markers/";
 var vehicles = {};
@@ -352,11 +347,6 @@ function clean_refresh(text, force, history_step) {
     var callsign;
     for(callsign in vehicles) {
         vehicles[callsign].kill();
-    }
-
-    // clear hysplit
-    for(callsign in hysplit) {
-        map.removeLayer(hysplit[callsign]);
     }
 
     car_index = 0;
@@ -1616,25 +1606,9 @@ function mapInfoBox_handle_path(event) {
 };
 
 function mapInfoBox_handle_path_fetch(id,vehicle) {
-    var ishabitat = id.length == 64
-
-    if(ishabitat) {
-        var url = habitat_url + id;
-    } else {
-        var url = data_url + "?mode=single&format=json&position_id=" + id;
-    }
+    var url = data_url + "?mode=single&format=json&position_id=" + id;
 
     $.getJSON(url, function(data) {
-        if(ishabitat) {
-            var encap = {positions: { position: [] }};
-
-            if(!data.hasOwnProperty('error')) {
-                data._id = data._id.substring(58);
-                encap.positions.position.push(habitat_doc_to_snus(data));
-                data = encap;
-            }
-        }
-
         if('positions' in data && data.positions.position.length === 0) {
             mapInfoBox.setContent("not&nbsp;found");
             mapInfoBox.openOn(map);
@@ -2225,12 +2199,12 @@ function addPosition(position) {
     var curr_ts = convert_time(vehicle.curr_position.gps_time);
     var dt = (new_ts - curr_ts) / 1000; // convert to seconds
 
-    if(dt > 0) {
+    if(dt >= 0) {
         if(vehicle.num_positions > 0) {
             // calculate vertical rate
             // TODO - Make this average over more points rather than use a FIR.
             var rate = (position.gps_alt - vehicle.curr_position.gps_alt) / dt;
-            if (!isNaN(rate)) {
+            if (!isNaN(rate) && dt != 0) {
                 vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
             }
 
@@ -2717,6 +2691,7 @@ var ajax_positions_old = null;
 var ajax_inprogress = false;
 var ajax_inprogress_single = false;
 var ajax_inprogress_old = "none";
+var ajax_single_serial = null;
 
 function refresh() {
   if(ajax_inprogress) {
@@ -2763,7 +2738,7 @@ function refresh() {
             }       
         } else {
             ajax_inprogress_old = "none";
-            update(response);
+            update(response);   
         }
         $("#stText").text("");
         $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
@@ -2809,6 +2784,7 @@ function refreshSingle(serial, first) {
     }
   
     ajax_inprogress_single = true;
+    ajax_single_serial = serial;
   
     var mode = wvar.mode.toLowerCase();
     mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
@@ -2954,107 +2930,6 @@ function refreshPredictions() {
             clearTimeout(periodical_predictions);
             periodical_predictions = setTimeout(refreshPredictions, 60 * 1000);
         }
-    });
-}
-
-function habitat_translation_layer(json_result, prefix) {
-    if(json_result.rows.length === 0) {
-        habitat_payload_step(true);
-        return;
-    }
-
-    json_result = json_result.rows;
-
-    var result = {positions: { position: [] }};
-    result.fetch_timestamp = Date.now();
-    $("#stTimer").attr("data-timestamp", result.fetch_timestamp);
-
-    for(var i in json_result) {
-        var doc = json_result[i].doc;
-
-        if(doc.data.latitude === 0 && doc.data.longitude === 0) continue;
-
-        var row = habitat_doc_to_snus(doc, prefix);
-
-        result.positions.position.push(row);
-    }
-
-    if(result.positions.position.length) update(result);
-
-    // next step
-    periodical = setTimeout(function() {
-        habitat_payload_step();
-    }, 500);
-}
-
-var habitat_field_blacklist = {
-    altitude: 1,
-    date: 1,
-    latitude: 1,
-    longitude: 1,
-    payload: 1,
-    sentence_id: 1,
-    time: 1,
-};
-
-function habitat_doc_to_snus(doc, prefix) {
-    prefix = prefix || '';
-
-    var row = {
-        'position_id': doc._id,
-        'vehicle': prefix + doc.data.payload,
-        'server_time': doc.data._parsed.time_parsed,
-        'sequence': doc.data.sentence_id,
-        'gps_lat': doc.data.latitude,
-        'gps_lon': doc.data.longitude,
-        'gps_alt': doc.data.altitude,
-        'callsign': "HABITAT ARCHIVE",
-        'data': {}
-    };
-
-    try {
-        row.gps_time = "20" + doc.data.date.replace(/([0-9]{2})/g, "$1-") + doc.data.time;
-    } catch (e) {
-        row.gps_time = row.server_time;
-    }
-
-    // move all other properties as data
-    for(var x in doc.data) {
-        // skip internal and reserved vars
-        if(x[0] == '_' || habitat_field_blacklist.hasOwnProperty(x)) continue;
-
-        row.data[x] = doc.data[x];
-    }
-    row.data = JSON.stringify(row.data);
-
-    return row;
-}
-
-var habitat_payload_step_data;
-
-function habitat_payload_step(remove_current) {
-    remove_current = !!remove_current;
-
-    if(remove_current) {
-        habitat_payload_step_data.payloads.splice(habitat_payload_step_data.idx, 1);
-    }
-
-    if(habitat_payload_step_data.payloads.length === 0) {
-        $("#stText").text("");
-        $("#main .header.empty").html("<span>No vehicles :(</span>");
-        return;
-    }
-
-    habitat_payload_step_data.idx += 1;
-    habitat_payload_step_data.idx = habitat_payload_step_data.idx % habitat_payload_step_data.payloads.length;
-
-    var prefix = habitat_payload_step_data.payloads[habitat_payload_step_data.idx].prefix;
-    var url = habitat_payload_step_data.payloads[habitat_payload_step_data.idx].url;
-    url += habitat_payload_step_data.payloads[habitat_payload_step_data.idx].skip;
-    habitat_payload_step_data.payloads[habitat_payload_step_data.idx].skip += habitat_max;
-
-    ajax_positions = $.getJSON(url, function(response) {
-            habitat_translation_layer(response, prefix);
     });
 }
 
@@ -3380,7 +3255,7 @@ function updatePredictions(r) {
 		if(vehicles.hasOwnProperty(vcallsign)) {
             var vehicle = vehicles[vcallsign];
 
-            if(vcallsign in hysplit || vehicle.marker.mode == "landed") {
+            if(vehicle.marker.mode == "landed") {
                 removePrediction(vcallsign);
                 continue;
             }

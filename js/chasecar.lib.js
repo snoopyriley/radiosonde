@@ -1,5 +1,5 @@
-/* Habitat ChaseCar lib
- * Uploads geolocation for chase cars to habitat
+/* SondeHub ChaseCar lib
+ * Uploads geolocation for chase cars to SondeHub
  *
  * Author: Rossen Gerogiev
  * Requires: jQuery

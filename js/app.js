@@ -201,31 +201,6 @@ var loadComplete = function(e) {
     $('#loading .complete').stop(true,true).animate({width: 200}, {complete: trackerInit });
 };
 
-var hysplit = {};
-var hysplit_data = {};
-var refresh_hysplit = function() {
-    $.getJSON("//spacenear.us/tracker/datanew.php?type=hysplit&format=json", function(data) {
-        var refresh = false;
-
-        for(var k in data) {
-            if(k in hysplit_data) {
-                // if the jobid is the same, skip to next one
-                if(hysplit_data[k].jobid == data[k].jobid) continue;
-
-                // otherwise update the url
-                hysplit_data[k] = data[k];
-                hysplit[k].setUrl(hysplit_data[k].url_kmz);
-            } else {
-                hysplit_data[k] = data[k];
-                hysplit[k] = new google.maps.KmlLayer({url: hysplit_data[k].url_kmz, preserveViewport:true });
-                refresh = true;
-            }
-        }
-
-        if(refresh) refreshUI();
-    });
-};
-
 // loads the tracker interface
 function trackerInit() {
     $('#loading,#settingsbox,#aboutbox,#chasebox').hide(); // welcome screen
@@ -239,10 +214,6 @@ function trackerInit() {
     if(!is_mobile) {
         $.getScript("js/init_plot.js", function() { checkSize(); if(!map) load(); });
         if(wvar.graph) $('#telemetry_graph').attr('style','');
-
-        // fetch hysplit jobs
-        // setInterval(refresh_hysplit, 60 * 1000);
-        // refresh_hysplit();
 
         return;
     }
@@ -480,7 +451,7 @@ var updateTimebox = function(date) {
 };
 
 var format_time_friendly = function(start, end) {
-    var dt = Math.floor((end - start) / 1000);
+    var dt = Math.floor((end - start) / 1000);;
     if(dt < 0) return null;
 
     if(dt < 60) return dt + 's';
@@ -565,23 +536,6 @@ $(window).ready(function() {
 
     // expand graph on startup, if nessary
     if(wvar.graph_expanded) $('#telemetry_graph .graph_label').click();
-
-    // hysplit button
-    $("#main").on('click','.row .data .vbutton.hysplit', function(event) {
-        event.stopPropagation();
-
-        var elm = $(this);
-        var name = elm.attr('data-vcallsign');
-
-        if(elm.hasClass("active")) {
-            elm.removeClass('active');
-            map.removeLayer(hysplit[name]);
-        }
-        else {
-            elm.addClass('active');
-            map.addLayer(hysplit[name]);
-        }
-    });
 
     $("#main").on('click','.row .data .vbutton.path', function(event) {
         event.stopPropagation();
@@ -721,7 +675,7 @@ $(window).ready(function() {
             field.attr('disabled','disabled');
             e.removeClass('off').addClass('on');
 
-            // push listener doc to habitat
+            // push listener doc to SondeHub
             // this gets a station on the map, under the car marker
             // im still not sure its nessesary
             if(!CHASE_listenerSent) {
@@ -730,7 +684,7 @@ $(window).ready(function() {
                     CHASE_listenerSent = true;
                 }
             }
-            // if already have a position push it to habitat
+            // if already have a position push it to SondeHub
             if(GPS_ts) {
                 ChaseCar.updatePosition(callsign, { coords: { latitude: GPS_lat, longitude: GPS_lon, altitude: GPS_alt, speed: GPS_speed }});
             }
