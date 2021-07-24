@@ -1228,6 +1228,8 @@ function updateVehicleInfo(vcallsign, newPosition) {
     callsign_list = callsign_list.join(", ");
   }
 
+  var timeNow = new Date();
+
   //desktop
   var a    = '<div class="header">' +
            '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
@@ -1256,7 +1258,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '</div>' + // right
            '</div>' + // data
            '';
-  var c    = '<dt class="receivers">Received <i class="friendly-dtime" data-timestamp='+(convert_time(newPosition.server_time))+'></i> via:</dt><dd class="receivers">' +
+  var c    = '<dt class="receivers">Received <i class="friendly-dtime" data-timestamp='+timeNow.getTime()+'></i> via:</dt><dd class="receivers">' +
            callsign_list + '</dd>';
 
   if(!newPosition.callsign) c = '';
@@ -3353,6 +3355,16 @@ function update(response, flag) {
         }
     }
 
+    if (typeof flag == 'undefined') {
+        for (var i = response.positions.position.length - 1; i >= 0; i--) {
+            try {
+                if (response.positions.position[i].vehicle == ajax_single_serial) {
+                    response.positions.position.splice(i, 1)
+                }
+            } catch (e) {}
+        }
+    }
+
     ssdv = (!response.ssdv) ? {} : response.ssdv;
 
     // create a dummy response object for postions
@@ -3379,7 +3391,9 @@ function update(response, flag) {
                 this_position_id.setMilliseconds(0)
 
                 if (new Date(position_id) < this_position_id || position_id == 0){
-                    position_id = this_position_id.toISOString()
+                    if (new Date() > this_position_id) {
+                        position_id = this_position_id.toISOString()
+                    }
                 }
 
                 if (!row.picture) {
