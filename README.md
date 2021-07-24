@@ -1,4 +1,4 @@
-# SondeHub Tracker Beta (leaflet edition)
+# SondeHub Tracker
 
 A fork of [habitat-mobile-tracker](https://github.com/rossengeorgiev/habitat-mobile-tracker) for use with the [SondeHub v2 ElasticSearch](https://github.com/projecthorus/sondehub-infra/wiki/ElasticSearch-Kibana-access) database. Huge credits to [Rossen Georgiev](https://github.com/rossengeorgiev/) for developing the mobile-tracker.
 
@@ -15,7 +15,7 @@ The SondeHub tracker is a continuation of [spacenear.us/tracker](http://spacenea
 * Near realtime weather overlays
 * [Daylight cycle overlay](https://github.com/rossengeorgiev/nite-overlay), for long flights
 * Map tracker with Leaflet API
-* Run the app natively on `iOS` or with Chrome's 'add to screen' on `Android`
+* Run the app natively on IOS, Android, or desktop as a Progressive Wep App
 
 ### Geo position
 
@@ -27,8 +27,7 @@ will always start with `chase car mode` disabled._
 
 ## Browser requirements
 
-Any modern browser should be able to run the app. Including the latest version of IE.
-This is also true for mobile, some build-in browsers may not work.
+Any modern browser should be able to run the app. Some features are limited to Chromium based browsers.
 
 ## Contribute
 
@@ -37,13 +36,10 @@ Pull requests are welcome.
 
 ## Installation
 
-Requirements: __Java__ and (Linux or Cygwin environment)
+Requirements: Java
 
     $ git clone https://github.com/projecthorus/sondehub-tracker.git
     $ ./build.sh
-
-For __applicationCache__ to work your server needs to send the correct MIME type.
-`.htaccess` for Apache is included. Consult it if you are using different server software.
 
 ## Original design
 
