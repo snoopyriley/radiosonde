@@ -1,14 +1,9 @@
 var mission_id = 0;
 var position_id = 0;
 var data_url = "https://api.v2.sondehub.org/datanew";
-var receivers_url = "https://api.v2.sondehub.org/listeners";
+var receivers_url = "https://api.v2.sondehub.org/listeners/telemetry";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
-
-var habitat_max = 400;
-//var habitat_url = "//habitat.habhub.org/habitat/";
-var habitat_url = "/habitat/";
-var habitat_url_payload_telemetry = habitat_url + "_design/payload_telemetry/_view/payload_time?startkey=[%22{ID}%22,{START}]&endkey=[%22{ID}%22,{END}]&include_docs=true&limit=" + habitat_max + "&skip=";
 
 var host_url = "";
 var markers_url = "img/markers/";
@@ -352,11 +347,6 @@ function clean_refresh(text, force, history_step) {
     var callsign;
     for(callsign in vehicles) {
         vehicles[callsign].kill();
-    }
-
-    // clear hysplit
-    for(callsign in hysplit) {
-        map.removeLayer(hysplit[callsign]);
     }
 
     car_index = 0;
@@ -1238,6 +1228,8 @@ function updateVehicleInfo(vcallsign, newPosition) {
     callsign_list = callsign_list.join(", ");
   }
 
+  var timeNow = new Date();
+
   //desktop
   var a    = '<div class="header">' +
            '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
@@ -1266,7 +1258,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '</div>' + // right
            '</div>' + // data
            '';
-  var c    = '<dt class="receivers">Received <i class="friendly-dtime" data-timestamp='+(convert_time(newPosition.server_time))+'></i> via:</dt><dd class="receivers">' +
+  var c    = '<dt class="receivers">Received <i class="friendly-dtime" data-timestamp='+timeNow.getTime()+'></i> via:</dt><dd class="receivers">' +
            callsign_list + '</dd>';
 
   if(!newPosition.callsign) c = '';
@@ -1616,25 +1608,9 @@ function mapInfoBox_handle_path(event) {
 };
 
 function mapInfoBox_handle_path_fetch(id,vehicle) {
-    var ishabitat = id.length == 64
-
-    if(ishabitat) {
-        var url = habitat_url + id;
-    } else {
-        var url = data_url + "?mode=single&format=json&position_id=" + id;
-    }
+    var url = data_url + "?mode=single&format=json&position_id=" + id;
 
     $.getJSON(url, function(data) {
-        if(ishabitat) {
-            var encap = {positions: { position: [] }};
-
-            if(!data.hasOwnProperty('error')) {
-                data._id = data._id.substring(58);
-                encap.positions.position.push(habitat_doc_to_snus(data));
-                data = encap;
-            }
-        }
-
         if('positions' in data && data.positions.position.length === 0) {
             mapInfoBox.setContent("not&nbsp;found");
             mapInfoBox.openOn(map);
@@ -2230,7 +2206,7 @@ function addPosition(position) {
             // calculate vertical rate
             // TODO - Make this average over more points rather than use a FIR.
             var rate = (position.gps_alt - vehicle.curr_position.gps_alt) / dt;
-            if (!isNaN(rate)) {
+            if (!isNaN(rate) && dt != 0) {
                 vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
             }
 
@@ -2717,6 +2693,7 @@ var ajax_positions_old = null;
 var ajax_inprogress = false;
 var ajax_inprogress_single = false;
 var ajax_inprogress_old = "none";
+var ajax_single_serial = null;
 
 function refresh() {
   if(ajax_inprogress) {
@@ -2763,7 +2740,7 @@ function refresh() {
             }       
         } else {
             ajax_inprogress_old = "none";
-            update(response);
+            update(response);   
         }
         $("#stText").text("");
         $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
@@ -2809,6 +2786,7 @@ function refreshSingle(serial, first) {
     }
   
     ajax_inprogress_single = true;
+    ajax_single_serial = serial;
   
     var mode = wvar.mode.toLowerCase();
     mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
@@ -2866,20 +2844,20 @@ function refreshSingleOld(serial) {
 }
 
 function refreshReceivers() {
-    // if options to hide receivers is selected do nothing
     if(offline.get('opt_hide_receivers')) return;
+
+    var mode = wvar.mode.toLowerCase();
+    mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
+
+    data_str = "duration=3h";
 
     $.ajax({
         type: "GET",
         url: receivers_url,
-        data: "",
+        data: data_str,
         dataType: "json",
         success: function(response, textStatus) {
-            offline.set('receivers', response);
             updateReceivers(response);
-        },
-        error: function() {
-            if(!ls_receivers && offline.get('opt_offline')) updateReceivers(offline.get('receivers'));
         },
         complete: function(request, textStatus) {
             periodical_listeners = setTimeout(refreshReceivers, 60 * 1000);
@@ -2888,7 +2866,6 @@ function refreshReceivers() {
 }
 
 function refreshRecoveries() {
-    // TODO: Option to hide recoveries
     if(offline.get('opt_hide_recoveries')) return;
 
     $.ajax({
@@ -2897,8 +2874,6 @@ function refreshRecoveries() {
         data: "",
         dataType: "json",
         success: function(response, textStatus) {
-            // TODO: Offline stuff. (Or don't bother?)
-            //offline.set('recoveries', response);
             updateRecoveries(response);
         },
         error: function() {
@@ -2954,107 +2929,6 @@ function refreshPredictions() {
             clearTimeout(periodical_predictions);
             periodical_predictions = setTimeout(refreshPredictions, 60 * 1000);
         }
-    });
-}
-
-function habitat_translation_layer(json_result, prefix) {
-    if(json_result.rows.length === 0) {
-        habitat_payload_step(true);
-        return;
-    }
-
-    json_result = json_result.rows;
-
-    var result = {positions: { position: [] }};
-    result.fetch_timestamp = Date.now();
-    $("#stTimer").attr("data-timestamp", result.fetch_timestamp);
-
-    for(var i in json_result) {
-        var doc = json_result[i].doc;
-
-        if(doc.data.latitude === 0 && doc.data.longitude === 0) continue;
-
-        var row = habitat_doc_to_snus(doc, prefix);
-
-        result.positions.position.push(row);
-    }
-
-    if(result.positions.position.length) update(result);
-
-    // next step
-    periodical = setTimeout(function() {
-        habitat_payload_step();
-    }, 500);
-}
-
-var habitat_field_blacklist = {
-    altitude: 1,
-    date: 1,
-    latitude: 1,
-    longitude: 1,
-    payload: 1,
-    sentence_id: 1,
-    time: 1,
-};
-
-function habitat_doc_to_snus(doc, prefix) {
-    prefix = prefix || '';
-
-    var row = {
-        'position_id': doc._id,
-        'vehicle': prefix + doc.data.payload,
-        'server_time': doc.data._parsed.time_parsed,
-        'sequence': doc.data.sentence_id,
-        'gps_lat': doc.data.latitude,
-        'gps_lon': doc.data.longitude,
-        'gps_alt': doc.data.altitude,
-        'callsign': "HABITAT ARCHIVE",
-        'data': {}
-    };
-
-    try {
-        row.gps_time = "20" + doc.data.date.replace(/([0-9]{2})/g, "$1-") + doc.data.time;
-    } catch (e) {
-        row.gps_time = row.server_time;
-    }
-
-    // move all other properties as data
-    for(var x in doc.data) {
-        // skip internal and reserved vars
-        if(x[0] == '_' || habitat_field_blacklist.hasOwnProperty(x)) continue;
-
-        row.data[x] = doc.data[x];
-    }
-    row.data = JSON.stringify(row.data);
-
-    return row;
-}
-
-var habitat_payload_step_data;
-
-function habitat_payload_step(remove_current) {
-    remove_current = !!remove_current;
-
-    if(remove_current) {
-        habitat_payload_step_data.payloads.splice(habitat_payload_step_data.idx, 1);
-    }
-
-    if(habitat_payload_step_data.payloads.length === 0) {
-        $("#stText").text("");
-        $("#main .header.empty").html("<span>No vehicles :(</span>");
-        return;
-    }
-
-    habitat_payload_step_data.idx += 1;
-    habitat_payload_step_data.idx = habitat_payload_step_data.idx % habitat_payload_step_data.payloads.length;
-
-    var prefix = habitat_payload_step_data.payloads[habitat_payload_step_data.idx].prefix;
-    var url = habitat_payload_step_data.payloads[habitat_payload_step_data.idx].url;
-    url += habitat_payload_step_data.payloads[habitat_payload_step_data.idx].skip;
-    habitat_payload_step_data.payloads[habitat_payload_step_data.idx].skip += habitat_max;
-
-    ajax_positions = $.getJSON(url, function(response) {
-            habitat_translation_layer(response, prefix);
     });
 }
 
@@ -3130,7 +3004,11 @@ function updateReceiverMarker(receiver) {
   // init a marker if the receiver doesn't already have one
   if(!receiver.marker) {
     
-    if (!receiver.description.includes("radiosonde_auto_rx")) {
+    if (receiver.software == "radiosonde_auto_rx") {
+        //future option to show different icon per software
+    } else if (receiver.software == "rdzTTGO") {
+        //future option to show different icon per software
+    } else {
         //future option to show different icon per software
     }
 
@@ -3154,6 +3032,8 @@ function updateReceiverMarker(receiver) {
     receiverCanvas.addMarker(receiver.marker);
   } else {
     receiver.marker.setLatLng(latlng);
+    receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
+    receiver.marker.bindPopup(receiver.infobox);
   }
 }
 
@@ -3161,36 +3041,41 @@ function updateReceivers(r) {
     if(!r) return;
     ls_receivers = true;
 
-    var i = 0, ii = r.length;
-    for(; i < ii; i++) {
-        var lat = parseFloat(r[i].lat);
-        var lon = parseFloat(r[i].lon);
+    for (var i in r) {
+        if (r.hasOwnProperty(i)) {
+            var last = r[i][Object.keys(r[i])[Object.keys(r[i]).length - 1]];
+            if(last.mobile === undefined || last.mobile == false) {
+                var lat = parseFloat(last.uploader_position[0]);
+                var lon = parseFloat(last.uploader_position[1]);
+                var alt = parseFloat(last.uploader_position[2]);
 
-        if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
+                if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
 
-        // Filter out any receivers that are from the TTN Bridge code, and that are older than 1 hour.
-        // This helps de-clutter the map during launches utilising TTN, and that result in *many* new 
-        // receivers showing up on the map.
-        var age = parseFloat(r[i].tdiff_hours); // Grab age of the receiver.
-        if(r[i].description.includes('TTN_LORAWAN_GW') && age > 1.0) continue;
+                var age = new Date(last.ts);
 
-        var r_index = $.inArray(r[i].name, receiver_names);
+                var r_index = $.inArray(last.uploader_callsign, receiver_names);
 
-        if(r_index == -1) {
-            receiver_names.push(r[i].name);
-            r_index = receiver_names.length - 1;
-            receivers[r_index] = {marker: null, infobox: null};
+                if(r_index == -1) {
+                    receiver_names.push(last.uploader_callsign);
+                    r_index = receiver_names.length - 1;
+                    receivers[r_index] = {marker: null, infobox: null};
+                }
+
+                var receiver = receivers[r_index];
+                receiver.name = last.uploader_callsign;
+                receiver.software = last.software_name;
+                receiver.version = last.software_version;
+                receiver.lat = lat;
+                receiver.lon = lon;
+                receiver.alt = alt;
+                receiver.age = age.toISOString();
+                receiver.description = "<font style='font-size: 13px'>"+receiver.name+"</font><br/><font size='-2'><BR><B>Radio: </B>" + last.software_name + "-" + last.software_version
+                + "<BR><B>Antenna: </B>" + last.uploader_antenna + "<BR><B>Last Contact: </B>" + age.toISOString() + "<BR></font>";
+                receiver.fresh = true;
+
+                updateReceiverMarker(receiver);
+            }
         }
-
-        var receiver = receivers[r_index];
-        receiver.name = r[i].name;
-        receiver.lat = lat;
-        receiver.lon = lon;
-        receiver.alt = parseFloat(r[i].alt);
-        receiver.description = "<font style='font-size: 13px'>"+r[i].name+"</font><br/>" + r[i].description.replace("><BR>\n<","><").replace("ago<BR>\n<","ago<");
-        receiver.fresh = true;
-
-        updateReceiverMarker(receiver);
     }
 
     // clear old receivers
@@ -3380,7 +3265,7 @@ function updatePredictions(r) {
 		if(vehicles.hasOwnProperty(vcallsign)) {
             var vehicle = vehicles[vcallsign];
 
-            if(vcallsign in hysplit || vehicle.marker.mode == "landed") {
+            if(vehicle.marker.mode == "landed") {
                 removePrediction(vcallsign);
                 continue;
             }
@@ -3478,6 +3363,16 @@ function update(response, flag) {
         }
     }
 
+    if (typeof flag == 'undefined') {
+        for (var i = response.positions.position.length - 1; i >= 0; i--) {
+            try {
+                if (response.positions.position[i].vehicle == ajax_single_serial) {
+                    response.positions.position.splice(i, 1)
+                }
+            } catch (e) {}
+        }
+    }
+
     ssdv = (!response.ssdv) ? {} : response.ssdv;
 
     // create a dummy response object for postions
@@ -3504,7 +3399,9 @@ function update(response, flag) {
                 this_position_id.setMilliseconds(0)
 
                 if (new Date(position_id) < this_position_id || position_id == 0){
-                    position_id = this_position_id.toISOString()
+                    if (new Date() > this_position_id) {
+                        position_id = this_position_id.toISOString()
+                    }
                 }
 
                 if (!row.picture) {
