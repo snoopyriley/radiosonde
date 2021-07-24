@@ -2849,7 +2849,7 @@ function refreshReceivers() {
     var mode = wvar.mode.toLowerCase();
     mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
-    data_str = "duration=3h";
+    data_str = "duration=1d";
 
     $.ajax({
         type: "GET",
