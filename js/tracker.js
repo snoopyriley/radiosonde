@@ -2860,7 +2860,7 @@ function refreshReceivers() {
             updateReceivers(response);
         },
         complete: function(request, textStatus) {
-            periodical_listeners = setTimeout(refreshReceivers, 6 * 1000);
+            periodical_listeners = setTimeout(refreshReceivers, 60 * 1000);
         }
     });
 }
