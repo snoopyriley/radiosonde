@@ -1229,6 +1229,14 @@ function updateVehicleInfo(vcallsign, newPosition) {
   }
 
   var timeNow = new Date();
+  var timeSent = convert_time(newPosition.server_time);
+  var timeChosen = null;
+
+  if (timeSent > timeNow) {
+      timeChosen = timeNow.getTime();
+  } else {
+      timeChosen = timeSent;
+  }
 
   //desktop
   var a    = '<div class="header">' +
@@ -1258,7 +1266,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '</div>' + // right
            '</div>' + // data
            '';
-  var c    = '<dt class="receivers">Received <i class="friendly-dtime" data-timestamp='+timeNow.getTime()+'></i> via:</dt><dd class="receivers">' +
+  var c    = '<dt class="receivers">Received <i class="friendly-dtime" data-timestamp='+timeChosen+'></i> via:</dt><dd class="receivers">' +
            callsign_list + '</dd>';
 
   if(!newPosition.callsign) c = '';
