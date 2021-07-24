@@ -1,7 +1,7 @@
 var mission_id = 0;
 var position_id = 0;
 var data_url = "https://api.v2.sondehub.org/datanew";
-var receivers_url = "https://api.v2.sondehub.org/listeners";
+var receivers_url = "https://api.v2.sondehub.org/listeners/telemetry";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 
@@ -2844,20 +2844,20 @@ function refreshSingleOld(serial) {
 }
 
 function refreshReceivers() {
-    // if options to hide receivers is selected do nothing
     if(offline.get('opt_hide_receivers')) return;
+
+    var mode = wvar.mode.toLowerCase();
+    mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
+
+    data_str = "duration=3h";
 
     $.ajax({
         type: "GET",
         url: receivers_url,
-        data: "",
+        data: data_str,
         dataType: "json",
         success: function(response, textStatus) {
-            offline.set('receivers', response);
             updateReceivers(response);
-        },
-        error: function() {
-            if(!ls_receivers && offline.get('opt_offline')) updateReceivers(offline.get('receivers'));
         },
         complete: function(request, textStatus) {
             periodical_listeners = setTimeout(refreshReceivers, 60 * 1000);
@@ -2866,7 +2866,6 @@ function refreshReceivers() {
 }
 
 function refreshRecoveries() {
-    // TODO: Option to hide recoveries
     if(offline.get('opt_hide_recoveries')) return;
 
     $.ajax({
@@ -2875,8 +2874,6 @@ function refreshRecoveries() {
         data: "",
         dataType: "json",
         success: function(response, textStatus) {
-            // TODO: Offline stuff. (Or don't bother?)
-            //offline.set('recoveries', response);
             updateRecoveries(response);
         },
         error: function() {
@@ -3007,7 +3004,11 @@ function updateReceiverMarker(receiver) {
   // init a marker if the receiver doesn't already have one
   if(!receiver.marker) {
     
-    if (!receiver.description.includes("radiosonde_auto_rx")) {
+    if (receiver.software == "radiosonde_auto_rx") {
+        //future option to show different icon per software
+    } else if (receiver.software == "rdzTTGO") {
+        //future option to show different icon per software
+    } else {
         //future option to show different icon per software
     }
 
@@ -3038,36 +3039,40 @@ function updateReceivers(r) {
     if(!r) return;
     ls_receivers = true;
 
-    var i = 0, ii = r.length;
-    for(; i < ii; i++) {
-        var lat = parseFloat(r[i].lat);
-        var lon = parseFloat(r[i].lon);
+    for (var i in r) {
+        if (r.hasOwnProperty(i)) {
+            var last = r[i][Object.keys(r[i])[Object.keys(r[i]).length - 1]];
+            if(last.mobile != false) continue;
+            var lat = parseFloat(last.uploader_position[0]);
+            var lon = parseFloat(last.uploader_position[1]);
+            var alt = parseFloat(last.uploader_position[2]);
 
-        if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
+            if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
 
-        // Filter out any receivers that are from the TTN Bridge code, and that are older than 1 hour.
-        // This helps de-clutter the map during launches utilising TTN, and that result in *many* new 
-        // receivers showing up on the map.
-        var age = parseFloat(r[i].tdiff_hours); // Grab age of the receiver.
-        if(r[i].description.includes('TTN_LORAWAN_GW') && age > 1.0) continue;
+            var age = new Date(last.ts);
 
-        var r_index = $.inArray(r[i].name, receiver_names);
+            var r_index = $.inArray(last.uploader_callsign, receiver_names);
 
-        if(r_index == -1) {
-            receiver_names.push(r[i].name);
-            r_index = receiver_names.length - 1;
-            receivers[r_index] = {marker: null, infobox: null};
+            if(r_index == -1) {
+                receiver_names.push(r[i].name);
+                r_index = receiver_names.length - 1;
+                receivers[r_index] = {marker: null, infobox: null};
+            }
+
+            var receiver = receivers[r_index];
+            receiver.name = last.uploader_callsign;
+            receiver.software = last.software_name;
+            receiver.version = last.software_version;
+            receiver.lat = lat;
+            receiver.lon = lon;
+            receiver.alt = alt;
+            receiver.age = age.toISOString();
+            receiver.description = "<font style='font-size: 13px'>"+receiver.name+"</font><br/><font size='-2'><BR><B>Radio: </B>" + last.software_name + "-" + last.software_version
+             + "<BR><B>Antenna: </B>" + last.uploader_antenna + "<BR><B>Last Contact: </B>" + age.toISOString() + "<BR></font>";
+            receiver.fresh = true;
+
+            updateReceiverMarker(receiver);
         }
-
-        var receiver = receivers[r_index];
-        receiver.name = r[i].name;
-        receiver.lat = lat;
-        receiver.lon = lon;
-        receiver.alt = parseFloat(r[i].alt);
-        receiver.description = "<font style='font-size: 13px'>"+r[i].name+"</font><br/>" + r[i].description.replace("><BR>\n<","><").replace("ago<BR>\n<","ago<");
-        receiver.fresh = true;
-
-        updateReceiverMarker(receiver);
     }
 
     // clear old receivers
