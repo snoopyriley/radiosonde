@@ -3032,6 +3032,8 @@ function updateReceiverMarker(receiver) {
     receiverCanvas.addMarker(receiver.marker);
   } else {
     receiver.marker.setLatLng(latlng);
+    receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
+    receiver.marker.bindPopup(receiver.infobox);
   }
 }
 
@@ -3042,36 +3044,37 @@ function updateReceivers(r) {
     for (var i in r) {
         if (r.hasOwnProperty(i)) {
             var last = r[i][Object.keys(r[i])[Object.keys(r[i]).length - 1]];
-            if(last.mobile != false) continue;
-            var lat = parseFloat(last.uploader_position[0]);
-            var lon = parseFloat(last.uploader_position[1]);
-            var alt = parseFloat(last.uploader_position[2]);
+            if(last.mobile === undefined || last.mobile == false) {
+                var lat = parseFloat(last.uploader_position[0]);
+                var lon = parseFloat(last.uploader_position[1]);
+                var alt = parseFloat(last.uploader_position[2]);
 
-            if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
+                if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
 
-            var age = new Date(last.ts);
+                var age = new Date(last.ts);
 
-            var r_index = $.inArray(last.uploader_callsign, receiver_names);
+                var r_index = $.inArray(last.uploader_callsign, receiver_names);
 
-            if(r_index == -1) {
-                receiver_names.push(r[i].name);
-                r_index = receiver_names.length - 1;
-                receivers[r_index] = {marker: null, infobox: null};
+                if(r_index == -1) {
+                    receiver_names.push(last.uploader_callsign);
+                    r_index = receiver_names.length - 1;
+                    receivers[r_index] = {marker: null, infobox: null};
+                }
+
+                var receiver = receivers[r_index];
+                receiver.name = last.uploader_callsign;
+                receiver.software = last.software_name;
+                receiver.version = last.software_version;
+                receiver.lat = lat;
+                receiver.lon = lon;
+                receiver.alt = alt;
+                receiver.age = age.toISOString();
+                receiver.description = "<font style='font-size: 13px'>"+receiver.name+"</font><br/><font size='-2'><BR><B>Radio: </B>" + last.software_name + "-" + last.software_version
+                + "<BR><B>Antenna: </B>" + last.uploader_antenna + "<BR><B>Last Contact: </B>" + age.toISOString() + "<BR></font>";
+                receiver.fresh = true;
+
+                updateReceiverMarker(receiver);
             }
-
-            var receiver = receivers[r_index];
-            receiver.name = last.uploader_callsign;
-            receiver.software = last.software_name;
-            receiver.version = last.software_version;
-            receiver.lat = lat;
-            receiver.lon = lon;
-            receiver.alt = alt;
-            receiver.age = age.toISOString();
-            receiver.description = "<font style='font-size: 13px'>"+receiver.name+"</font><br/><font size='-2'><BR><B>Radio: </B>" + last.software_name + "-" + last.software_version
-             + "<BR><B>Antenna: </B>" + last.uploader_antenna + "<BR><B>Last Contact: </B>" + age.toISOString() + "<BR></font>";
-            receiver.fresh = true;
-
-            updateReceiverMarker(receiver);
         }
     }
 
