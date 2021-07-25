@@ -2102,6 +2102,7 @@ function addPosition(position) {
                             positions: [],
                             positions_ts: [],
                             positions_ids: [],
+                            positions_alts: [],
                             path_length: 0,
                             curr_position: position,
                             line: [],
@@ -2210,6 +2211,7 @@ function addPosition(position) {
     var new_latlng = new L.LatLng(position.gps_lat, position.gps_lon);
     var new_ts = convert_time(position.gps_time);
     var curr_ts = convert_time(vehicle.curr_position.gps_time);
+    var new_alt = position.gps_alt;
     var dt = (new_ts - curr_ts) / 1000; // convert to seconds
 
     if (typeof position.type !== 'undefined' && typeof vehicle.curr_position.type !== 'undefined') {
@@ -2220,18 +2222,39 @@ function addPosition(position) {
     
     if(dt >= 0) {
         if(vehicle.num_positions > 0) {
-            // calculate vertical rate
-            // TODO - Make this average over more points rather than use a FIR.
-            var rate = (position.gps_alt - vehicle.curr_position.gps_alt) / dt;
-            if (!isNaN(rate) && dt != 0) {
-                vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
+
+            //average over 5s if available
+            var old_ts = vehicle.positions_ts[vehicle.positions_ts.length - 5];
+            var dtt = (new_ts - old_ts) / 1000; // convert to seconds
+
+            if (vehicle.positions_ts.length < 5) {
+                dtt = 1000;
             }
 
+            // calculate vertical rate
+            if (dtt > 10) {
+                var rate = (position.gps_alt - vehicle.curr_position.gps_alt) / dt;
+                if (!isNaN(rate) && dt != 0) {
+                    vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
+                }
+            } else {
+                var rate = (position.gps_alt - vehicle.positions_alts[vehicle.positions_alts.length - 5]) / dtt;
+                if (!isNaN(rate)) {
+                    vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
+                }
+            }
 
             // calculate horizontal rate
-            horizontal_rate_temp = new_latlng.distanceTo(new L.LatLng(vehicle.curr_position.gps_lat, vehicle.curr_position.gps_lon)) / dt;
-            if (!isNaN(horizontal_rate_temp) && dt != 0) {
-                vehicle.horizontal_rate = horizontal_rate_temp;
+            if (dtt > 10) {
+                horizontal_rate_temp = new_latlng.distanceTo(new L.LatLng(vehicle.curr_position.gps_lat, vehicle.curr_position.gps_lon)) / dt;
+                if (!isNaN(horizontal_rate_temp) && dt != 0) {
+                    vehicle.horizontal_rate = horizontal_rate_temp;
+                }
+            } else {
+                horizontal_rate_temp = new_latlng.distanceTo(vehicle.positions[vehicle.positions.length - 5]) / dtt;
+                if (!isNaN(horizontal_rate_temp)) {
+                    vehicle.horizontal_rate = horizontal_rate_temp;
+                }
             }
          }
 
@@ -2244,6 +2267,7 @@ function addPosition(position) {
             vehicle.positions.push(new_latlng);
             vehicle.positions_ts.push(new_ts);
             vehicle.positions_ids.push(position.position_id);
+            vehicle.positions_alts.push(new_alt)
             vehicle.num_positions++;
         }
 
@@ -2324,6 +2348,7 @@ function addPosition(position) {
 
         // insert the new position into our arrays
         vehicle.positions.splice(idx, 0, new_latlng);
+        vehicle.positions_alts.splice(idx, 0, new_alt);
         vehicle.positions_ts.splice(idx, 0, new_ts);
         vehicle.positions_ids.splice(idx, 0, position.position_id);
         vehicle.num_positions++;
