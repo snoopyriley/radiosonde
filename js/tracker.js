@@ -1,9 +1,14 @@
 var mission_id = 0;
 var position_id = 0;
 var data_url = "https://api.v2.sondehub.org/datanew";
+var newdata_url = "https://api.v2.sondehub.org/sondes/telemetry";
+var olddata_url = "https://api.v2.sondehub.org/sondes";
 var receivers_url = "https://api.v2.sondehub.org/listeners/telemetry";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
+
+var livedata = "wss://ws.v2.sondehub.org/";
+var client = null;
 
 var host_url = "";
 var markers_url = "img/markers/";
@@ -47,15 +52,18 @@ var svgRenderer = L.svg();
 
 var modeList = [
 //    "Position",
-    "1 hour",
-    "3 hours",
-    "6 hours",
-    "12 hours",
-    "1 day",
-    "3 days"
+    "15s",
+    "1m",
+    "30m",
+    "1h",
+    "3h",
+    "6h",
+    "12h",
+    "1d",
+    "3d"
 ];
-var modeDefault = "3 hours";
-var modeDefaultMobile = "1 hour";
+var modeDefault = "3h";
+var modeDefaultMobile = "1h";
 
 // order of map elements
 var Z_RANGE = 1;
@@ -332,6 +340,9 @@ function clean_refresh(text, force, history_step) {
     if(text == wvar.mode && !force) return false;
     stopAjax();
 
+    client.end();
+    client = null;
+
     // reset mode if, invalid mode is specified
     if(modeList.indexOf(text) == -1) text = (is_mobile) ? modeDefaultMobile : modeDefault;
 
@@ -366,11 +377,13 @@ function clean_refresh(text, force, history_step) {
 
     clearTimeout(periodical);
     clearTimeout(periodical_focus);
+    clearTimeout(periodical_focus_new);
     clearTimeout(periodical_receivers);
     clearTimeout(periodical_recoveries);
+    clearTimeout(periodical_listeners);
 
-    refreshNewReceivers(true);
     refresh();
+    refreshNewReceivers(true);
 
     return true;
 }
@@ -426,7 +439,7 @@ function load() {
         onAdd: function(map) {
             var div = L.DomUtil.create('div');
     
-            div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="1 hour">1 hour</option><option value="3 hours" selected="selected">3 hours</option><option value="6 hours">6 hours</option><option value="12 hours">12 hours</option></select>';
+            div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="1h">1 hour</option><option value="3h" selected="selected">3 hours</option><option value="6h">6 hours</option><option value="12h">12 hours</option></select>';
             div.innerHTML.onload = setTimeValue();
 
             return div;
@@ -926,7 +939,7 @@ function stopFollow(no_data_reset) {
         }
 
         //stop detailed data
-        clearTimeout(periodical_focus);
+        clearTimeout(periodical_focus_new);
 
         // clear graph
         if(plot) plot = $.plot(plot_holder, {}, plot_options);
@@ -957,8 +970,8 @@ function followVehicle(vcallsign, noPan, force) {
     }
 
     if(follow_vehicle != vcallsign || force) {
-        clearTimeout(periodical_focus);
-        refreshSingle(vcallsign, true);
+        clearTimeout(periodical_focus_new);
+        refreshSingleNew(vcallsign);
         focusVehicle(vcallsign);
 
 		follow_vehicle = vcallsign;
@@ -1447,11 +1460,8 @@ function redrawPrediction(vcallsign) {
     }
 }
 
-function updatePolyline(vcallsign, flag) {
+function updatePolyline(vcallsign) {
     for(var k in vehicles[vcallsign].polyline) {
-        if (flag) {
-            vehicles[vcallsign].polyline[k].setLatLngs([]);
-        }
         vehicles[vcallsign].polyline[k].setLatLngs(vehicles[vcallsign].positions);
     }
 }
@@ -1832,6 +1842,8 @@ function addPosition(position) {
                 listScroll.refresh();
                 listScroll.scrollToElement(_vehicle_idname);
                 panTo(vcallsign);
+                clearTimeout(periodical_focus_new);
+                refreshSingleNew(_vehicle_id);
             };
 
             if(!!!window.HTMLCanvasElement) {
@@ -1915,8 +1927,6 @@ function addPosition(position) {
                 listScroll.refresh();
                 listScroll.scrollToElement(_vehicle_idname);
                 followVehicle($(_vehicle_idname).attr('data-vcallsign'));
-                clearTimeout(periodical_focus);
-                refreshSingle(_vehicle_id, true);
             };
 
             marker.shadow = marker_shadow;
@@ -2604,90 +2614,214 @@ function graphAddPosition(vcallsign, new_data) {
     }
 }
 
-function formatData(data) {
+function formatData(data, live) {
     var response = {};
     response.positions = {};
     var dataTemp = [];
-    for (var i = data.length - 1; i >= 0; i--) {
-        if (data[i].hasOwnProperty('subtype')) {
-            if (data[i].subtype != "SondehubV1") {
-            var dataTempEntry = {};
-            var station = data[i].uploader_callsign;
-            dataTempEntry.callsign = {};
-            dataTempEntry.callsign[station] = {};
-            if (data[i].snr) {
-                dataTempEntry.callsign[station].snr = data[i].snr;
+    if (live) {
+        var dataTempEntry = {};
+        var station = data.uploader_callsign;
+        dataTempEntry.callsign = {};
+        dataTempEntry.callsign[station] = {};
+        if (data.snr) {
+            dataTempEntry.callsign[station].snr = data.snr;
+        }
+        if (data.rssi) {
+            dataTempEntry.callsign[station].rssi = data.rssi;
+        }
+        dataTempEntry.gps_alt = data.alt;
+        dataTempEntry.gps_lat = data.lat;
+        dataTempEntry.gps_lon = data.lon;
+        if (data.heading) {
+            dataTempEntry.gps_heading = data.heading;
+        }
+        dataTempEntry.gps_time = data.datetime;
+        dataTempEntry.server_time = data.datetime;
+        dataTempEntry.vehicle = data.serial;
+        dataTempEntry.position_id = data.serial + "-" + data.datetime;
+        dataTempEntry.data = {};
+        if (data.batt) {
+            dataTempEntry.data.batt = data.batt;
+        }
+        if (data.burst_timer) {
+            dataTempEntry.data.burst_timer = data.burst_timer;
+        }
+        if (data.frequency) {
+            dataTempEntry.data.burst_timer = data.frequency;
+        }
+        if (data.humidity) {
+            dataTempEntry.data.humidity = data.humidity;
+        }
+        if (data.manufacturer) {
+            dataTempEntry.data.manufacturer = data.manufacturer;
+        }
+        if (data.sats) {
+            dataTempEntry.data.sats = data.sats;
+        }
+        if (data.temp) {
+            dataTempEntry.data.temperature_external = data.temp;
+        }
+        if (data.type) {
+            dataTempEntry.data.type = data.type;
+            dataTempEntry.type = data.type;
+        }
+        if (data.subtype) {
+            dataTempEntry.data.type = data.subtype;
+            dataTempEntry.type = data.subtype;
+        }
+        if (data.pressure) {
+            dataTempEntry.data.pressure = data.pressure;
+        }
+        if (data.xdata) {
+            dataTempEntry.data.xdata = data.xdata;
+        }
+        dataTemp.push(dataTempEntry);
+    } else if (data.length == null) {
+        for (let key in data) {
+            if (data.hasOwnProperty(key)) {
+                if (typeof data[key] === 'object') {
+                    for (let i in data[key]) {
+                        var dataTempEntry = {};
+                        var station = data[key][i].uploader_callsign;
+                        dataTempEntry.callsign = {};
+                        dataTempEntry.callsign[station] = {};
+                        if (data[key][i].snr) {
+                            dataTempEntry.callsign[station].snr = data[key][i].snr;
+                        }
+                        if (data[key][i].rssi) {
+                            dataTempEntry.callsign[station].rssi = data[key][i].rssi;
+                        }
+                        dataTempEntry.gps_alt = data[key][i].alt;
+                        dataTempEntry.gps_lat = data[key][i].lat;
+                        dataTempEntry.gps_lon = data[key][i].lon;
+                        if (data[key][i].heading) {
+                            dataTempEntry.gps_heading = data[key][i].heading;
+                        }
+                        dataTempEntry.gps_time = data[key][i].datetime;
+                        dataTempEntry.server_time = data[key][i].datetime;
+                        dataTempEntry.vehicle = data[key][i].serial;
+                        dataTempEntry.position_id = data[key][i].serial + "-" + data[key][i].datetime;
+                        dataTempEntry.data = {};
+                        if (data[key][i].batt) {
+                            dataTempEntry.data.batt = data[key][i].batt;
+                        }
+                        if (data[key][i].burst_timer) {
+                            dataTempEntry.data.burst_timer = data[key][i].burst_timer;
+                        }
+                        if (data[key][i].frequency) {
+                            dataTempEntry.data.burst_timer = data[key][i].frequency;
+                        }
+                        if (data[key][i].humidity) {
+                            dataTempEntry.data.humidity = data[key][i].humidity;
+                        }
+                        if (data[key][i].manufacturer) {
+                            dataTempEntry.data.manufacturer = data[key][i].manufacturer;
+                        }
+                        if (data[key][i].sats) {
+                            dataTempEntry.data.sats = data[key][i].sats;
+                        }
+                        if (data[key][i].temp) {
+                            dataTempEntry.data.temperature_external = data[key][i].temp;
+                        }
+                        if (data[key][i].type) {
+                            dataTempEntry.data.type = data[key][i].type;
+                            dataTempEntry.type = data[key][i].type;
+                        }
+                        if (data[key][i].subtype) {
+                            dataTempEntry.data.type = data[key][i].subtype;
+                            dataTempEntry.type = data[key][i].subtype;
+                        }
+                        if (data[key][i].pressure) {
+                            dataTempEntry.data.pressure = data[key][i].pressure;
+                        }
+                        if (data[key][i].xdata) {
+                            dataTempEntry.data.xdata = data[key][i].xdata;
+                        }
+                        dataTemp.push(dataTempEntry);
+                    }
+                }
             }
-            if (data[i].rssi) {
-                dataTempEntry.callsign[station].rssi = data[i].rssi;
-            }
-            dataTempEntry.gps_alt = data[i].alt;
-            dataTempEntry.gps_lat = data[i].lat;
-            dataTempEntry.gps_lon = data[i].lon;
-            if (data[i].heading) {
-                dataTempEntry.gps_heading = data[i].heading;
-            }
-            dataTempEntry.gps_time = data[i].datetime;
-            dataTempEntry.server_time = data[i].datetime;
-            dataTempEntry.vehicle = data[i].serial;
-            dataTempEntry.position_id = data[i].serial + "-" + data[i].datetime;
-            dataTempEntry.data = {};
-            if (data[i].batt) {
-                dataTempEntry.data.batt = data[i].batt;
-            }
-            if (data[i].burst_timer) {
-                dataTempEntry.data.burst_timer = data[i].burst_timer;
-            }
-            if (data[i].frequency) {
-                dataTempEntry.data.burst_timer = data[i].frequency;
-            }
-            if (data[i].humidity) {
-                dataTempEntry.data.humidity = data[i].humidity;
-            }
-            if (data[i].manufacturer) {
-                dataTempEntry.data.manufacturer = data[i].manufacturer;
-            }
-            if (data[i].sats) {
-                dataTempEntry.data.sats = data[i].sats;
-            }
-            if (data[i].temp) {
-                dataTempEntry.data.temperature_external = data[i].temp;
-            }
-            if (data[i].type) {
-                dataTempEntry.data.type = data[i].type;
-                dataTempEntry.type = data[i].type;
-            }
-            if (data[i].subtype) {
-                dataTempEntry.data.type = data[i].subtype;
-                dataTempEntry.type = data[i].subtype;
-            }
-            if (data[i].pressure) {
-                dataTempEntry.data.pressure = data[i].pressure;
-            }
-            if (data[i].xdata) {
-                dataTempEntry.data.xdata = data[i].xdata;
-            }
-            dataTemp.push(dataTempEntry);
+        }
+    } else {
+        for (var i = data.length - 1; i >= 0; i--) {
+            if (data[i].hasOwnProperty('subtype') && data[i].subtype == "SondehubV1") {
+                var dataTempEntry = {};
+                var station = data[i].uploader_callsign;
+                dataTempEntry.callsign = {};
+                dataTempEntry.callsign[station] = {};
+                dataTempEntry.gps_alt = parseFloat(data[i].alt);
+                dataTempEntry.gps_lat = parseFloat(data[i].lat);
+                dataTempEntry.gps_lon = parseFloat(data[i].lon);
+                dataTempEntry.gps_time = data[i].time_received;
+                dataTempEntry.server_time = data[i].time_received;
+                dataTempEntry.vehicle = data[i].serial;
+                dataTempEntry.position_id = data[i].serial + "-" + data[i].time_received;
+                dataTempEntry.data = {};
+                if (data[i].humidity) {
+                    dataTempEntry.data.humidity = parseFloat(data[i].humidity);
+                }
+                if (data[i].temp) {
+                    dataTempEntry.data.temperature_external = parseFloat(data[i].temp);
+                }
+                dataTemp.push(dataTempEntry);
             } else {
-            var dataTempEntry = {};
-            var station = data[i].uploader_callsign;
-            dataTempEntry.callsign = {};
-            dataTempEntry.callsign[station] = {};
-            dataTempEntry.gps_alt = parseFloat(data[i].alt);
-            dataTempEntry.gps_lat = parseFloat(data[i].lat);
-            dataTempEntry.gps_lon = parseFloat(data[i].lon);
-            dataTempEntry.gps_time = data[i].time_received;
-            dataTempEntry.server_time = data[i].time_received;
-            dataTempEntry.vehicle = data[i].serial;
-            dataTempEntry.position_id = data[i].serial + "-" + data[i].time_received;
-            dataTempEntry.data = {};
-            if (data[i].humidity) {
-                dataTempEntry.data.humidity = parseFloat(data[i].humidity);
-            }
-            if (data[i].temp) {
-                dataTempEntry.data.temperature_external = parseFloat(data[i].temp);
-            }
-            dataTemp.push(dataTempEntry);
+                var dataTempEntry = {};
+                var station = data[i].uploader_callsign;
+                dataTempEntry.callsign = {};
+                dataTempEntry.callsign[station] = {};
+                if (data[i].snr) {
+                    dataTempEntry.callsign[station].snr = data[i].snr;
+                }
+                if (data[i].rssi) {
+                    dataTempEntry.callsign[station].rssi = data[i].rssi;
+                }
+                dataTempEntry.gps_alt = data[i].alt;
+                dataTempEntry.gps_lat = data[i].lat;
+                dataTempEntry.gps_lon = data[i].lon;
+                if (data[i].heading) {
+                    dataTempEntry.gps_heading = data[i].heading;
+                }
+                dataTempEntry.gps_time = data[i].datetime;
+                dataTempEntry.server_time = data[i].datetime;
+                dataTempEntry.vehicle = data[i].serial;
+                dataTempEntry.position_id = data[i].serial + "-" + data[i].datetime;
+                dataTempEntry.data = {};
+                if (data[i].batt) {
+                    dataTempEntry.data.batt = data[i].batt;
+                }
+                if (data[i].burst_timer) {
+                    dataTempEntry.data.burst_timer = data[i].burst_timer;
+                }
+                if (data[i].frequency) {
+                    dataTempEntry.data.burst_timer = data[i].frequency;
+                }
+                if (data[i].humidity) {
+                    dataTempEntry.data.humidity = data[i].humidity;
+                }
+                if (data[i].manufacturer) {
+                    dataTempEntry.data.manufacturer = data[i].manufacturer;
+                }
+                if (data[i].sats) {
+                    dataTempEntry.data.sats = data[i].sats;
+                }
+                if (data[i].temp) {
+                    dataTempEntry.data.temperature_external = data[i].temp;
+                }
+                if (data[i].type) {
+                    dataTempEntry.data.type = data[i].type;
+                    dataTempEntry.type = data[i].type;
+                }
+                if (data[i].subtype) {
+                    dataTempEntry.data.type = data[i].subtype;
+                    dataTempEntry.type = data[i].subtype;
+                }
+                if (data[i].pressure) {
+                    dataTempEntry.data.pressure = data[i].pressure;
+                }
+                if (data[i].xdata) {
+                    dataTempEntry.data.xdata = data[i].xdata;
+                }
+                dataTemp.push(dataTempEntry);
             }
         }
     }
@@ -2698,11 +2832,10 @@ function formatData(data) {
 
 var ajax_positions = null;
 var ajax_positions_single = null;
-var ajax_positions_old = null;
+var ajax_positions_single_new = null;
 var ajax_inprogress = false;
 var ajax_inprogress_single = false;
-var ajax_inprogress_old = "none";
-var ajax_single_serial = null;
+var ajax_inprogress_single_new = false;
 
 function refresh() {
   if(ajax_inprogress) {
@@ -2711,143 +2844,145 @@ function refresh() {
     return;
   }
 
-  if (ajax_inprogress_old != wvar.query) {
-    document.getElementById("timeperiod").disabled = false;
-  }
-  
   ajax_inprogress = true;
 
-  $("#stText").text("checking |");
+  $("#stText").text("loading |");
 
   var mode = wvar.mode.toLowerCase();
   mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
 
-  if (wvar.query && sondePrefix.indexOf(wvar.query) > -1) {
-    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0";
-  } else if (wvar.query) {
-    var data_str = "mode=3days&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(wvar.query);
+  if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
+    var data_str = "duration=3d&serial=" + encodeURIComponent(wvar.query);
   } else {
-    var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(wvar.query);
+    var data_str = "duration=" + mode;
   }
 
   ajax_positions = $.ajax({
     type: "GET",
-    url: data_url,
+    url: newdata_url,
     data: data_str,
     dataType: "json",
-    success: function(response, textStatus) {
-        $("#stText").text("loading |");
-        response.fetch_timestamp = Date.now();
-        if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
-            if (JSON.stringify(response).indexOf(wvar.query) == -1) {
-                //check using new API
-                ajax_inprogress = false;
-                refreshSingleOld(wvar.query);
-            } else {
-                ajax_inprogress_old = wvar.query;
-                update(response);
-            }       
+    success: function(data, textStatus) {
+        if (wvar.query != null && JSON.stringify(data).indexOf(wvar.query) == -1) {
+            refreshSingle(wvar.query);
         } else {
-            ajax_inprogress_old = "none";
+            response = formatData(data, false);
             update(response);   
+            $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
         }
         $("#stText").text("");
-        $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
     },
     error: function() {
         $("#stText").text("error |");
-
+        document.getElementById("timeperiod").disabled = false;
         ajax_inprogress = false;
-
-        if (ajax_inprogress_old != wvar.query) {
-            document.getElementById("timeperiod").disabled = false;
-        }
     },
     complete: function(request, textStatus) {
-        if (ajax_inprogress_old != wvar.query) {
+        if (!ajax_inprogress_single) {
             document.getElementById("timeperiod").disabled = false;
         }
+        if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1) {
+            if (client == null) {
+                liveData();
+            }
+        }
         clearTimeout(periodical);
-        periodical = setTimeout(refresh, timer_seconds * 1000);
+        ajax_inprogress = false;
     }
   });
 }
 
-function refreshSingle(serial, first) {
+function liveData() {
+    client = mqtt.connect(livedata);
+
+    client.on('connect', function () {
+        client.subscribe('#', function (err, granted){
+            if (err != null) {
+                $("#stText").text("error |");
+            }
+        })
+        $("#stText").text("websocket |");
+    })
+
+    client.on('connect', function () {
+        client.subscribe('#')
+        $("#stText").text("websocket |");
+    })
+
+    client.on('message', function (topic, message) {
+        var frame = JSON.parse(message.toString());
+        var test = formatData(frame, true);
+        update(test);
+        $("#stTimer").attr("data-timestamp", new Date().getTime());
+    })
+}
+
+function refreshSingle(serial) {
     if(ajax_inprogress_single) {
         clearTimeout(periodical_focus);
-        if (first) {
-            periodical_focus = setTimeout(refreshSingle, 2000, serial, first);
-        } else {
-            periodical_focus = setTimeout(refreshSingle, 2000, serial);
-        }
+        periodical_focus = setTimeout(refreshSingle, 2000, serial);
         return;
-    }
-
-    if (ajax_inprogress_old == wvar.query) {
-        if (vehicles.hasOwnProperty(wvar.query)) {
-            return;
-        }
-    }
-  
-    if (first === undefined) {
-        first = false;
     }
   
     ajax_inprogress_single = true;
-    ajax_single_serial = serial;
+
+    $("#stText").text("loading |");
   
-    var mode = wvar.mode.toLowerCase();
-    mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
-  
-    if (first){
-      var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=0&vehicles=" + encodeURIComponent(serial);
-    } else {
-      var data_str = "mode="+mode+"&type=positions&format=json&max_positions=" + max_positions + "&position_id=" + position_id + "&vehicles=" + encodeURIComponent(serial); 
-    }
+    var data_url = "https://api.v2.sondehub.org/sonde/" + encodeURIComponent(serial);
   
     ajax_positions_single = $.ajax({
       type: "GET",
       url: data_url,
-      data: data_str,
       dataType: "json",
-      success: function(response, textStatus) {
-          response.fetch_timestamp = Date.now();
-          if (!first) {update(response, false);} else {
-              update(response, true);
-          }
+      success: function(data, textStatus) {
+        response = formatData(data, false);
+        update(response);
+        $("#stText").text("");
+      },
+      error: function() {
+        $("#stText").text("error |");
+        ajax_inprogress_single = false;
+        document.getElementById("timeperiod").disabled = false;
       },
       complete: function(request, textStatus) {
           clearTimeout(periodical_focus);
-          periodical_focus = setTimeout(refreshSingle, timer_seconds * 1000, serial);
+          ajax_inprogress_single = false;
+          document.getElementById("timeperiod").disabled = false;
       }
     });
 }
 
-function refreshSingleOld(serial) {
-
-    if (ajax_inprogress_old == wvar.query) {
+function refreshSingleNew(serial) {
+    if(ajax_inprogress_single_new) {
+        clearTimeout(periodical_focus_new);
+        periodical_focus_new = setTimeout(refreshSingle, 2000, serial);
         return;
     }
 
-    document.getElementById("timeperiod").disabled = true;
+    if (serial.includes("_chase")) {
+        refreshNewReceivers(false, serial.replace("_chase", ""));
+        return;
+    }
   
-    var data_url = "https://api.v2.sondehub.org/sonde/" + encodeURIComponent(serial); 
-
-    ajax_inprogress_old = serial;
+    ajax_inprogress_single_new = true;
   
-    ajax_positions_old = $.ajax({
+    var data_str = "duration=3d&serial=" + serial;
+  
+    ajax_positions_single_new = $.ajax({
       type: "GET",
-      url: data_url,
+      url: newdata_url,
+      data: data_str,
       dataType: "json",
       success: function(data, textStatus) {
-          response = formatData(data);
-          if (response.positions.position.length == 0) {
-            update(response);
-          } else {
-            update(response, "old");
-          }
-          
+        response = formatData(data, false);
+        update(response);
+      },
+      error: function() {
+        ajax_inprogress_single_new = false;
+      },
+      complete: function(request, textStatus) {
+          clearTimeout(periodical_focus_new);
+          ajax_inprogress_single_new = false;
       }
     });
 }
@@ -2856,7 +2991,6 @@ function refreshReceivers() {
     if(offline.get('opt_hide_receivers')) {
         refreshNewReceivers(true);
     } else {
-
         data_str = "duration=1d";
 
         $.ajax({
@@ -2874,12 +3008,14 @@ function refreshReceivers() {
     }
 }
 
-function refreshNewReceivers(initial) {
-    if (initial == true) {
+function refreshNewReceivers(initial, serial) {
+    if (typeof serial !== 'undefined') {
+        data_str = "duration=3d&uploader_callsign=" + serial;
+    }
+    else if (initial == true) {
         var mode = wvar.mode.toLowerCase();
         mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
-        //data_str = "duration=" + mode;
-        data_str = "duration=3h";
+        data_str = "duration=" + mode;
     } else {
         data_str = "duration=1m";
     }
@@ -2896,13 +3032,14 @@ function refreshNewReceivers(initial) {
             }
         },
         complete: function(request, textStatus) {
-            periodical_listeners = setTimeout(function() {refreshNewReceivers(false)}, 30 * 1000);
+            if (typeof serial === 'undefined') {
+                periodical_listeners = setTimeout(function() {refreshNewReceivers(false)}, 30 * 1000);
+            }
         }
     });
 }
 
 function refreshRecoveries() {
-    if(offline.get('opt_hide_recoveries')) return;
 
     $.ajax({
         type: "GET",
@@ -2910,32 +3047,17 @@ function refreshRecoveries() {
         data: "",
         dataType: "json",
         success: function(response, textStatus) {
-            updateRecoveries(response);
+            if(offline.get('opt_hide_recoveries')) {
+                updateRecoveryPane(response);
+            } else {
+                updateRecoveryPane(response);
+                updateRecoveries(response);
+            }
         },
         error: function() {
         },
         complete: function(request, textStatus) {
-            periodical_recoveries = setTimeout(refreshRecoveries, 60 * 1000);
-        }
-    });
-
-}
-
-
-function initRecoveryPane() {
-
-    $.ajax({
-        type: "GET",
-        url: recovered_sondes_url,
-        data: "",
-        dataType: "json",
-        success: function(response, textStatus) {
-            updateRecoveryPane(response);
-        },
-        error: function() {
-        },
-        complete: function(request, textStatus) {
-            periodical_recovery_pane = setTimeout(initRecoveryPane, 600 * 1000);
+            periodical_recoveries = setTimeout(refreshRecoveries, 600 * 1000);
         }
     });
 
@@ -2968,14 +3090,18 @@ function refreshPredictions() {
     });
 }
 
-var periodical, periodical_focus, periodical_receivers, periodical_recoveries;
+var periodical, periodical_focus, periodical_focus_new, periodical_receivers, periodical_recoveries, periodical_listeners;
 var periodical_predictions = null;
 var timer_seconds = 5;
 
 function startAjax() {
+
+    document.getElementById("timeperiod").disabled = true;
+
     // prevent insane clicks to start numerous requests
     clearTimeout(periodical);
     clearTimeout(periodical_focus);
+    clearTimeout(periodical_focus_new);
     clearTimeout(periodical_receivers);
     clearTimeout(periodical_recoveries);
     clearTimeout(periodical_predictions);
@@ -2985,7 +3111,6 @@ function startAjax() {
 
     refreshReceivers();
     refreshRecoveries();
-    initRecoveryPane();
 }
 
 function stopAjax() {
@@ -3000,8 +3125,10 @@ function stopAjax() {
     ajax_inprogress_single = false;
     if(ajax_positions_single) ajax_positions_single.abort();
 
-    if(ajax_positions_old) ajax_positions_old.abort();
-    ajax_inprogress_old = "none";
+    clearTimeout(periodical_focus_new);
+    periodical_focus_new = null;
+    ajax_inprogress_single_new = false;
+    if(ajax_positions_single_new) ajax_positions_single_new.abort();
 
     clearTimeout(periodical_predictions);
     periodical_predictions = null;
@@ -3086,7 +3213,7 @@ function updateChase(r) {
                     last = r[i][s]
                     if(last.mobile == true) {
                         var dataTempEntry = {};
-                        dataTempEntry.callsign = last.uploader_callsign;
+                        dataTempEntry.callsign = last.software_name;
                         dataTempEntry.gps_alt = last.uploader_position[2];
                         dataTempEntry.gps_lat = last.uploader_position[0];
                         dataTempEntry.gps_lon = last.uploader_position[1];
@@ -3404,40 +3531,22 @@ var ssdv = {};
 var status = "";
 var bs_idx = 0;
 
-function update(response, flag) {
+function update(response) {
     if (response === null ||
         !response.positions ||
         !response.positions.position ||
         !response.positions.position.length) {
 
-        if (flag != "old") {
-            // if no vehicles are found, this will remove the spinner and put a friendly message
-            $("#main .empty").html("<span>No vehicles :(</span>");
+        // if no vehicles are found, this will remove the spinner and put a friendly message
+        $("#main .empty").html("<span>No vehicles :(</span>");
 
-            if (flag === undefined) {
-                ajax_inprogress = false;
-            } else {
-                ajax_inprogress_single = false;
-            }
-
-            return;
-        }
+        return;
     }
 
     if (sondePrefix.indexOf(wvar.query) > -1) {
         for (var i = response.positions.position.length - 1; i >= 0; i--) {
             try {
                 if (!response.positions.position[i].type.includes(wvar.query)) {
-                    response.positions.position.splice(i, 1)
-                }
-            } catch (e) {}
-        }
-    }
-
-    if (typeof flag == 'undefined') {
-        for (var i = response.positions.position.length - 1; i >= 0; i--) {
-            try {
-                if (response.positions.position[i].vehicle == ajax_single_serial) {
                     response.positions.position.splice(i, 1)
                 }
             } catch (e) {}
@@ -3503,7 +3612,7 @@ function update(response, flag) {
             if(vehicle === undefined) return;
 
             if(vehicle.updated) {
-                updatePolyline(vcallsign, flag);
+                updatePolyline(vcallsign);
                 
                 updateVehicleInfo(vcallsign, vehicle.curr_position);
 
@@ -3529,8 +3638,7 @@ function update(response, flag) {
           offline.set('positions', ctx.lastPositions);
 
           if (got_positions && !zoomed_in && Object.keys(vehicles).length) {
-            // Enable zooming when we only have a single payload filtered.
-            if(wvar.query !== "") {
+            if (vehicles.hasOwnProperty(wvar.query) && wvar.query !== "") {
                 zoom_on_payload();
             }
             // TODO: Zoom to geolocation position
@@ -3538,14 +3646,6 @@ function update(response, flag) {
           }
 
           if(periodical_predictions === null) refreshPredictions();
-
-          if (flag != "old") {
-            if (flag === undefined) {
-                ajax_inprogress = false;
-            } else {
-                ajax_inprogress_single = false;
-            }
-          }
         }
     };
 
