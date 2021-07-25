@@ -2230,7 +2230,7 @@ function addPosition(position) {
 
             // calculate horizontal rate
             horizontal_rate_temp = new_latlng.distanceTo(new L.LatLng(vehicle.curr_position.gps_lat, vehicle.curr_position.gps_lon)) / dt;
-            if (!isNaN(horizontal_rate_temp)) {
+            if (!isNaN(horizontal_rate_temp) && dt != 0) {
                 vehicle.horizontal_rate = horizontal_rate_temp;
             }
          }
