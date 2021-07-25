@@ -2911,6 +2911,9 @@ function liveData() {
             update(test);
             $("#stTimer").attr("data-timestamp", new Date().getTime());
             $("#stText").text("websocket |");
+        } else if ((new Date().getTime() - new Date(frame.time_received).getTime()) > 150000) {
+            $("#stText").text("error |");
+            refresh();
         } else {
             $("#stText").text("error |");
         }
