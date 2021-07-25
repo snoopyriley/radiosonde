@@ -1032,17 +1032,11 @@ function updateVehicleInfo(vcallsign, newPosition) {
     var latlng = new L.LatLng(newPosition.gps_lat, newPosition.gps_lon);
   }
 
-  // update market z-index based on latitude, 90 being background and -90 foreground
-  // the first 2 decimal digits are included for added accuracy
-  var zIndex = 900000 - parseInt(newPosition.gps_lat*10000);
-
   // update position
   if(vehicle.marker_shadow) {
       vehicle.marker_shadow.setLatLng(latlng);
-      //vehicle.marker_shadow.setZIndex(Z_SHADOW + zIndex);
   }
   vehicle.marker.setLatLng(latlng);
-  //vehicle.marker.setZIndex(((vehicle.vehicle_type=="car")? Z_CAR : Z_PAYLOAD) + zIndex);
 
   if(!!vehicle.marker.setCourse) {
     if (vehicle.curr_position.gps_heading) {
@@ -1165,8 +1159,6 @@ function updateVehicleInfo(vcallsign, newPosition) {
         $('.portrait').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
         $('.landscape').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
     }
-    
-
 
   } else if(elm.attr('data-vcallsign') === undefined) {
     elm.attr('data-vcallsign', vcallsign);
@@ -2220,6 +2212,10 @@ function addPosition(position) {
     var curr_ts = convert_time(vehicle.curr_position.gps_time);
     var dt = (new_ts - curr_ts) / 1000; // convert to seconds
 
+    if (position.type.length < vehicle.curr_position.type) {
+        position.type.length = vehicle.curr_position.type;
+    }
+
     if(dt >= 0) {
         if(vehicle.num_positions > 0) {
             // calculate vertical rate
@@ -2904,16 +2900,12 @@ function liveData() {
         $("#stText").text("websocket |");
     })
 
-    client.on('connect', function () {
-        client.subscribe('#')
-        $("#stText").text("websocket |");
-    })
-
     client.on('message', function (topic, message) {
         var frame = JSON.parse(message.toString());
         var test = formatData(frame, true);
         update(test);
         $("#stTimer").attr("data-timestamp", new Date().getTime());
+        $("#stText").text("websocket |");
     })
 }
 
