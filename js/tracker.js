@@ -2673,7 +2673,9 @@ function formatData(data, live) {
         if (data.xdata) {
             dataTempEntry.data.xdata = data.xdata;
         }
-        dataTemp.push(dataTempEntry);
+        if (data.serial.toLowerCase() != "xxxxxxxxx") {
+            dataTemp.push(dataTempEntry);
+        }
     } else if (data.length == null) {
         for (let key in data) {
             if (data.hasOwnProperty(key)) {
