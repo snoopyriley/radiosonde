@@ -3027,9 +3027,6 @@ function refreshNewReceivers(initial, serial) {
         dataType: "json",
         success: function(response, textStatus) {
             updateChase(response);
-            if(!offline.get('opt_hide_receivers')) {
-                updateReceivers(response);
-            }
         },
         complete: function(request, textStatus) {
             if (typeof serial === 'undefined') {
