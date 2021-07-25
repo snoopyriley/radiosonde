@@ -2933,7 +2933,9 @@ function liveData() {
         var frame = JSON.parse(message.toString());
         if ((new Date().getTime() - new Date(frame.time_received).getTime()) < 30000) {
             var test = formatData(frame, true);
-            update(test);
+            if (client != null) {
+                update(test);
+            }
             $("#stTimer").attr("data-timestamp", new Date().getTime());
             $("#stText").text("websocket |");
         } else if ((new Date().getTime() - new Date(frame.time_received).getTime()) > 150000) {
