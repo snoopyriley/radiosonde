@@ -2212,10 +2212,12 @@ function addPosition(position) {
     var curr_ts = convert_time(vehicle.curr_position.gps_time);
     var dt = (new_ts - curr_ts) / 1000; // convert to seconds
 
-    if (position.type.length < vehicle.curr_position.type) {
-        position.type.length = vehicle.curr_position.type;
+    if (typeof position.type !== 'undefined' && typeof vehicle.curr_position.type !== 'undefined') {
+        if (position.type.length < vehicle.curr_position.type.length) {
+            position.type = vehicle.curr_position.type;
+        }
     }
-
+    
     if(dt >= 0) {
         if(vehicle.num_positions > 0) {
             // calculate vertical rate
