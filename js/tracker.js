@@ -369,6 +369,7 @@ function clean_refresh(text, force, history_step) {
     clearTimeout(periodical_receivers);
     clearTimeout(periodical_recoveries);
 
+    refreshNewReceivers(true);
     refresh();
 
     return true;
@@ -2852,12 +2853,36 @@ function refreshSingleOld(serial) {
 }
 
 function refreshReceivers() {
-    if(offline.get('opt_hide_receivers')) return;
+    if(offline.get('opt_hide_receivers')) {
+        refreshNewReceivers(true);
+    } else {
 
-    var mode = wvar.mode.toLowerCase();
-    mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
+        data_str = "duration=1d";
 
-    data_str = "duration=3h";
+        $.ajax({
+            type: "GET",
+            url: receivers_url,
+            data: data_str,
+            dataType: "json",
+            success: function(response, textStatus) {
+                updateReceivers(response);
+            },
+            complete: function(request, textStatus) {
+                refreshNewReceivers(true);
+            }
+        });
+    }
+}
+
+function refreshNewReceivers(initial) {
+    if (initial == true) {
+        var mode = wvar.mode.toLowerCase();
+        mode = (mode == "position") ? "latest" : mode.replace(/ /g,"");
+        //data_str = "duration=" + mode;
+        data_str = "duration=3h";
+    } else {
+        data_str = "duration=1m";
+    }
 
     $.ajax({
         type: "GET",
@@ -2865,10 +2890,13 @@ function refreshReceivers() {
         data: data_str,
         dataType: "json",
         success: function(response, textStatus) {
-            updateReceivers(response);
+            updateChase(response);
+            if(!offline.get('opt_hide_receivers')) {
+                updateReceivers(response);
+            }
         },
         complete: function(request, textStatus) {
-            periodical_listeners = setTimeout(refreshReceivers, 60 * 1000);
+            periodical_listeners = setTimeout(function() {refreshNewReceivers(false)}, 30 * 1000);
         }
     });
 }
@@ -2955,7 +2983,6 @@ function startAjax() {
     //periodical = setInterval(refresh, timer_seconds * 1000);
     refresh();
 
-    //periodical_listeners = setInterval(refreshReceivers, 60 * 1000);
     refreshReceivers();
     refreshRecoveries();
     initRecoveryPane();
@@ -3043,6 +3070,42 @@ function updateReceiverMarker(receiver) {
     receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
     receiver.marker.bindPopup(receiver.infobox);
   }
+}
+
+function updateChase(r) {
+    if(!r) return;
+
+    var response = {};
+    response.positions = {};
+    var dataTemp = [];
+
+    for (var i in r) {
+        if (r.hasOwnProperty(i)) {
+            for (var s in r[i]) {
+                if (r[i].hasOwnProperty(s)) {
+                    last = r[i][s]
+                    if(last.mobile == true) {
+                        var dataTempEntry = {};
+                        dataTempEntry.callsign = last.uploader_callsign;
+                        dataTempEntry.gps_alt = last.uploader_position[2];
+                        dataTempEntry.gps_lat = last.uploader_position[0];
+                        dataTempEntry.gps_lon = last.uploader_position[1];
+                        var time = new Date(last.ts).toISOString();
+                        dataTempEntry.gps_time = time;
+                        dataTempEntry.server_time = time;
+                        dataTempEntry.vehicle = last.uploader_callsign + "_chase";
+                        dataTempEntry.position_id = last.uploader_callsign + "-" + time;
+                        dataTemp.push(dataTempEntry);
+                    }
+                }
+            }
+        }
+    }
+    response.positions.position = dataTemp;
+    response.fetch_timestamp = Date.now();
+    if (response.positions.position.length > 0) {
+        update(response);
+    }
 }
 
 function updateReceivers(r) {
