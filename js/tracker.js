@@ -2904,10 +2904,14 @@ function liveData() {
 
     client.on('message', function (topic, message) {
         var frame = JSON.parse(message.toString());
-        var test = formatData(frame, true);
-        update(test);
-        $("#stTimer").attr("data-timestamp", new Date().getTime());
-        $("#stText").text("websocket |");
+        if ((new Date().getTime() - new Date(frame.time_received).getTime()) < 30000) {
+            var test = formatData(frame, true);
+            update(test);
+            $("#stTimer").attr("data-timestamp", new Date().getTime());
+            $("#stText").text("websocket |");
+        } else {
+            $("#stText").text("error |");
+        }
     })
 }
 
