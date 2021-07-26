@@ -341,8 +341,10 @@ function clean_refresh(text, force, history_step) {
     if(text == wvar.mode && !force) return false;
     stopAjax();
 
-    client.disconnect();
-    clientConnected = false;
+    if (clientConnected) {
+        client.disconnect();
+        clientConnected = false;
+    }
 
     // reset mode if, invalid mode is specified
     if(modeList.indexOf(text) == -1) text = (is_mobile) ? modeDefaultMobile : modeDefault;
@@ -1699,7 +1701,7 @@ function mapInfoBox_handle_path_fetch(id,vehicle) {
             _new_call += " (" + data.snr.toFixed(0) + " dB)";
             callsign_list.push(_new_call)
         } else if(data.hasOwnProperty('rssi')) {
-            _new_call += " (" + data.snr.toFixed(0) + " dBm)";
+            _new_call += " (" + data.rssi.toFixed(0) + " dBm)";
             callsign_list.push(_new_call)
         } else {
             callsign_list.push(_new_call)
