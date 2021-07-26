@@ -2957,6 +2957,7 @@ function liveData() {
 
     function connectionError(error) {
         $("#stText").text("error |");
+        console.log(error);
         clientConnected = false;
         clientActive = false;
         refresh();
@@ -2964,6 +2965,7 @@ function liveData() {
 
     function onConnectionLost(responseObject) {
         if (responseObject.errorCode !== 0) {
+            console.log(responseObject);
             clientConnected = false;
             clientActive = false;
             refresh();
