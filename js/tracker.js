@@ -2910,6 +2910,8 @@ function refresh() {
         if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1) {
             if (!clientConnected) {
                 liveData();
+            } else {
+                clientActive = false;
             }
         }
         clearTimeout(periodical);
