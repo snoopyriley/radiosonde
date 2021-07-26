@@ -10,6 +10,7 @@ var livedata = "wss://ws-reader.v2.sondehub.org/";
 var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000);
 var client = new Paho.Client(livedata, clientID);
 var clientConnected = false;
+var clientActive = false;
 
 var host_url = "";
 var markers_url = "img/markers/";
@@ -341,9 +342,8 @@ function clean_refresh(text, force, history_step) {
     if(text == wvar.mode && !force) return false;
     stopAjax();
 
-    if (clientConnected) {
-        client.disconnect();
-        clientConnected = false;
+    if (clientActive) {
+        clientActive = false;
     }
 
     // reset mode if, invalid mode is specified
@@ -2910,6 +2910,8 @@ function refresh() {
         if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1) {
             if (!clientConnected) {
                 liveData();
+            } else if (clientConnected) {
+                clientActive = true;
             }
         }
         clearTimeout(periodical);
@@ -2927,35 +2929,40 @@ function liveData() {
     function onConnect() {
         client.subscribe("#");
         clientConnected = true;
+        clientActive = true;
     };
 
     function connectionError(error) {
         $("#stText").text("error |");
         clientConnected = false;
+        clientActive = false;
         refresh();
     };
 
     function onConnectionLost(responseObject) {
         if (responseObject.errorCode !== 0) {
             clientConnected = false;
+            clientActive = false;
             refresh();
         }
     };
 
     function onMessageArrived(message) {
-        var frame = JSON.parse(message.payloadString.toString());
-        if ((new Date().getTime() - new Date(frame.time_received).getTime()) < 30000) {
-            var test = formatData(frame, true);
-            if (clientConnected) {
-                update(test);
+        if (clientActive) {
+            var frame = JSON.parse(message.payloadString.toString());
+            if ((new Date().getTime() - new Date(frame.time_received).getTime()) < 30000) {
+                var test = formatData(frame, true);
+                if (clientActive) {
+                    update(test);
+                }
+                $("#stTimer").attr("data-timestamp", new Date().getTime());
+                $("#stText").text("websocket |");
+            } else if ((new Date().getTime() - new Date(frame.time_received).getTime()) > 150000) {
+                $("#stText").text("error |");
+                refresh();
+            } else {
+                $("#stText").text("error |");
             }
-            $("#stTimer").attr("data-timestamp", new Date().getTime());
-            $("#stText").text("websocket |");
-        } else if ((new Date().getTime() - new Date(frame.time_received).getTime()) > 150000) {
-            $("#stText").text("error |");
-            refresh();
-        } else {
-            $("#stText").text("error |");
         }
     };
 }
