@@ -2911,7 +2911,7 @@ function refresh() {
             if (!clientConnected) {
                 liveData();
             } else {
-                clientActive = false;
+                clientActive = true;
             }
         }
         clearTimeout(periodical);
