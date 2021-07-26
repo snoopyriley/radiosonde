@@ -7,8 +7,9 @@ var receivers_url = "https://api.v2.sondehub.org/listeners/telemetry";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 
-var livedata = "wss://ws.v2.sondehub.org/";
-var client = null;
+var livedata = "wss://ws-reader.v2.sondehub.org/";
+var client = new Paho.Client(livedata, "SondeHub-Tracker");
+var clientConnected = false;
 
 var host_url = "";
 var markers_url = "img/markers/";
@@ -340,8 +341,8 @@ function clean_refresh(text, force, history_step) {
     if(text == wvar.mode && !force) return false;
     stopAjax();
 
-    client.end();
-    client = null;
+    client.disconnect();
+    clientConnected = false;
 
     // reset mode if, invalid mode is specified
     if(modeList.indexOf(text) == -1) text = (is_mobile) ? modeDefaultMobile : modeDefault;
@@ -2907,7 +2908,7 @@ function refresh() {
             document.getElementById("timeperiod").disabled = false;
         }
         if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1) {
-            if (client == null) {
+            if (!clientConnected) {
                 liveData();
             }
         }
@@ -2918,22 +2919,35 @@ function refresh() {
 }
 
 function liveData() {
-    client = mqtt.connect(livedata);
+    client.onConnectionLost = onConnectionLost;
+    client.onMessageArrived = onMessageArrived;
 
-    client.on('connect', function () {
-        client.subscribe('#', function (err, granted){
-            if (err != null) {
-                $("#stText").text("error |");
-            }
-        })
-        $("#stText").text("websocket |");
-    })
+    client.connect({onSuccess:onConnect,onFailure:connectionError,timeout:10,reconnect:false});
 
-    client.on('message', function (topic, message) {
-        var frame = JSON.parse(message.toString());
+    function onConnect() {
+        client.subscribe("#");
+        clientConnected = true;
+    };
+
+    function connectionError(error) {
+        $("#stText").text("error |");
+        clientConnected = false;
+        refresh();
+    };
+
+    function onConnectionLost(responseObject) {
+        if (responseObject.errorCode !== 0) {
+            clientConnected = false;
+            console.log("yes");
+            refresh();
+        }
+    };
+
+    function onMessageArrived(message) {
+        var frame = JSON.parse(message.payloadString.toString());
         if ((new Date().getTime() - new Date(frame.time_received).getTime()) < 30000) {
             var test = formatData(frame, true);
-            if (client != null) {
+            if (clientConnected) {
                 update(test);
             }
             $("#stTimer").attr("data-timestamp", new Date().getTime());
@@ -2944,7 +2958,7 @@ function liveData() {
         } else {
             $("#stText").text("error |");
         }
-    })
+    };
 }
 
 function refreshSingle(serial) {
