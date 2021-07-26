@@ -1209,6 +1209,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
   }
 
   var callsign_list = [];
+
   if($.type(newPosition.callsign) === "string"){
       // Single callsign entry, as a string (chase cars)
       callsign_list = newPosition.callsign;
@@ -1695,18 +1696,24 @@ function mapInfoBox_handle_path_fetch(id,vehicle) {
 
         html += "<hr style='margin:0px;margin-top:5px'>";
         html += "<div style='font-size:11px;'>"
+
         var callsign_list = [];
-        _new_call = vehicle.callsign;
-        if(data.hasOwnProperty('snr')) {
-            _new_call += " (" + data.snr.toFixed(0) + " dB)";
-            callsign_list.push(_new_call)
-        } else if(data.hasOwnProperty('rssi')) {
-            _new_call += " (" + data.rssi.toFixed(0) + " dBm)";
-            callsign_list.push(_new_call)
-        } else {
-            callsign_list.push(_new_call)
+
+        for (var i = 0; i < data.uploaders.length; i++) {
+            _new_call = data.uploaders[i].uploader_callsign;
+            if(data.uploaders[i].hasOwnProperty('snr')) {
+                _new_call += " (" + data.uploaders[i].snr.toFixed(0) + " dB)";
+                callsign_list.push(_new_call)
+            } else if(data.uploaders[i].hasOwnProperty('rssi')) {
+                _new_call += " (" + data.uploaders[i].rssi.toFixed(0) + " dBm)";
+                callsign_list.push(_new_call)
+            } else {
+                callsign_list.push(_new_call)
+            }
         }
+
         callsign_list = callsign_list.join("<br /> ");
+
         html += callsign_list + "</div>";
 
         div.innerHTML = html;
@@ -2646,6 +2653,22 @@ function formatData(data, live) {
         var dataTempEntry = {};
         var station = data.uploader_callsign;
         dataTempEntry.callsign = {};
+        //check if other stations also received this packet
+        if (data.datetime == vehicles[data.serial].curr_position.gps_time) {
+            for (let key in vehicles[data.serial].curr_position.callsign) {
+                if (vehicles[data.serial].curr_position.callsign.hasOwnProperty(key)) {
+                    if (key != station) {
+                        dataTempEntry.callsign[key] = {};
+                        if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("snr")) {
+                            dataTempEntry.callsign[key].snr = vehicles[data.serial].curr_position.callsign[key].snr;
+                        }
+                        if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("rssi")) {
+                            dataTempEntry.callsign[key].rssi = vehicles[data.serial].curr_position.callsign[key].rssi;
+                        }
+                    }
+                }
+            }
+        }
         dataTempEntry.callsign[station] = {};
         if (data.snr) {
             dataTempEntry.callsign[station].snr = data.snr;
