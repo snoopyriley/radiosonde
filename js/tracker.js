@@ -1,6 +1,5 @@
 var mission_id = 0;
 var position_id = 0;
-var data_url = "https://api.v2.sondehub.org/datanew";
 var newdata_url = "https://api.v2.sondehub.org/sondes/telemetry";
 var olddata_url = "https://api.v2.sondehub.org/sondes";
 var receivers_url = "https://api.v2.sondehub.org/listeners/telemetry";
@@ -8,7 +7,8 @@ var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 
 var livedata = "wss://ws-reader.v2.sondehub.org/";
-var client = new Paho.Client(livedata, "SondeHub-Tracker");
+var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000);
+var client = new Paho.Client(livedata, clientID);
 var clientConnected = false;
 
 var host_url = "";
@@ -1610,7 +1610,7 @@ function mapInfoBox_handle_path(event) {
     p2_dist = p[minidx].distanceTo(target);
 
     var point = (p1_dist < p2_dist) ? p[minidx-1] : p[minidx];
-    var id = (p1_dist < p2_dist) ? vehicle.positions_ids[minidx-1] : vehicle.positions_ids[minidx];
+    var id = (p1_dist < p2_dist) ? vehicle.positions_ts[minidx-1] : vehicle.positions_ts[minidx];
 
     mapInfoBox.setContent("<img style='width:60px;height:20px' src='img/hab-spinner.gif' />");
     mapInfoBox.setLatLng(point);
@@ -1620,30 +1620,31 @@ function mapInfoBox_handle_path(event) {
 };
 
 function mapInfoBox_handle_path_fetch(id,vehicle) {
-    var url = data_url + "?mode=single&format=json&position_id=" + id;
+    var date = new Date(parseInt(id)).toISOString()
+    var url = newdata_url + "?duration=0&serial=" + vehicle.callsign + "&datetime=" + date;
 
     $.getJSON(url, function(data) {
-        if('positions' in data && data.positions.position.length === 0) {
+        if (Object.keys(data).length === 0) {
             mapInfoBox.setContent("not&nbsp;found");
             mapInfoBox.openOn(map);
             return;
         }
 
-        data = data.positions.position[0];
+        data = data[vehicle.callsign][date];
 
         div = document.createElement('div');
 
         html = "<div style='line-height:16px;position:relative;'>";
-        html += "<div>"+data.vehicle+"<span style=''>("+data.position_id+")</span></div>";
+        html += "<div>"+data.serial+"<span style=''>("+date+")</span></div>";
         html += "<hr style='margin:5px 0px'>";
-        html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.gps_lat, 5) + ',&nbsp;' + roundNumber(data.gps_lon, 5)+"</div>";
+        html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.lat, 5) + ',&nbsp;' + roundNumber(data.lon, 5)+"</div>";
 
         var imp = offline.get('opt_imperial');
-        var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(data.gps_alt)) : parseInt(data.gps_alt)).toLocaleString("us");
+        var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(data.alt)) : parseInt(data.alt)).toLocaleString("us");
         text_alt     += "&nbsp;" + ((imp) ? 'ft':'m');
 
         html += "<div><b>Altitude:&nbsp;</b>"+text_alt+"</div>";
-        html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(data.gps_time))+"</div>";
+        html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(date))+"</div>";
 
         var value = vehicle.path_length;
 
@@ -1658,38 +1659,53 @@ function mapInfoBox_handle_path_fetch(id,vehicle) {
         html += "</div>";
         html += "<div><b>Duration:&nbsp;</b>" + format_time_friendly(vehicle.start_time, convert_time(vehicle.curr_position.gps_time)) + "</div>";
 
-        if(Object.keys((typeof data.data === "string")?JSON.parse(data.data):data.data).length) {
-            html += "<hr style='margin:5px 0px'>";
-            html += habitat_data(data.data, true);
-        }
+        html += "<hr style='margin:5px 0px'>";
 
-        if(data.vehicle.search(/(chase)/i) == -1) {
-            html += "<hr style='margin:0px;margin-top:5px'>";
-            html += "<div style='font-size:11px;'>"
-            var callsign_list = []
-            for(var rxcall in data.callsign){
-                if(data.callsign.hasOwnProperty(rxcall)) {
-                    _new_call = rxcall;
-                    if(data.callsign[rxcall].hasOwnProperty('snr')){
-                        if(data.callsign[rxcall].snr){
-                            _new_call += " (" + data.callsign[rxcall].snr.toFixed(0) + " dB)";
-                            callsign_list.push(_new_call)
-                            continue;
-                        }
-                    }
-                    if(data.callsign[rxcall].hasOwnProperty('rssi')){
-                        if(data.callsign[rxcall].rssi){
-                            _new_call += " (" + data.callsign[rxcall].snr.toFixed(0) + " dBm)";
-                            callsign_list.push(_new_call)
-                            continue;
-                        }
-                    }
-                    callsign_list.push(_new_call) // catch cases where there is no SNR or RSSI
-                }
-            }
-            callsign_list = callsign_list.join("<br /> ");
-            html += callsign_list + "</div>";
+        if (data.hasOwnProperty("batt")) {
+            html += "<div><b>Battery Voltage:&nbsp;</b>" + data.batt + " V</div>";
+        };
+        if (data.hasOwnProperty("frequency")) {
+            html += "<div><b>TX Frequency:&nbsp;</b>" + data.frequency + " MHz</div>";
+        };
+        if (data.hasOwnProperty("humidity")) {
+            html += "<div><b>Relative Humidity:&nbsp;</b>" + data.humidity + " %</div>";
+        };
+        if (data.hasOwnProperty("manufacturer")) {
+            html += "<div><b>Manufacturer:&nbsp;</b>" + data.manufacturer + "</div>";
+        };
+        if (data.hasOwnProperty("sats")) {
+            html += "<div><b>Satellites:&nbsp;</b>" + data.sats + "</div>";
+        };
+        if (data.hasOwnProperty("temp")) {
+            html += "<div><b>Temperature External:&nbsp;</b>" + data.temp + "°C</div>";
+        };
+        if (data.hasOwnProperty("subtype")) {
+            html += "<div><b>Sonde Type:&nbsp;</b>" + data.subtype + "</div>";
+        } else if (data.hasOwnProperty("type")) {
+            html += "<div><b>Sonde Type:&nbsp;</b>" + data.type + "</div>";
+        };
+        if (data.hasOwnProperty("pressure")) {
+            html += "<div><b>Pressure:&nbsp;</b>" + data.pressure + " Pa</div>";
+        };
+        if (data.hasOwnProperty("xdata")) {
+            html += "<div><b>XDATA:&nbsp;</b>" + data.xdata + "</div>";
+        };
+
+        html += "<hr style='margin:0px;margin-top:5px'>";
+        html += "<div style='font-size:11px;'>"
+        var callsign_list = [];
+        _new_call = vehicle.callsign;
+        if(data.hasOwnProperty('snr')) {
+            _new_call += " (" + data.snr.toFixed(0) + " dB)";
+            callsign_list.push(_new_call)
+        } else if(data.hasOwnProperty('rssi')) {
+            _new_call += " (" + data.snr.toFixed(0) + " dBm)";
+            callsign_list.push(_new_call)
+        } else {
+            callsign_list.push(_new_call)
         }
+        callsign_list = callsign_list.join("<br /> ");
+        html += callsign_list + "</div>";
 
         div.innerHTML = html;
 
@@ -2393,23 +2409,6 @@ function updateGraph(vcallsign, reset_selection) {
 
     var series = vehicles[vcallsign].graph_data;
 
-    // if we are drawing the plot for the fisrt time
-    // and the dataset is too large, we set an initial selection of the last 7 days
-    if(!plot_options.hasOwnProperty('xaxis')) {
-        if(series.length && series[0].data.length > 4001) {
-            var last = series[0].data.length - 1;
-            var end_a = series[0].data[last][0];
-            var end_b = (series[1].data.length) ? series[1].data[series[1].data.length - 1][0] : 0;
-
-            plot_options.xaxis = {
-                superzoom: 1,
-                min: series[0].data[last-4000][0],
-                max: Math.max(end_a, end_b),
-            };
-
-        }
-    }
-
     // replot graph, with this vehicle data, and this vehicles yaxes config
     plot = $.plot(plot_holder, series, $.extend(plot_options, {yaxes:vehicles[vcallsign].graph_yaxes}));
     graph_vehicle = follow_vehicle;
@@ -2417,7 +2416,7 @@ function updateGraph(vcallsign, reset_selection) {
     vehicles[vcallsign].graph_data_updated = false;
 }
 
-var graph_gap_size_default = 180000; // 3 mins in milis
+var graph_gap_size_default = 18000000; // 3 mins in milis
 var graph_gap_size_max = 31536000000;
 var graph_gap_size = offline.get('opt_interpolate') ? graph_gap_size_max : graph_gap_size_default;
 var graph_pad_size = 120000; // 2 min
@@ -2454,7 +2453,6 @@ function graphAddPosition(vcallsign, new_data) {
                 if(ts > xref[i][0]) break;
             }
             splice_idx = i+1;
-
 
             if(i > -1) {
                 // this is if new datum hits padded area
@@ -2671,7 +2669,7 @@ function formatData(data, live) {
             dataTempEntry.data.burst_timer = data.burst_timer;
         }
         if (data.frequency) {
-            dataTempEntry.data.burst_timer = data.frequency;
+            dataTempEntry.data.frequency = data.frequency;
         }
         if (data.humidity) {
             dataTempEntry.data.humidity = data.humidity;
@@ -2735,7 +2733,7 @@ function formatData(data, live) {
                             dataTempEntry.data.burst_timer = data[key][i].burst_timer;
                         }
                         if (data[key][i].frequency) {
-                            dataTempEntry.data.burst_timer = data[key][i].frequency;
+                            dataTempEntry.data.frequency = data[key][i].frequency;
                         }
                         if (data[key][i].humidity) {
                             dataTempEntry.data.humidity = data[key][i].humidity;
@@ -2819,7 +2817,7 @@ function formatData(data, live) {
                     dataTempEntry.data.burst_timer = data[i].burst_timer;
                 }
                 if (data[i].frequency) {
-                    dataTempEntry.data.burst_timer = data[i].frequency;
+                    dataTempEntry.data.frequency = data[i].frequency;
                 }
                 if (data[i].humidity) {
                     dataTempEntry.data.humidity = data[i].humidity;
@@ -2938,7 +2936,6 @@ function liveData() {
     function onConnectionLost(responseObject) {
         if (responseObject.errorCode !== 0) {
             clientConnected = false;
-            console.log("yes");
             refresh();
         }
     };
@@ -3254,7 +3251,7 @@ function updateChase(r) {
                     last = r[i][s]
                     if(last.mobile == true) {
                         var dataTempEntry = {};
-                        dataTempEntry.callsign = last.software_name;
+                        dataTempEntry.callsign = last.software_name + "-" + last.software_version;
                         dataTempEntry.gps_alt = last.uploader_position[2];
                         dataTempEntry.gps_lat = last.uploader_position[0];
                         dataTempEntry.gps_lon = last.uploader_position[1];
