@@ -344,6 +344,7 @@ function clean_refresh(text, force, history_step) {
 
     if (clientActive) {
         clientActive = false;
+        $("#stText").text("");
     }
 
     // reset mode if, invalid mode is specified
@@ -535,6 +536,7 @@ function load() {
         });
 
         startAjax();
+        liveData();
     };
 
     map.whenReady(callBack);
@@ -2654,16 +2656,18 @@ function formatData(data, live) {
         var station = data.uploader_callsign;
         dataTempEntry.callsign = {};
         //check if other stations also received this packet
-        if (data.datetime == vehicles[data.serial].curr_position.gps_time) {
-            for (let key in vehicles[data.serial].curr_position.callsign) {
-                if (vehicles[data.serial].curr_position.callsign.hasOwnProperty(key)) {
-                    if (key != station) {
-                        dataTempEntry.callsign[key] = {};
-                        if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("snr")) {
-                            dataTempEntry.callsign[key].snr = vehicles[data.serial].curr_position.callsign[key].snr;
-                        }
-                        if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("rssi")) {
-                            dataTempEntry.callsign[key].rssi = vehicles[data.serial].curr_position.callsign[key].rssi;
+        if (vehicles.hasOwnProperty(data.serial)) {
+            if (data.datetime == vehicles[data.serial].curr_position.gps_time) {
+                for (let key in vehicles[data.serial].curr_position.callsign) {
+                    if (vehicles[data.serial].curr_position.callsign.hasOwnProperty(key)) {
+                        if (key != station) {
+                            dataTempEntry.callsign[key] = {};
+                            if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("snr")) {
+                                dataTempEntry.callsign[key].snr = vehicles[data.serial].curr_position.callsign[key].snr;
+                            }
+                            if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("rssi")) {
+                                dataTempEntry.callsign[key].rssi = vehicles[data.serial].curr_position.callsign[key].rssi;
+                            }
                         }
                     }
                 }
@@ -2930,13 +2934,7 @@ function refresh() {
         if (!ajax_inprogress_single) {
             document.getElementById("timeperiod").disabled = false;
         }
-        if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1) {
-            if (!clientConnected) {
-                liveData();
-            } else if (clientConnected) {
-                clientActive = true;
-            }
-        }
+        clientActive = true;
         clearTimeout(periodical);
         ajax_inprogress = false;
     }
@@ -2947,17 +2945,17 @@ function liveData() {
     client.onConnectionLost = onConnectionLost;
     client.onMessageArrived = onMessageArrived;
 
-    client.connect({onSuccess:onConnect,onFailure:connectionError,timeout:10,reconnect:false});
+    client.connect({onSuccess:onConnect,onFailure:connectionError,reconnect:true});
 
     function onConnect() {
         client.subscribe("#");
         clientConnected = true;
         clientActive = true;
+        $("#stText").text("websocket |");
     };
 
     function connectionError(error) {
         $("#stText").text("error |");
-        console.log(error);
         clientConnected = false;
         clientActive = false;
         refresh();
@@ -2965,7 +2963,6 @@ function liveData() {
 
     function onConnectionLost(responseObject) {
         if (responseObject.errorCode !== 0) {
-            console.log(responseObject);
             clientConnected = false;
             clientActive = false;
             refresh();
@@ -2973,22 +2970,28 @@ function liveData() {
     };
 
     function onMessageArrived(message) {
-        if (clientActive) {
-            var frame = JSON.parse(message.payloadString.toString());
-            if ((new Date().getTime() - new Date(frame.time_received).getTime()) < 30000) {
-                var test = formatData(frame, true);
-                if (clientActive) {
-                    update(test);
+        var dateNow = new Date().getTime();
+        try {
+            if (clientActive) {
+                var frame = JSON.parse(message.payloadString.toString());
+                if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1 || wvar.query == frame.serial) {
+                    if ((dateNow - new Date(frame.time_received).getTime()) < 30000) {
+                        var test = formatData(frame, true);
+                        if (clientActive) {
+                            update(test);
+                        }
+                        $("#stTimer").attr("data-timestamp", dateNow);
+                        $("#stText").text("websocket |");
+                    } else if ((dateNow - new Date(frame.time_received).getTime()) > 150000) {
+                        $("#stText").text("error |");
+                        refresh();
+                    } else {
+                        $("#stText").text("error |");
+                    }
                 }
-                $("#stTimer").attr("data-timestamp", new Date().getTime());
-                $("#stText").text("websocket |");
-            } else if ((new Date().getTime() - new Date(frame.time_received).getTime()) > 150000) {
-                $("#stText").text("error |");
-                refresh();
-            } else {
-                $("#stText").text("error |");
             }
         }
+        catch(err) {}
     };
 }
 
