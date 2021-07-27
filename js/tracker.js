@@ -11,6 +11,7 @@ var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000);
 var client = new Paho.Client(livedata, clientID);
 var clientConnected = false;
 var clientActive = false;
+var clientTopic;
 
 var host_url = "";
 var markers_url = "img/markers/";
@@ -346,6 +347,18 @@ function clean_refresh(text, force, history_step) {
         clientActive = false;
         $("#stText").text("");
     }
+
+    try {
+        client.unsubscribe(clientTopic);
+        if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
+            var topic = "sondes/" + wvar.query;
+            client.subscribe(topic);
+            clientTopic = topic;
+        } else {
+            client.subscribe("#");
+            clientTopic = "#";
+        }
+    } catch (err) {}
 
     // reset mode if, invalid mode is specified
     if(modeList.indexOf(text) == -1) text = (is_mobile) ? modeDefaultMobile : modeDefault;
@@ -2948,7 +2961,14 @@ function liveData() {
     client.connect({onSuccess:onConnect,onFailure:connectionError,reconnect:true});
 
     function onConnect() {
-        client.subscribe("#");
+        if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
+            var topic = "sondes/" + wvar.query;
+            client.subscribe(topic);
+            clientTopic = topic;
+        } else {
+            client.subscribe("#");
+            clientTopic = "#";
+        }
         clientConnected = true;
         clientActive = true;
         $("#stText").text("websocket |");
