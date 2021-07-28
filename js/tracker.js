@@ -421,15 +421,6 @@ function load() {
     // fullscreen button
     map.addControl(new L.Control.Fullscreen({ position: 'bottomleft' }));
 
-    // scale (would be better if integrated into attirbution bar)
-    L.control.scale({position:'bottomright', imperial:false}).addTo(map);
-
-    // zoom controls
-    new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
-
-    // map selector
-    layers = L.control.layers(baseMaps, null, {position: "topleft"}).addTo(map);
-
     // update time div
     L.Control.Status = L.Control.extend({
         onAdd: function(map) {
@@ -451,6 +442,15 @@ function load() {
     }
     
     L.control.status({ position: 'bottomright' }).addTo(map);
+
+    // scale (would be better if integrated into attirbution bar)
+    L.control.scale({position:'bottomright', imperial:false}).addTo(map);
+
+    // zoom controls
+    new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
+
+    // map selector
+    layers = L.control.layers(baseMaps, null, {position: "topleft"}).addTo(map);
 
     L.Control.PeriodControl = L.Control.extend({
         onAdd: function(map) {
