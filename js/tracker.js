@@ -355,8 +355,8 @@ function clean_refresh(text, force, history_step) {
             client.subscribe(topic);
             clientTopic = topic;
         } else {
-            client.subscribe("#");
-            clientTopic = "#";
+            client.subscribe("sondes/#");
+            clientTopic = "sondes/#";
         }
     } catch (err) {}
 
@@ -2966,8 +2966,8 @@ function liveData() {
             client.subscribe(topic);
             clientTopic = topic;
         } else {
-            client.subscribe("#");
-            clientTopic = "#";
+            client.subscribe("sondes/#");
+            clientTopic = "sondes/#";
         }
         clientConnected = true;
         clientActive = true;
