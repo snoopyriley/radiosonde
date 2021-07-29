@@ -152,8 +152,8 @@ body {
 #loading img {
     position: absolute;
     display: block;
-    width: 80vw;
-    max-width: 500px;
+    width: 60vw;
+    max-width: 483px;
     left: 50%;
     top: 50%;
     -ms-transform: translate(-50%, -50%);
