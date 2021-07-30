@@ -12,6 +12,8 @@ var client = new Paho.Client(livedata, clientID);
 var clientConnected = false;
 var clientActive = false;
 var clientTopic;
+var messageRate = 0;
+var messageRateAverage = 10;
 
 var host_url = "";
 var markers_url = "img/markers/";
@@ -345,6 +347,10 @@ function clean_refresh(text, force, history_step) {
 
     if (clientActive) {
         clientActive = false;
+        if (!document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
+            document.getElementById("stTimer").classList.add('friendly-dtime');
+            $("#updatedText").text(" Updated: ");
+        }
         $("#stText").text("");
     }
 
@@ -426,7 +432,7 @@ function load() {
         onAdd: function(map) {
             var div = L.DomUtil.create('div');
     
-            div.innerHTML = "<span id='stText'></span><span> Updated: </span><i class='friendly-dtime' id='stTimer'>never</i>";
+            div.innerHTML = "<span id='stText'></span><span id='updatedText'> Updated: </span><i class='friendly-dtime' id='stTimer'>never</i>";
             div.style = "opacity: 0.7; background-color: rgb(245, 245, 245); padding-right: 6px; padding-left: 6px; font-family: Roboto, Arial, sans-serif; color: rgb(68, 68, 68);";
     
             return div;
@@ -2978,6 +2984,10 @@ function liveData() {
         $("#stText").text("error |");
         clientConnected = false;
         clientActive = false;
+        if (!document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
+            document.getElementById("stTimer").classList.add('friendly-dtime');
+            $("#updatedText").text(" Updated: ");
+        }
         refresh();
     };
 
@@ -2985,11 +2995,25 @@ function liveData() {
         if (responseObject.errorCode !== 0) {
             clientConnected = false;
             clientActive = false;
+            if (!document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
+                document.getElementById("stTimer").classList.add('friendly-dtime');
+                $("#updatedText").text(" Updated: ");
+            }
             refresh();
         }
     };
 
     function onMessageArrived(message) {
+        messageRate += 1;
+        setTimeout(function(){
+            messageRate -= 1;
+          }, (1000 * messageRateAverage));
+        var messageCalculatedRate = Math.round(messageRate / messageRateAverage / 10) * 10;
+        if ( document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
+            document.getElementById("stTimer").classList.remove('friendly-dtime');
+        }
+        $("#stTimer").text(messageCalculatedRate + " msg/s");
+        $("#updatedText").text(" ");
         var dateNow = new Date().getTime();
         try {
             if (clientActive) {
