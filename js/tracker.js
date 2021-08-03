@@ -2960,6 +2960,7 @@ function refresh() {
   });
 }
 
+live_data_buffer = {positions:{position:[]}}
 function liveData() {
     client.onConnectionLost = onConnectionLost;
     client.onMessageArrived = onMessageArrived;
@@ -3022,7 +3023,7 @@ function liveData() {
                     if ((dateNow - new Date(frame.time_received).getTime()) < 30000) {
                         var test = formatData(frame, true);
                         if (clientActive) {
-                            update(test);
+                            live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
                         }
                         $("#stTimer").attr("data-timestamp", dateNow);
                         $("#stText").text("websocket |");
@@ -3038,6 +3039,11 @@ function liveData() {
         catch(err) {}
     };
 }
+
+setInterval(function(){
+    update(live_data_buffer);
+    live_data_buffer.positions.position=[];
+}, 200)
 
 function refreshSingle(serial) {
     if(ajax_inprogress_single) {
@@ -3694,11 +3700,11 @@ function update(response) {
 
                 // set the position based on the last record (oldest) returned from the server. Only provide minute accuracy to allow better hit rate with cloudfront
                 this_position_id = new Date(row.gps_time);
-                this_position_id.setSeconds(0)
-                this_position_id.setMilliseconds(0)
 
                 if (new Date(position_id) < this_position_id || position_id == 0){
                     if (new Date() > this_position_id) {
+                        this_position_id.setSeconds(0)
+                        this_position_id.setMilliseconds(0)
                         position_id = this_position_id.toISOString()
                     }
                 }
@@ -3712,15 +3718,15 @@ function update(response) {
             ctx.idx = max;
 
             if(ctx.idx < ctx.max) {
-              setTimeout(function() { ctx.step(ctx); }, 4);
+              ctx.step(ctx); 
             } else {
               ctx.list = Object.keys(vehicles);
-              setTimeout(function() { ctx.draw(ctx); }, 16);
+              ctx.draw(ctx);
             }
         },
         draw: function(ctx) {
             if(ctx.list.length < 1) {
-              setTimeout(function() { ctx.end(ctx); }, 16);
+                ctx.end(ctx); 
               return;
             }
 
@@ -3744,7 +3750,7 @@ function update(response) {
             }
 
             // step to the next callsign
-            setTimeout(function() { ctx.draw(ctx); }, 16);
+            ctx.draw(ctx);
         },
         end: function(ctx) {
 
