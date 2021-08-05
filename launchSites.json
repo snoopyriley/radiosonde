@@ -27,6 +27,7 @@
 { "station": "06260", "rs_types": ["23"], "lat": 52.10, "lon": 5.18, "alt": 2, "station_name": "De Bilt (Netherlands)" },
 { "station": "06447", "rs_types": ["23"], "lat": 50.80, "lon": 4.35, "alt": 100, "station_name": "Uccle (Belgium)" },
 { "station": "06458", "rs_types": ["34"], "lat": 50.75, "lon": 4.77, "alt": 105, "station_name": "Beauvechain (Belgium)" },
+{ "station": "06610", "rs_types": ["41", "42"], "lat": 46.82, "lon": 6.95, "alt": 490, "station_name": "Payerne" },
 { "station": "07110", "rs_types": ["77"], "lat": 48.45, "lon": -4.42, "alt": 99, "station_name": "Brest (France)" },
 { "station": "07145", "rs_types": ["77"], "lat": 48.77, "lon": 2.02, "alt": 168, "station_name": "Trappes (France)" },
 { "station": "07510", "rs_types": ["77"], "lat": 44.83, "lon": -0.70, "alt": 49, "station_name": "Bordeaux / Merignac (France)" },
