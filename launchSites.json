@@ -417,7 +417,7 @@
 { "station": "65578", "rs_types": ["54"], "lat": 5.25, "lon": -3.93, "alt": 7, "station_name": "Abidjan (Cote d'Ivoire)" },
 { "station": "67083", "rs_types": ["54"], "lat": -18.80, "lon": 47.48, "alt": 1279, "station_name": "Antananarivo / Ivato (Madagascar)" },
 { "station": "68110", "rs_types": ["99"], "lat": -22.57, "lon": 17.10, "alt": 1728, "station_name": "Windhoek (Namibia)" },
-{ "station": "68263", "rs_types": ["84"], "lat": -25.91, "lon": 28.21, "alt": 1526, "station_name": "Pretoria Irene (South Africa)" }
+{ "station": "68263", "rs_types": ["84"], "lat": -25.91, "lon": 28.21, "alt": 1526, "station_name": "Pretoria Irene (South Africa)" },
 { "station": "68424", "rs_types": ["84"], "lat": -28.40, "lon": 21.27, "alt": 839, "station_name": "Upington (South Africa)" },
 { "station": "68442", "rs_types": ["84"], "lat": -29.10, "lon": 26.30, "alt": 1354, "station_name": "Bloemfontein J. B. M. Hertzog  (South Africa)" },
 { "station": "68512", "rs_types": ["84"], "lat": -29.67, "lon": 17.87, "alt": 1006, "station_name": "Springbok (South Africa)" },
