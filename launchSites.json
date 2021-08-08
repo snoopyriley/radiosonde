@@ -15,8 +15,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"78.9233",
-    "lon":"11.9222",
+    "lat":78.9233,
+    "lon":11.9222,
     "alt":8,
     "station_name":"Ny-Alesund Ii (Norway)"
   },
@@ -86,8 +86,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"60.1392",
-    "lon":"-1.1847",
+    "lat":60.1392,
+    "lon":-1.1847,
     "alt":82,
     "station_name":"Lerwick (United Kingdom)"
   },
@@ -96,8 +96,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"55.0197",
-    "lon":"-1.8817",
+    "lat":55.0197,
+    "lon":-1.8817,
     "alt":145,
     "station_name":"Albemarle (United Kingdom)"
   },
@@ -106,8 +106,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"53.0056",
-    "lon":"-1.2511",
+    "lat":53.0056,
+    "lon":-1.2511,
     "alt":117,
     "station_name":"Nottingham Weather Centre (United Kingdom)"
   },
@@ -116,8 +116,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"52.1394",
-    "lon":"-4.5711",
+    "lat":52.1394,
+    "lon":-4.5711,
     "alt":133,
     "station_name":"Aberporth (United Kingdom)"
   },
@@ -126,8 +126,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"51.2017",
-    "lon":"-1.8058",
+    "lat":51.2017,
+    "lon":-1.8058,
     "alt":132,
     "station_name":"Larkhill (United Kingdom)"
   },
@@ -136,8 +136,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"50.2183",
-    "lon":"-5.3275",
+    "lat":50.2183,
+    "lon":-5.3275,
     "alt":87,
     "station_name":"Camborne (United Kingdom)"
   },
@@ -146,8 +146,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"50.8994",
-    "lon":"0.3169",
+    "lat":50.8994,
+    "lon":0.3169,
     "alt":52,
     "station_name":"Herstmonceux (United Kingdom)"
   },
@@ -156,8 +156,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"54.5",
-    "lon":"-6.3333",
+    "lat":54.5,
+    "lon":-6.3333,
     "alt":18,
     "station_name":"Castor Bay (United Kingdom)"
   },
@@ -167,8 +167,8 @@
       "42",
       "41"
     ],
-    "lat":"51.9381",
-    "lon":"-10.2433",
+    "lat":51.9381,
+    "lon":-10.2433,
     "alt":9,
     "station_name":"Valentia Observatory (Ireland)"
   },
@@ -177,8 +177,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"63.9806",
-    "lon":"-22.595",
+    "lat":63.9806,
+    "lon":-22.595,
     "alt":52,
     "station_name":"Keflavikurflugvollur (Iceland)"
   },
@@ -187,8 +187,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"68.7081",
-    "lon":"-52.8517",
+    "lat":68.7081,
+    "lon":-52.8517,
     "alt":43,
     "station_name":"Egedesminde (Greenland)"
   },
@@ -197,8 +197,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"61.1667",
-    "lon":"-45.4167",
+    "lat":61.1667,
+    "lon":-45.4167,
     "alt":34,
     "station_name":"Narsarsuaq (Greenland)"
   },
@@ -207,8 +207,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"76.7694",
-    "lon":"-18.6681",
+    "lat":76.7694,
+    "lon":-18.6681,
     "alt":11,
     "station_name":"Danmarkshavn (Greenland)"
   },
@@ -217,8 +217,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"70.4844",
-    "lon":"-21.9511",
+    "lat":70.4844,
+    "lon":-21.9511,
     "alt":65,
     "station_name":"Scoresbysund (Greenland)"
   },
@@ -227,8 +227,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"65.6111",
-    "lon":"-37.6367",
+    "lat":65.6111,
+    "lon":-37.6367,
     "alt":50,
     "station_name":"Tasiilaq (Greenland)"
   },
@@ -237,8 +237,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"72.5803",
-    "lon":"-38.4586",
+    "lat":72.5803,
+    "lon":-38.4586,
     "alt":3255,
     "station_name":"Geosummit (Greenland)"
   },
@@ -247,8 +247,8 @@
     "rs_types":[
       "07"
     ],
-    "lat":"62.0231",
-    "lon":"-6.7647",
+    "lat":62.0231,
+    "lon":-6.7647,
     "alt":54,
     "station_name":"Thorshavn (Denmark)"
   },
@@ -257,8 +257,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"52.0989",
-    "lon":"5.1797",
+    "lat":52.0989,
+    "lon":5.1797,
     "alt":2,
     "station_name":"De Bilt (Netherlands)"
   },
@@ -277,8 +277,8 @@
     "rs_types":[
       "34"
     ],
-    "lat":"50.7456",
-    "lon":"4.7633",
+    "lat":50.7456,
+    "lon":4.7633,
     "alt":105,
     "station_name":"Beauvechain (Belgium)"
   },
@@ -298,8 +298,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"48.4442",
-    "lon":"-4.4119",
+    "lat":48.4442,
+    "lon":-4.4119,
     "alt":99,
     "station_name":"Brest (France)"
   },
@@ -308,8 +308,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"48.7744",
-    "lon":"2.0097",
+    "lat":48.7744,
+    "lon":2.0097,
     "alt":168,
     "station_name":"Trappes (France)"
   },
@@ -328,8 +328,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"43.8569",
-    "lon":"4.4064",
+    "lat":43.8569,
+    "lon":4.4064,
     "alt":60,
     "station_name":"Nimes / Courbessac (France)"
   },
@@ -348,8 +348,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"43.3658",
-    "lon":"-8.4214",
+    "lat":43.3658,
+    "lon":-8.4214,
     "alt":58,
     "station_name":"La Coruna (Spain)"
   },
@@ -358,8 +358,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"43.4911",
-    "lon":"-3.8006",
+    "lat":43.4911,
+    "lon":-3.8006,
     "alt":64,
     "station_name":"Santander (Spain)"
   },
@@ -368,8 +368,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"41.3844",
-    "lon":"2.1181",
+    "lat":41.3844,
+    "lon":2.1181,
     "alt":95,
     "station_name":"Barcelona Servei (Spain)"
   },
@@ -378,8 +378,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"40.4653",
-    "lon":"-3.5797",
+    "lat":40.4653,
+    "lon":-3.5797,
     "alt":609,
     "station_name":"Madrid / Barajas (Spain)"
   },
@@ -388,8 +388,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"39.6058",
-    "lon":"2.7067",
+    "lat":39.6058,
+    "lon":2.7067,
     "alt":41,
     "station_name":"Mallorca-Son Bonet (Spain)"
   },
@@ -408,8 +408,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"38.0019",
-    "lon":"-1.1708",
+    "lat":38.0019,
+    "lon":-1.1708,
     "alt":61,
     "station_name":"Murcia (Spain)"
   },
@@ -418,8 +418,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"38.7678",
-    "lon":"-27.0856",
+    "lat":38.7678,
+    "lon":-27.0856,
     "alt":112,
     "station_name":"Lajes / Santa Rita Acores  (Portugal)"
   },
@@ -428,8 +428,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"32.6333",
-    "lon":"-16.9",
+    "lat":32.6333,
+    "lon":-16.9,
     "alt":58,
     "station_name":"Funchal (Portugal)"
   },
@@ -448,8 +448,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"54.5333",
-    "lon":"9.55",
+    "lat":54.5333,
+    "lon":9.55,
     "alt":43,
     "station_name":"Schleswig (Germany)"
   },
@@ -458,8 +458,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"53.7139",
-    "lon":"7.1525",
+    "lat":53.7139,
+    "lon":7.1525,
     "alt":11,
     "station_name":"Norderney (Germany)"
   },
@@ -468,8 +468,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"54.0978",
-    "lon":"13.4075",
+    "lat":54.0978,
+    "lon":13.4075,
     "alt":2,
     "station_name":"Greifswald (Germany)"
   },
@@ -478,8 +478,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"52.8153",
-    "lon":"9.9247",
+    "lat":52.8153,
+    "lon":9.9247,
     "alt":70,
     "station_name":"Bergen-Hohne (Germany)"
   },
@@ -488,8 +488,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"52.7156",
-    "lon":"7.3175",
+    "lat":52.7156,
+    "lon":7.3175,
     "alt":21,
     "station_name":"Meppen (Germany)"
   },
@@ -498,8 +498,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"52.2167",
-    "lon":"14.1167",
+    "lat":52.2167,
+    "lon":14.1167,
     "alt":98,
     "station_name":"Lindenberg (Germany)"
   },
@@ -508,8 +508,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"51.4056",
-    "lon":"6.9686",
+    "lat":51.4056,
+    "lon":6.9686,
     "alt":152,
     "station_name":"Essen (Germany)"
   },
@@ -518,8 +518,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"50.5617",
-    "lon":"10.3772",
+    "lat":50.5617,
+    "lon":10.3772,
     "alt":450,
     "station_name":"Meiningen (Germany)"
   },
@@ -528,8 +528,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"49.6928",
-    "lon":"7.3264",
+    "lat":49.6928,
+    "lon":7.3264,
     "alt":376,
     "station_name":"Idar-Oberstein (Germany)"
   },
@@ -538,8 +538,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"48.8333",
-    "lon":"9.2",
+    "lat":48.8333,
+    "lon":9.2,
     "alt":314,
     "station_name":"Stuttgart / Schnarrenberg (Germany)"
   },
@@ -548,8 +548,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"49.4283",
-    "lon":"11.9022",
+    "lat":49.4283,
+    "lon":11.9022,
     "alt":419,
     "station_name":"Kuemmersbruck (Germany)"
   },
@@ -558,8 +558,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"48.2442",
-    "lon":"11.5525",
+    "lat":48.2442,
+    "lon":11.5525,
     "alt":484,
     "station_name":"Muenchen-Oberschleissheim (Germany)"
   },
@@ -568,8 +568,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"47.8342",
-    "lon":"10.8667",
+    "lat":47.8342,
+    "lon":10.8667,
     "alt":739,
     "station_name":"Altenstadt (Germany)"
   },
@@ -579,8 +579,8 @@
       "23",
       "14"
     ],
-    "lat":"47.8019",
-    "lon":"11.0119",
+    "lat":47.8019,
+    "lon":11.0119,
     "alt":977,
     "station_name":"Hohenpeissenberg (Germany)"
   },
@@ -589,8 +589,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"48.2353",
-    "lon":"14.1881",
+    "lat":48.2353,
+    "lon":14.1881,
     "alt":298,
     "station_name":"Linz / Hoersching-Flughafen (Austria)"
   },
@@ -600,8 +600,8 @@
       "41",
       "63"
     ],
-    "lat":"48.2486",
-    "lon":"16.3564",
+    "lat":48.2486,
+    "lon":16.3564,
     "alt":203,
     "station_name":"Wien / Hohe Warte (Austria)"
   },
@@ -631,8 +631,8 @@
       "23",
       "41"
     ],
-    "lat":"50.0078",
-    "lon":"14.4469",
+    "lat":50.0078,
+    "lon":14.4469,
     "alt":304,
     "station_name":"Praha-Libus (Czech Republic)"
   },
@@ -641,8 +641,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"49.4525",
-    "lon":"17.1347",
+    "lat":49.4525,
+    "lon":17.1347,
     "alt":216,
     "station_name":"Prostejov (Czech Republic)"
   },
@@ -651,8 +651,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"49.0333",
-    "lon":"20.3167",
+    "lat":49.0333,
+    "lon":20.3167,
     "alt":706,
     "station_name":"Poprad / Ganovce (Slovakia)"
   },
@@ -661,8 +661,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"54.7536",
-    "lon":"17.5347",
+    "lat":54.7536,
+    "lon":17.5347,
     "alt":2,
     "station_name":"Leba (Poland)"
   },
@@ -671,8 +671,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"52.4078",
-    "lon":"20.9564",
+    "lat":52.4078,
+    "lon":20.9564,
     "alt":94,
     "station_name":"Legionowo (Poland)"
   },
@@ -681,8 +681,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"51.1131",
-    "lon":"16.8811",
+    "lat":51.1131,
+    "lon":16.8811,
     "alt":116,
     "station_name":"Wroclaw I (Poland)"
   },
@@ -691,8 +691,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"47.4333",
-    "lon":"19.1833",
+    "lat":47.4333,
+    "lon":19.1833,
     "alt":138,
     "station_name":"Budapest / Lorinc (Hungary)"
   },
@@ -701,8 +701,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"46.25",
-    "lon":"20.1",
+    "lat":46.25,
+    "lon":20.1,
     "alt":82,
     "station_name":"Szeged (Hungary)"
   },
@@ -711,8 +711,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"44.7667",
-    "lon":"20.4167",
+    "lat":44.7667,
+    "lon":20.4167,
     "alt":203,
     "station_name":"Beograd / Kosutnjak (Serbia)"
   },
@@ -721,8 +721,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"43.3333",
-    "lon":"21.9",
+    "lat":43.3333,
+    "lon":21.9,
     "alt":202,
     "station_name":"Nis (Serbia)"
   },
@@ -731,8 +731,8 @@
     "rs_types":[
       "63"
     ],
-    "lat":"46.0656",
-    "lon":"14.5122",
+    "lat":46.0656,
+    "lon":14.5122,
     "alt":299,
     "station_name":"Ljubljana / Bezigrad (Slovenia)"
   },
@@ -741,8 +741,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"45.8219",
-    "lon":"16.0336",
+    "lat":45.8219,
+    "lon":16.0336,
     "alt":123,
     "station_name":"Zagreb / Maksimir (Croatia)"
   },
@@ -751,8 +751,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"44.0969",
-    "lon":"15.3403",
+    "lat":44.0969,
+    "lon":15.3403,
     "alt":79,
     "station_name":"Zadar Rs (Croatia)"
   },
@@ -761,8 +761,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"44.5106",
-    "lon":"26.0781",
+    "lat":44.5106,
+    "lon":26.0781,
     "alt":90,
     "station_name":"Bucuresti / Imh (Romania)"
   },
@@ -771,8 +771,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"42.65",
-    "lon":"23.3833",
+    "lat":42.65,
+    "lon":23.3833,
     "alt":586,
     "station_name":"Sofia Observ.  (Bulgaria)"
   },
@@ -782,8 +782,8 @@
       "41",
       "42"
     ],
-    "lat":"45.9806",
-    "lon":"13.0592",
+    "lat":45.9806,
+    "lon":13.0592,
     "alt":51,
     "station_name":"Udine / Rivolto (Italy)"
   },
@@ -802,8 +802,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"44.5392",
-    "lon":"7.6125",
+    "lat":44.5392,
+    "lon":7.6125,
     "alt":386,
     "station_name":"Cuneo-Levaldigi (Italy)"
   },
@@ -812,8 +812,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"44.6539",
-    "lon":"11.6225",
+    "lat":44.6539,
+    "lon":11.6225,
     "alt":10,
     "station_name":"S. Pietro Capofiume Molinella Bologna  (Italy)"
   },
@@ -822,8 +822,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"41.67",
-    "lon":"12.4508",
+    "lat":41.67,
+    "lon":12.4508,
     "alt":6,
     "station_name":"Pratica Di Mare (Italy)"
   },
@@ -842,8 +842,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"37.9142",
-    "lon":"12.4914",
+    "lat":37.9142,
+    "lon":12.4914,
     "alt":7,
     "station_name":"Trapani / Birgi (Italy)"
   },
@@ -852,8 +852,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"39.3461",
-    "lon":"8.9675",
+    "lat":39.3461,
+    "lon":8.9675,
     "alt":29,
     "station_name":"Decimomannu (Italy)"
   },
@@ -862,8 +862,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"40.5272",
-    "lon":"22.9714",
+    "lat":40.5272,
+    "lon":22.9714,
     "alt":8,
     "station_name":"Thessaloniki Airport  (Greece)"
   },
@@ -872,8 +872,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"37.8897",
-    "lon":"23.7417",
+    "lat":37.8897,
+    "lon":23.7417,
     "alt":28,
     "station_name":"Athens (closed) Airport (Greece)"
   },
@@ -882,8 +882,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"35.3353",
-    "lon":"25.1819",
+    "lat":35.3353,
+    "lon":25.1819,
     "alt":37,
     "station_name":"Heraklion Airport  (Greece)"
   },
@@ -892,8 +892,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"41.2833",
-    "lon":"36.3",
+    "lat":41.2833,
+    "lon":36.3,
     "alt":4,
     "station_name":"Samsun (Turkey)"
   },
@@ -903,8 +903,8 @@
       "54",
       "35"
     ],
-    "lat":"39.9",
-    "lon":"41.2833",
+    "lat":39.9,
+    "lon":41.2833,
     "alt":1869,
     "station_name":"Erzurum Bolge (Turkey)"
   },
@@ -913,8 +913,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"39.95",
-    "lon":"32.8833",
+    "lat":39.95,
+    "lon":32.8833,
     "alt":891,
     "station_name":"Ankara / Central (Turkey)"
   },
@@ -923,8 +923,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"38.4333",
-    "lon":"27.1667",
+    "lat":38.4333,
+    "lon":27.1667,
     "alt":25,
     "station_name":"Izmir (Turkey)"
   },
@@ -933,8 +933,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"37.75",
-    "lon":"30.55",
+    "lat":37.75,
+    "lon":30.55,
     "alt":997,
     "station_name":"Isparta (Turkey)"
   },
@@ -943,8 +943,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"36.9833",
-    "lon":"35.35",
+    "lat":36.9833,
+    "lon":35.35,
     "alt":28,
     "station_name":"Adana (Turkey)"
   },
@@ -964,8 +964,8 @@
       "19",
       "62"
     ],
-    "lat":"80.6264",
-    "lon":"58.0589",
+    "lat":80.6264,
+    "lon":58.0589,
     "alt":20,
     "station_name":"Polargmo Im. E. T. Krenkelja (Russia)"
   },
@@ -975,8 +975,8 @@
       "90",
       "62"
     ],
-    "lat":"77.7131",
-    "lon":"104.2919",
+    "lat":77.7131,
+    "lon":104.2919,
     "alt":13,
     "station_name":"Gmo Im. E. K. Fedorova (Russia)"
   },
@@ -985,8 +985,8 @@
     "rs_types":[
       "19"
     ],
-    "lat":"73.5136",
-    "lon":"80.4064",
+    "lat":73.5136,
+    "lon":80.4064,
     "alt":47,
     "station_name":"Ostrov Dikson (Russia)"
   },
@@ -996,8 +996,8 @@
       "62",
       "90"
     ],
-    "lat":"72.3667",
-    "lon":"52.7",
+    "lat":72.3667,
+    "lon":52.7,
     "alt":16,
     "station_name":"Malye Karmakuly (Russia)"
   },
@@ -1006,8 +1006,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"76",
-    "lon":"137.8667",
+    "lat":76.0,
+    "lon":137.8667,
     "alt":10,
     "station_name":"Ostrov Kotel'Nyj (Russia)"
   },
@@ -1017,8 +1017,8 @@
       "62",
       "90"
     ],
-    "lat":"71.5833",
-    "lon":"128.9167",
+    "lat":71.5833,
+    "lon":128.9167,
     "alt":8,
     "station_name":"Tiksi (Russia)"
   },
@@ -1028,8 +1028,8 @@
       "90",
       "58"
     ],
-    "lat":"70.6167",
-    "lon":"147.8833",
+    "lat":70.6167,
+    "lon":147.8833,
     "alt":61,
     "station_name":"Chokurdah (Russia)"
   },
@@ -1038,8 +1038,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"67.1692",
-    "lon":"32.3542",
+    "lat":67.1692,
+    "lon":32.3542,
     "alt":26,
     "station_name":"Kandalaksa (Russia)"
   },
@@ -1048,8 +1048,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"67.8767",
-    "lon":"44.1742",
+    "lat":67.8767,
+    "lon":44.1742,
     "alt":16,
     "station_name":"Sojna (Russia)"
   },
@@ -1060,8 +1060,8 @@
       "90",
       "89"
     ],
-    "lat":"64.95",
-    "lon":"34.65",
+    "lat":64.95,
+    "lon":34.65,
     "alt":10,
     "station_name":"Kem'- Port (Russia)"
   },
@@ -1071,8 +1071,8 @@
       "62",
       "90"
     ],
-    "lat":"64.6247",
-    "lon":"40.5114",
+    "lat":64.6247,
+    "lon":40.5114,
     "alt":6,
     "station_name":"Arhangel'sk (Russia)"
   },
@@ -1081,8 +1081,8 @@
     "rs_types":[
       "62"
     ],
-    "lat":"61.8167",
-    "lon":"34.2667",
+    "lat":61.8167,
+    "lon":34.2667,
     "alt":112,
     "station_name":"Petrozavodsk (Russia)"
   },
@@ -1091,8 +1091,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"61.5067",
-    "lon":"38.9347",
+    "lat":61.5067,
+    "lon":38.9347,
     "alt":121,
     "station_name":"Kargopol (Russia)"
   },
@@ -1101,8 +1101,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"69.3472",
-    "lon":"88.2639",
+    "lat":69.3472,
+    "lon":88.2639,
     "alt":62,
     "station_name":"Norilsk (Russia)"
   },
@@ -1111,8 +1111,8 @@
     "rs_types":[
       "19"
     ],
-    "lat":"67.625",
-    "lon":"53.0175",
+    "lat":67.625,
+    "lon":53.0175,
     "alt":7,
     "station_name":"Nar'Jan-Mar (Russia)"
   },
@@ -1122,8 +1122,8 @@
       "68",
       "62"
     ],
-    "lat":"66.5319",
-    "lon":"66.6744",
+    "lat":66.5319,
+    "lon":66.6744,
     "alt":16,
     "station_name":"Salehard (Russia)"
   },
@@ -1133,8 +1133,8 @@
       "90",
       "62"
     ],
-    "lat":"65.1167",
-    "lon":"57.1",
+    "lat":65.1167,
+    "lon":57.1,
     "alt":56,
     "station_name":"Pechora (Russia)"
   },
@@ -1143,8 +1143,8 @@
     "rs_types":[
       "19"
     ],
-    "lat":"65.7944",
-    "lon":"87.9889",
+    "lat":65.7944,
+    "lon":87.9889,
     "alt":32,
     "station_name":"Turuhansk (Russia)"
   },
@@ -1153,8 +1153,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"61.6767",
-    "lon":"50.7806",
+    "lat":61.6767,
+    "lon":50.7806,
     "alt":116,
     "station_name":"Syktyvkar (Russia)"
   },
@@ -1164,8 +1164,8 @@
       "19",
       "90"
     ],
-    "lat":"61.5806",
-    "lon":"90.0306",
+    "lat":61.5806,
+    "lon":90.0306,
     "alt":63,
     "station_name":"Bor (Russia)"
   },
@@ -1174,8 +1174,8 @@
     "rs_types":[
       "62"
     ],
-    "lat":"60.6833",
-    "lon":"60.45",
+    "lat":60.6833,
+    "lon":60.45,
     "alt":101,
     "station_name":"Ivdel (Russia)"
   },
@@ -1185,8 +1185,8 @@
       "62",
       "90"
     ],
-    "lat":"61.0278",
-    "lon":"69.1189",
+    "lat":61.0278,
+    "lon":69.1189,
     "alt":40,
     "station_name":"Hanty-Mansijsk (Russia)"
   },
@@ -1195,8 +1195,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"60.4333",
-    "lon":"77.8667",
+    "lat":60.4333,
+    "lon":77.8667,
     "alt":47,
     "station_name":"Aleksandrovskoe (Russia)"
   },
@@ -1205,8 +1205,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"67.5667",
-    "lon":"133.4",
+    "lat":67.5667,
+    "lon":133.4,
     "alt":137,
     "station_name":"Verhojansk (Russia)"
   },
@@ -1218,8 +1218,8 @@
       "29",
       "20"
     ],
-    "lat":"66.7667",
-    "lon":"123.4",
+    "lat":66.7667,
+    "lon":123.4,
     "alt":93,
     "station_name":"Zhigansk (Russia)"
   },
@@ -1228,8 +1228,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"64.2694",
-    "lon":"100.2167",
+    "lat":64.2694,
+    "lon":100.2167,
     "alt":186,
     "station_name":"Tura (Russia)"
   },
@@ -1238,8 +1238,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"63.7833",
-    "lon":"121.6167",
+    "lat":63.7833,
+    "lon":121.6167,
     "alt":107,
     "station_name":"Viljujsk (Russia)"
   },
@@ -1249,8 +1249,8 @@
       "62",
       "90"
     ],
-    "lat":"63.25",
-    "lon":"143.15",
+    "lat":63.25,
+    "lon":143.15,
     "alt":745,
     "station_name":"Ojmjakon (Russia)"
   },
@@ -1261,8 +1261,8 @@
       "89",
       "58"
     ],
-    "lat":"62.5333",
-    "lon":"113.8667",
+    "lat":62.5333,
+    "lon":113.8667,
     "alt":347,
     "station_name":"Mirnvy (Russia)"
   },
@@ -1272,8 +1272,8 @@
       "19",
       "90"
     ],
-    "lat":"60.3361",
-    "lon":"102.2944",
+    "lat":60.3361,
+    "lon":102.2944,
     "alt":260,
     "station_name":"Vanavara (Russia)"
   },
@@ -1283,8 +1283,8 @@
       "90",
       "89"
     ],
-    "lat":"62.0167",
-    "lon":"129.7167",
+    "lat":62.0167,
+    "lon":129.7167,
     "alt":103,
     "station_name":"Jakutsk (Russia)"
   },
@@ -1294,8 +1294,8 @@
       "62",
       "90"
     ],
-    "lat":"68.75",
-    "lon":"161.2833",
+    "lat":68.75,
+    "lon":161.2833,
     "alt":32,
     "station_name":"Cherskij (Russia)"
   },
@@ -1305,8 +1305,8 @@
       "62",
       "90"
     ],
-    "lat":"65.2333",
-    "lon":"160.5333",
+    "lat":65.2333,
+    "lon":160.5333,
     "alt":265,
     "station_name":"Omolon (Russia)"
   },
@@ -1316,8 +1316,8 @@
       "90",
       "28"
     ],
-    "lat":"62.9167",
-    "lon":"152.4167",
+    "lat":62.9167,
+    "lon":152.4167,
     "alt":207,
     "station_name":"Sejmchan (Russia)"
   },
@@ -1326,8 +1326,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"59.55",
-    "lon":"150.7833",
+    "lat":59.55,
+    "lon":150.7833,
     "alt":118,
     "station_name":"Magadan (Russia)"
   },
@@ -1336,8 +1336,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"59.3981",
-    "lon":"24.6028",
+    "lat":59.3981,
+    "lon":24.6028,
     "alt":34,
     "station_name":"Tallinn (Estonia)"
   },
@@ -1357,8 +1357,8 @@
       "62",
       "90"
     ],
-    "lat":"57.8833",
-    "lon":"34.0333",
+    "lat":57.8833,
+    "lon":34.0333,
     "alt":178,
     "station_name":"Bologoe (Russia)"
   },
@@ -1367,8 +1367,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"56.6425",
-    "lon":"25.1283",
+    "lat":56.6425,
+    "lon":25.1283,
     "alt":83,
     "station_name":"Skriveri (Latvia)"
   },
@@ -1378,8 +1378,8 @@
       "62",
       "26"
     ],
-    "lat":"56.35",
-    "lon":"30.6167",
+    "lat":56.35,
+    "lon":30.6167,
     "alt":98,
     "station_name":"Velikie Luki (Russia)"
   },
@@ -1388,8 +1388,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"54.8839",
-    "lon":"23.8358",
+    "lat":54.8839,
+    "lon":23.8358,
     "alt":76,
     "station_name":"Kaunas (Lithuania)"
   },
@@ -1410,8 +1410,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"54.75",
-    "lon":"32.0667",
+    "lat":54.75,
+    "lon":32.0667,
     "alt":241,
     "station_name":"Smolensk (Russia)"
   },
@@ -1430,8 +1430,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"59.3183",
-    "lon":"39.9256",
+    "lat":59.3183,
+    "lon":39.9256,
     "alt":133,
     "station_name":"Vologda (Russia)"
   },
@@ -1441,8 +1441,8 @@
       "62",
       "90"
     ],
-    "lat":"58.5667",
-    "lon":"49.5667",
+    "lat":58.5667,
+    "lon":49.5667,
     "alt":158,
     "station_name":"Kirov (Russia)"
   },
@@ -1451,8 +1451,8 @@
     "rs_types":[
       "19"
     ],
-    "lat":"56.2667",
-    "lon":"44",
+    "lat":56.2667,
+    "lon":44.0,
     "alt":157,
     "station_name":"Niznij Novgorod (Russia)"
   },
@@ -1463,8 +1463,8 @@
       "58",
       "90"
     ],
-    "lat":"54.1",
-    "lon":"35.35",
+    "lat":54.1,
+    "lon":35.35,
     "alt":239,
     "station_name":"Suhinici (Russia)"
   },
@@ -1474,8 +1474,8 @@
       "62",
       "90"
     ],
-    "lat":"54.6333",
-    "lon":"39.7",
+    "lat":54.6333,
+    "lon":39.7,
     "alt":158,
     "station_name":"Rjazan (Russia)"
   },
@@ -1485,8 +1485,8 @@
       "90",
       "62"
     ],
-    "lat":"53.1228",
-    "lon":"45.0189",
+    "lat":53.1228,
+    "lon":45.0189,
     "alt":174,
     "station_name":"Penza (Russia)"
   },
@@ -1495,8 +1495,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"52.9833",
-    "lon":"49.4333",
+    "lat":52.9833,
+    "lon":49.4333,
     "alt":45,
     "station_name":"Samara Bezencuk  (Russia)"
   },
@@ -1505,8 +1505,8 @@
     "rs_types":[
       "19"
     ],
-    "lat":"57.9583",
-    "lon":"56.1972",
+    "lat":57.9583,
+    "lon":56.1972,
     "alt":170,
     "station_name":"Perm' (Russia)"
   },
@@ -1515,8 +1515,8 @@
     "rs_types":[
       "62"
     ],
-    "lat":"58.15",
-    "lon":"68.25",
+    "lat":58.15,
+    "lon":68.25,
     "alt":44,
     "station_name":"Tobol'Sk (Russia)"
   },
@@ -1525,8 +1525,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"56.7333",
-    "lon":"61.0667",
+    "lat":56.7333,
+    "lon":61.0667,
     "alt":290,
     "station_name":"Verhnee Dubrovo (Russia)"
   },
@@ -1535,8 +1535,8 @@
     "rs_types":[
       "62"
     ],
-    "lat":"55.4567",
-    "lon":"65.4011",
+    "lat":55.4567,
+    "lon":65.4011,
     "alt":79,
     "station_name":"Kurgan (Russia)"
   },
@@ -1545,8 +1545,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"54.7106",
-    "lon":"55.815",
+    "lat":54.7106,
+    "lon":55.815,
     "alt":105,
     "station_name":"Ufa (Russia)"
   },
@@ -1555,8 +1555,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"53.2333",
-    "lon":"63.6167",
+    "lat":53.2333,
+    "lon":63.6167,
     "alt":151,
     "station_name":"Kostanai (Kazakhstan)"
   },
@@ -1566,8 +1566,8 @@
       "90",
       "89"
     ],
-    "lat":"58.3167",
-    "lon":"82.95",
+    "lat":58.3167,
+    "lon":82.95,
     "alt":76,
     "station_name":"Kolpasevo (Russia)"
   },
@@ -1576,8 +1576,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"58.4528",
-    "lon":"92.2028",
+    "lat":58.4528,
+    "lon":92.2028,
     "alt":78,
     "station_name":"Enisejsk (Russia)"
   },
@@ -1586,8 +1586,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"58.3833",
-    "lon":"97.45",
+    "lat":58.3833,
+    "lon":97.45,
     "alt":134,
     "station_name":"Bogucany (Russia)"
   },
@@ -1597,8 +1597,8 @@
       "09",
       "90"
     ],
-    "lat":"56.1806",
-    "lon":"92.6056",
+    "lat":56.1806,
+    "lon":92.6056,
     "alt":296,
     "station_name":"Emel'Janovo (Russia)"
   },
@@ -1607,8 +1607,8 @@
     "rs_types":[
       "19"
     ],
-    "lat":"55.3544",
-    "lon":"78.3083",
+    "lat":55.3544,
+    "lon":78.3083,
     "alt":120,
     "station_name":"Barabinsk (Russia)"
   },
@@ -1617,8 +1617,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"54.9667",
-    "lon":"82.95",
+    "lat":54.9667,
+    "lon":82.95,
     "alt":177,
     "station_name":"Novosibirsk (Russia)"
   },
@@ -1628,8 +1628,8 @@
       "90",
       "62"
     ],
-    "lat":"54.8833",
-    "lon":"99.0333",
+    "lat":54.8833,
+    "lon":99.0333,
     "alt":410,
     "station_name":"Nizhneudinsk (Russia)"
   },
@@ -1638,8 +1638,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"53.5",
-    "lon":"83.8333",
+    "lat":53.5,
+    "lon":83.8333,
     "alt":159,
     "station_name":"Barnaul (Russia)"
   },
@@ -1648,8 +1648,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"53.7667",
-    "lon":"91.3167",
+    "lat":53.7667,
+    "lon":91.3167,
     "alt":256,
     "station_name":"Hakasskaja (Russia)"
   },
@@ -1659,8 +1659,8 @@
       "90",
       "58"
     ],
-    "lat":"59.45",
-    "lon":"112.5833",
+    "lat":59.45,
+    "lon":112.5833,
     "alt":193,
     "station_name":"Vitim (Russia)"
   },
@@ -1670,8 +1670,8 @@
       "90",
       "62"
     ],
-    "lat":"57.7667",
-    "lon":"108.0667",
+    "lat":57.7667,
+    "lon":108.0667,
     "alt":258,
     "station_name":"Kirensk (Russia)"
   },
@@ -1681,8 +1681,8 @@
       "90",
       "69"
     ],
-    "lat":"56.2833",
-    "lon":"101.75",
+    "lat":56.2833,
+    "lon":101.75,
     "alt":489,
     "station_name":"Bratsk (Russia)"
   },
@@ -1691,8 +1691,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"56.9",
-    "lon":"118.2667",
+    "lat":56.9,
+    "lon":118.2667,
     "alt":711,
     "station_name":"Chara (Russia)"
   },
@@ -1701,8 +1701,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"53.4167",
-    "lon":"109.0167",
+    "lat":53.4167,
+    "lon":109.0167,
     "alt":457,
     "station_name":"Ust'- Barguzin (Russia)"
   },
@@ -1711,8 +1711,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"53.75",
-    "lon":"119.7333",
+    "lat":53.75,
+    "lon":119.7333,
     "alt":619,
     "station_name":"Mogoca (Russia)"
   },
@@ -1722,8 +1722,8 @@
       "90",
       "62"
     ],
-    "lat":"52.4833",
-    "lon":"103.85",
+    "lat":52.4833,
+    "lon":103.85,
     "alt":450,
     "station_name":"Angarsk (Russia)"
   },
@@ -1732,8 +1732,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"52.0833",
-    "lon":"113.4833",
+    "lat":52.0833,
+    "lon":113.4833,
     "alt":685,
     "station_name":"Chita (Russia)"
   },
@@ -1744,8 +1744,8 @@
       "59",
       "62"
     ],
-    "lat":"50.3667",
-    "lon":"108.75",
+    "lat":50.3667,
+    "lon":108.75,
     "alt":770,
     "station_name":"Krasnyj Chikoj (Russia)"
   },
@@ -1755,8 +1755,8 @@
       "58",
       "90"
     ],
-    "lat":"50.4",
-    "lon":"116.5167",
+    "lat":50.4,
+    "lon":116.5167,
     "alt":684,
     "station_name":"Borzja (Russia)"
   },
@@ -1765,8 +1765,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"58.6167",
-    "lon":"125.3667",
+    "lat":58.6167,
+    "lon":125.3667,
     "alt":682,
     "station_name":"Aldan (Russia)"
   },
@@ -1775,8 +1775,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"59.3667",
-    "lon":"143.2",
+    "lat":59.3667,
+    "lon":143.2,
     "alt":6,
     "station_name":"Ohotsk (Russia)"
   },
@@ -1785,8 +1785,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"53.7414",
-    "lon":"127.2764",
+    "lat":53.7414,
+    "lon":127.2764,
     "alt":232,
     "station_name":"Zeja (Russia)"
   },
@@ -1796,8 +1796,8 @@
       "62",
       "90"
     ],
-    "lat":"53.1475",
-    "lon":"140.6939",
+    "lat":53.1475,
+    "lon":140.6939,
     "alt":68,
     "station_name":"Nikolaevsk-Na-Amure (Russia)"
   },
@@ -1806,8 +1806,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"50.2803",
-    "lon":"127.4783",
+    "lat":50.2803,
+    "lon":127.4783,
     "alt":137,
     "station_name":"Blagovescensk (Russia)"
   },
@@ -1817,8 +1817,8 @@
       "90",
       "58"
     ],
-    "lat":"50.0667",
-    "lon":"132.1333",
+    "lat":50.0667,
+    "lon":132.1333,
     "alt":349,
     "station_name":"Sutur (Russia)"
   },
@@ -1829,8 +1829,8 @@
       "58",
       "62"
     ],
-    "lat":"48.5333",
-    "lon":"135.2333",
+    "lat":48.5333,
+    "lon":135.2333,
     "alt":72,
     "station_name":"Habarovsk (Russia)"
   },
@@ -1839,8 +1839,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"49",
-    "lon":"140.3",
+    "lat":49.0,
+    "lon":140.3,
     "alt":22,
     "station_name":"Sovetskaja Gavan (Russia)"
   },
@@ -1849,8 +1849,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"45.8667",
-    "lon":"133.7333",
+    "lat":45.8667,
+    "lon":133.7333,
     "alt":107,
     "station_name":"Dal'Nerechensk (Russia)"
   },
@@ -1860,8 +1860,8 @@
       "90",
       "62"
     ],
-    "lat":"43.2667",
-    "lon":"132.05",
+    "lat":43.2667,
+    "lon":132.05,
     "alt":82,
     "station_name":"Vladivostok Sad Gorod  (Russia)"
   },
@@ -1871,8 +1871,8 @@
       "90",
       "30"
     ],
-    "lat":"50.9",
-    "lon":"142.1667",
+    "lat":50.9,
+    "lon":142.1667,
     "alt":31,
     "station_name":"Aleksandrovsk-Sahalinskij (Russia)"
   },
@@ -1881,8 +1881,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"49.2167",
-    "lon":"143.1",
+    "lat":49.2167,
+    "lon":143.1,
     "alt":4,
     "station_name":"Poronajsk (Russia)"
   },
@@ -1891,8 +1891,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"46.95",
-    "lon":"142.7167",
+    "lat":46.95,
+    "lon":142.7167,
     "alt":31,
     "station_name":"Yuzhno-Sakhalinsk (Russia)"
   },
@@ -1901,8 +1901,8 @@
     "rs_types":[
       "62"
     ],
-    "lat":"50.6833",
-    "lon":"156.1333",
+    "lat":50.6833,
+    "lon":156.1333,
     "alt":23,
     "station_name":"Severo-Kuril'Sk (Russia)"
   },
@@ -1912,8 +1912,8 @@
       "62",
       "90"
     ],
-    "lat":"56.3167",
-    "lon":"160.8333",
+    "lat":56.3167,
+    "lon":160.8333,
     "alt":28,
     "station_name":"Kljuchi (Russia)"
   },
@@ -1922,8 +1922,8 @@
     "rs_types":[
       "62"
     ],
-    "lat":"54.3",
-    "lon":"155.9167",
+    "lat":54.3,
+    "lon":155.9167,
     "alt":25,
     "station_name":"Sobolevo (Russia)"
   },
@@ -1933,8 +1933,8 @@
       "62",
       "90"
     ],
-    "lat":"53.0833",
-    "lon":"158.5833",
+    "lat":53.0833,
+    "lon":158.5833,
     "alt":24,
     "station_name":"Petropavlovsk-Kamchatskij (Russia)"
   },
@@ -1944,8 +1944,8 @@
       "62",
       "90"
     ],
-    "lat":"55.2",
-    "lon":"165.9833",
+    "lat":55.2,
+    "lon":165.9833,
     "alt":6,
     "station_name":"Nikol'Skoe (Russia)"
   },
@@ -1954,8 +1954,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"52.4019",
-    "lon":"30.9631",
+    "lat":52.4019,
+    "lon":30.9631,
     "alt":127,
     "station_name":"Gomel' (Belarus)"
   },
@@ -1964,8 +1964,8 @@
     "rs_types":[
       "15"
     ],
-    "lat":"50.1667",
-    "lon":"27.0333",
+    "lat":50.1667,
+    "lon":27.0333,
     "alt":277,
     "station_name":"Shepetivka (Ukraine)"
   },
@@ -1975,8 +1975,8 @@
       "15",
       "16"
     ],
-    "lat":"50.4",
-    "lon":"30.5667",
+    "lat":50.4,
+    "lon":30.5667,
     "alt":166,
     "station_name":"Kyiv (Ukraine)"
   },
@@ -1985,8 +1985,8 @@
     "rs_types":[
       "15"
     ],
-    "lat":"49.8167",
-    "lon":"23.95",
+    "lat":49.8167,
+    "lon":23.95,
     "alt":319,
     "station_name":"L'Viv (Ukraine)"
   },
@@ -1995,8 +1995,8 @@
     "rs_types":[
       "15"
     ],
-    "lat":"48.0333",
-    "lon":"33.2167",
+    "lat":48.0333,
+    "lon":33.2167,
     "alt":123,
     "station_name":"Kryvyi Rih (Ukraine)"
   },
@@ -2005,8 +2005,8 @@
     "rs_types":[
       "15"
     ],
-    "lat":"46.4333",
-    "lon":"30.7667",
+    "lat":46.4333,
+    "lon":30.7667,
     "alt":42,
     "station_name":"Odesa (Ukraine)"
   },
@@ -2015,8 +2015,8 @@
     "rs_types":[
       "89"
     ],
-    "lat":"51.7667",
-    "lon":"36.1667",
+    "lat":51.7667,
+    "lon":36.1667,
     "alt":247,
     "station_name":"Kursk (Russia)"
   },
@@ -2025,8 +2025,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"51.5567",
-    "lon":"46.0394",
+    "lat":51.5567,
+    "lon":46.0394,
     "alt":156,
     "station_name":"Saratov (Russia)"
   },
@@ -2035,8 +2035,8 @@
     "rs_types":[
       "89"
     ],
-    "lat":"50.4167",
-    "lon":"41.05",
+    "lat":50.4167,
+    "lon":41.05,
     "alt":93,
     "station_name":"Kalac (Russia)"
   },
@@ -2046,8 +2046,8 @@
       "16",
       "15"
     ],
-    "lat":"49.9667",
-    "lon":"36.1333",
+    "lat":49.9667,
+    "lon":36.1333,
     "alt":154,
     "station_name":"Kharkiv (Ukraine)"
   },
@@ -2056,8 +2056,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"48.7833",
-    "lon":"44.3333",
+    "lat":48.7833,
+    "lon":44.3333,
     "alt":141,
     "station_name":"Volgograd (Russia)"
   },
@@ -2066,8 +2066,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"47.25",
-    "lon":"39.8167",
+    "lat":47.25,
+    "lon":39.8167,
     "alt":77,
     "station_name":"Rostov-Na-Donu (Russia)"
   },
@@ -2078,8 +2078,8 @@
       "90",
       "28"
     ],
-    "lat":"45.9167",
-    "lon":"43.35",
+    "lat":45.9167,
+    "lon":43.35,
     "alt":77,
     "station_name":"Divnoe (Russia)"
   },
@@ -2090,8 +2090,8 @@
       "62",
       "11"
     ],
-    "lat":"46.2833",
-    "lon":"47.9833",
+    "lat":46.2833,
+    "lon":47.9833,
     "alt":-17,
     "station_name":"Astrahan' (Russia)"
   },
@@ -2100,8 +2100,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"51.6925",
-    "lon":"55.0783",
+    "lat":51.6925,
+    "lon":55.0783,
     "alt":109,
     "station_name":"Orenburg (Russia)"
   },
@@ -2110,8 +2110,8 @@
     "rs_types":[
       "27"
     ],
-    "lat":"50.2833",
-    "lon":"57.15",
+    "lat":50.2833,
+    "lon":57.15,
     "alt":227,
     "station_name":"Aktjubinsk (Kazakhstan)"
   },
@@ -2120,8 +2120,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"49.8",
-    "lon":"73.15",
+    "lat":49.8,
+    "lon":73.15,
     "alt":553,
     "station_name":"Karaganda (Kazakhstan)"
   },
@@ -2130,8 +2130,8 @@
     "rs_types":[
       "27"
     ],
-    "lat":"47.8",
-    "lon":"67.7167",
+    "lat":47.8,
+    "lon":67.7167,
     "alt":345,
     "station_name":"Zhezkazgan (Kazakhstan)"
   },
@@ -2141,8 +2141,8 @@
       "73",
       "88"
     ],
-    "lat":"47.1167",
-    "lon":"51.9167",
+    "lat":47.1167,
+    "lon":51.9167,
     "alt":-15,
     "station_name":"Atyray (Kazakhstan)"
   },
@@ -2151,8 +2151,8 @@
     "rs_types":[
       "73"
     ],
-    "lat":"52.3",
-    "lon":"76.9333",
+    "lat":52.3,
+    "lon":76.9333,
     "alt":123,
     "station_name":"Pavlodar (Kazakhstan)"
   },
@@ -2161,8 +2161,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"51.7103",
-    "lon":"94.4917",
+    "lat":51.7103,
+    "lon":94.4917,
     "alt":629,
     "station_name":"Kyzyl (Russia)"
   },
@@ -2172,8 +2172,8 @@
       "62",
       "73"
     ],
-    "lat":"43.3633",
-    "lon":"77.0042",
+    "lat":43.3633,
+    "lon":77.0042,
     "alt":850,
     "station_name":"Almaty (Kazakhstan)"
   },
@@ -2183,8 +2183,8 @@
       "62",
       "90"
     ],
-    "lat":"44.1",
-    "lon":"39.0333",
+    "lat":44.1,
+    "lon":39.0333,
     "alt":94,
     "station_name":"Tuapse (Russia)"
   },
@@ -2193,8 +2193,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"44.2167",
-    "lon":"43.1",
+    "lat":44.2167,
+    "lon":43.1,
     "alt":312,
     "station_name":"Mineral'nye Vody (Russia)"
   },
@@ -2203,8 +2203,8 @@
     "rs_types":[
       "90"
     ],
-    "lat":"43",
-    "lon":"47.5",
+    "lat":43.0,
+    "lon":47.5,
     "alt":-18,
     "station_name":"Mahachkala (Russia)"
   },
@@ -2213,8 +2213,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"40.2169",
-    "lon":"44.5017",
+    "lat":40.2169,
+    "lon":44.5017,
     "alt":890,
     "station_name":"Yerevan (Armenia)"
   },
@@ -2223,8 +2223,8 @@
     "rs_types":[
       "73"
     ],
-    "lat":"44.7667",
-    "lon":"65.5167",
+    "lat":44.7667,
+    "lon":65.5167,
     "alt":133,
     "station_name":"Kyzylorda (Kazakhstan)"
   },
@@ -2233,8 +2233,8 @@
     "rs_types":[
       "73"
     ],
-    "lat":"42.85",
-    "lon":"71.3",
+    "lat":42.85,
+    "lon":71.3,
     "alt":653,
     "station_name":"Zhambyl (Kazakhstan)"
   },
@@ -2243,8 +2243,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"32",
-    "lon":"34.8167",
+    "lat":32.0,
+    "lon":34.8167,
     "alt":30,
     "station_name":"Bet Dagan (Israel)"
   },
@@ -2264,8 +2264,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"32.3667",
-    "lon":"36.25",
+    "lat":32.3667,
+    "lon":36.25,
     "alt":686,
     "station_name":"Mafraq (Jordan)"
   },
@@ -2274,8 +2274,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"28.3167",
-    "lon":"46.1333",
+    "lat":28.3167,
+    "lon":46.1333,
     "alt":358,
     "station_name":"Al Qaysumah (Saudi Arabia)"
   },
@@ -2284,8 +2284,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"28.3833",
-    "lon":"36.6",
+    "lat":28.3833,
+    "lon":36.6,
     "alt":778,
     "station_name":"Tabuk (Saudi Arabia)"
   },
@@ -2294,8 +2294,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"27.4333",
-    "lon":"41.6833",
+    "lat":27.4333,
+    "lon":41.6833,
     "alt":1015,
     "station_name":"Hail (Saudi Arabia)"
   },
@@ -2304,8 +2304,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"26.45",
-    "lon":"49.8167",
+    "lat":26.45,
+    "lon":49.8167,
     "alt":22,
     "station_name":"K.f.i.a. (King Fahad Int. Airport) Dammam (Saudi Arabia)"
   },
@@ -2314,8 +2314,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"24.55",
-    "lon":"39.7",
+    "lat":24.55,
+    "lon":39.7,
     "alt":654,
     "station_name":"Madinah (Saudi Arabia)"
   },
@@ -2324,8 +2324,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"24.9333",
-    "lon":"46.7167",
+    "lat":24.9333,
+    "lon":46.7167,
     "alt":614,
     "station_name":"King Khaled International Airport (Saudi Arabia)"
   },
@@ -2334,8 +2334,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"38.0833",
-    "lon":"46.2833",
+    "lat":38.0833,
+    "lon":46.2833,
     "alt":1367,
     "station_name":"Tabriz (Iran)"
   },
@@ -2344,8 +2344,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"36.2667",
-    "lon":"59.6333",
+    "lat":36.2667,
+    "lon":59.6333,
     "alt":989,
     "station_name":"Mashhad (Iran)"
   },
@@ -2354,8 +2354,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"35.6833",
-    "lon":"51.3167",
+    "lat":35.6833,
+    "lon":51.3167,
     "alt":1204,
     "station_name":"Tehran-Mehrabad (Iran)"
   },
@@ -2364,8 +2364,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"34.35",
-    "lon":"47.15",
+    "lat":34.35,
+    "lon":47.15,
     "alt":1320,
     "station_name":"Kermanshah (Iran)"
   },
@@ -2374,8 +2374,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"32.5175",
-    "lon":"51.7061",
+    "lat":32.5175,
+    "lon":51.7061,
     "alt":1590,
     "station_name":"Esfahan (Iran)"
   },
@@ -2384,8 +2384,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"32.8667",
-    "lon":"59.2",
+    "lat":32.8667,
+    "lon":59.2,
     "alt":1491,
     "station_name":"Birjand (Iran)"
   },
@@ -2394,8 +2394,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"31.3333",
-    "lon":"48.6667",
+    "lat":31.3333,
+    "lon":48.6667,
     "alt":20,
     "station_name":"Ahwaz (Iran)"
   },
@@ -2404,8 +2404,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"30.25",
-    "lon":"56.9667",
+    "lat":30.25,
+    "lon":56.9667,
     "alt":1748,
     "station_name":"Kerman (Iran)"
   },
@@ -2414,8 +2414,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"29.5333",
-    "lon":"52.6",
+    "lat":29.5333,
+    "lon":52.6,
     "alt":1486,
     "station_name":"Shiraz (Iran)"
   },
@@ -2424,8 +2424,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"29.4667",
-    "lon":"60.8833",
+    "lat":29.4667,
+    "lon":60.8833,
     "alt":1370,
     "station_name":"Zahedan (Iran)"
   },
@@ -2434,8 +2434,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"34.55",
-    "lon":"69.2167",
+    "lat":34.55,
+    "lon":69.2167,
     "alt":1789,
     "station_name":"Kabul Airport (Afghanistan)"
   },
@@ -2444,8 +2444,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"21.7",
-    "lon":"39.1833",
+    "lat":21.7,
+    "lon":39.1833,
     "alt":15,
     "station_name":"Jeddah King Abdul Aziz International Airport  (Saudi Arabia)"
   },
@@ -2454,8 +2454,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"18.2333",
-    "lon":"42.65",
+    "lat":18.2333,
+    "lon":42.65,
     "alt":2090,
     "station_name":"Abha (Saudi Arabia)"
   },
@@ -2464,8 +2464,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"24.4333",
-    "lon":"54.65",
+    "lat":24.4333,
+    "lon":54.65,
     "alt":16,
     "station_name":"Abu Dhabi International Airport (United Arab Emirates)"
   },
@@ -2474,8 +2474,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"23.5953",
-    "lon":"58.2983",
+    "lat":23.5953,
+    "lon":58.2983,
     "alt":8,
     "station_name":"Seeb, International Airport (Oman)"
   },
@@ -2484,8 +2484,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"17.0439",
-    "lon":"54.1022",
+    "lat":17.0439,
+    "lon":54.1022,
     "alt":20,
     "station_name":"Salalah (Oman)"
   },
@@ -2495,8 +2495,8 @@
       "17",
       "21"
     ],
-    "lat":"28.5833",
-    "lon":"77.2",
+    "lat":28.5833,
+    "lon":77.2,
     "alt":211,
     "station_name":"New Delhi / Safdarjung (India)"
   },
@@ -2505,8 +2505,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"27.4833",
-    "lon":"95.0167",
+    "lat":27.4833,
+    "lon":95.0167,
     "alt":110,
     "station_name":"Dibrugarh / Mohanbari (India)"
   },
@@ -2515,8 +2515,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"26.3",
-    "lon":"73.0167",
+    "lat":26.3,
+    "lon":73.0167,
     "alt":217,
     "station_name":"Jodhpur (India)"
   },
@@ -2525,8 +2525,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"26.2333",
-    "lon":"78.25",
+    "lat":26.2333,
+    "lon":78.25,
     "alt":205,
     "station_name":"Gwalior (India)"
   },
@@ -2535,8 +2535,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"26.1",
-    "lon":"91.5833",
+    "lat":26.1,
+    "lon":91.5833,
     "alt":47,
     "station_name":"Gauhati (India)"
   },
@@ -2545,8 +2545,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"23.0667",
-    "lon":"72.6333",
+    "lat":23.0667,
+    "lon":72.6333,
     "alt":55,
     "station_name":"Ahmadabad (India)"
   },
@@ -2555,8 +2555,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"23.2833",
-    "lon":"77.35",
+    "lat":23.2833,
+    "lon":77.35,
     "alt":523,
     "station_name":"Bhopal / Bairagarh (India)"
   },
@@ -2565,8 +2565,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"23.8833",
-    "lon":"91.25",
+    "lat":23.8833,
+    "lon":91.25,
     "alt":15,
     "station_name":"Agartala (India)"
   },
@@ -2575,8 +2575,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"22.65",
-    "lon":"88.45",
+    "lat":22.65,
+    "lon":88.45,
     "alt":4,
     "station_name":"Calcutta / Dum Dum (India)"
   },
@@ -2585,8 +2585,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"21.1",
-    "lon":"79.05",
+    "lat":21.1,
+    "lon":79.05,
     "alt":308,
     "station_name":"Nagpur Sonegaon (India)"
   },
@@ -2595,8 +2595,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"20.25",
-    "lon":"85.8333",
+    "lat":20.25,
+    "lon":85.8333,
     "alt":45,
     "station_name":"Bhubaneswar (India)"
   },
@@ -2605,8 +2605,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"16.2",
-    "lon":"81.15",
+    "lat":16.2,
+    "lon":81.15,
     "alt":3,
     "station_name":"Machilipatnam (India)"
   },
@@ -2615,8 +2615,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"15.4833",
-    "lon":"73.8167",
+    "lat":15.4833,
+    "lon":73.8167,
     "alt":58,
     "station_name":"Goa / Panjim (India)"
   },
@@ -2625,8 +2625,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"10.9167",
-    "lon":"79.8333",
+    "lat":10.9167,
+    "lon":79.8333,
     "alt":7,
     "station_name":"Karaikal (India)"
   },
@@ -2635,8 +2635,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"9.9333",
-    "lon":"76.2333",
+    "lat":9.9333,
+    "lon":76.2333,
     "alt":1,
     "station_name":"Cochin / Willingdon (India)"
   },
@@ -2645,8 +2645,8 @@
     "rs_types":[
       "21"
     ],
-    "lat":"8.4833",
-    "lon":"76.95",
+    "lat":8.4833,
+    "lon":76.95,
     "alt":60,
     "station_name":"Thiruvananthapuram (India)"
   },
@@ -2655,8 +2655,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"6.9",
-    "lon":"79.8667",
+    "lat":6.9,
+    "lon":79.8667,
     "alt":7,
     "station_name":"Colombo (Sri Lanka)"
   },
@@ -2666,8 +2666,8 @@
       "99",
       "84"
     ],
-    "lat":"-0.6933",
-    "lon":"73.1556",
+    "lat":-0.6933,
+    "lon":73.1556,
     "alt":2,
     "station_name":"Gan (Maldives)"
   },
@@ -2676,8 +2676,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"49.8",
-    "lon":"92.0833",
+    "lat":49.8,
+    "lon":92.0833,
     "alt":940,
     "station_name":"Ulaan-Gom (Mongolia)"
   },
@@ -2686,8 +2686,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"49.6333",
-    "lon":"100.1667",
+    "lat":49.6333,
+    "lon":100.1667,
     "alt":1285,
     "station_name":"Muren (Mongolia)"
   },
@@ -2696,8 +2696,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"47.9167",
-    "lon":"106.8667",
+    "lat":47.9167,
+    "lon":106.8667,
     "alt":1307,
     "station_name":"Ulaan-Baator (Mongolia)"
   },
@@ -2706,8 +2706,8 @@
     "rs_types":[
       "33"
     ],
-    "lat":"43.5833",
-    "lon":"104.4167",
+    "lat":43.5833,
+    "lon":104.4167,
     "alt":1465,
     "station_name":"Dalanzadgad (Mongolia)"
   },
@@ -2717,8 +2717,8 @@
       "41",
       "42"
     ],
-    "lat":"22.3272",
-    "lon":"114.1686",
+    "lat":22.3272,
+    "lon":114.1686,
     "alt":65,
     "station_name":"King's Park (Hong Kong)"
   },
@@ -2748,8 +2748,8 @@
     "rs_types":[
       "45"
     ],
-    "lat":"37.0833",
-    "lon":"127.0333",
+    "lat":37.0833,
+    "lon":127.0333,
     "alt":11,
     "station_name":"Osan Ab (Korea, South)"
   },
@@ -2759,8 +2759,8 @@
       "41",
       "77"
     ],
-    "lat":"36.0319",
-    "lon":"129.38",
+    "lat":36.0319,
+    "lon":129.38,
     "alt":6,
     "station_name":"Pohang (Korea, South)"
   },
@@ -2779,8 +2779,8 @@
     "rs_types":[
       "45"
     ],
-    "lat":"35.1167",
-    "lon":"126.8",
+    "lat":35.1167,
+    "lon":126.8,
     "alt":13,
     "station_name":"Kwangju Ab (Korea, South)"
   },
@@ -2789,8 +2789,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"34.6872",
-    "lon":"125.4511",
+    "lat":34.6872,
+    "lon":125.4511,
     "alt":79,
     "station_name":"Heuksando (Korea, South)"
   },
@@ -2799,8 +2799,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"45.415",
-    "lon":"141.6789",
+    "lat":45.415,
+    "lon":141.6789,
     "alt":3,
     "station_name":"Wakkanai (Japan)"
   },
@@ -2809,8 +2809,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"43.06",
-    "lon":"141.3286",
+    "lat":43.06,
+    "lon":141.3286,
     "alt":17,
     "station_name":"Sapporo (Japan)"
   },
@@ -2819,8 +2819,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"42.9531",
-    "lon":"144.4375",
+    "lat":42.9531,
+    "lon":144.4375,
     "alt":32,
     "station_name":"Kushiro (Japan)"
   },
@@ -2829,8 +2829,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"39.7175",
-    "lon":"140.0992",
+    "lat":39.7175,
+    "lon":140.0992,
     "alt":6,
     "station_name":"Akita (Japan)"
   },
@@ -2839,8 +2839,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"37.3914",
-    "lon":"136.8953",
+    "lat":37.3914,
+    "lon":136.8953,
     "alt":5,
     "station_name":"Wajima (Japan)"
   },
@@ -2849,8 +2849,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"36.0581",
-    "lon":"140.1258",
+    "lat":36.0581,
+    "lon":140.1258,
     "alt":25,
     "station_name":"Tateno (Japan)"
   },
@@ -2859,8 +2859,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"33.1217",
-    "lon":"139.7792",
+    "lat":33.1217,
+    "lon":139.7792,
     "alt":79,
     "station_name":"Hachijojima (Japan)"
   },
@@ -2869,8 +2869,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"35.4572",
-    "lon":"133.0656",
+    "lat":35.4572,
+    "lon":133.0656,
     "alt":17,
     "station_name":"Matsue (Japan)"
   },
@@ -2879,8 +2879,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"33.4503",
-    "lon":"135.7572",
+    "lat":33.4503,
+    "lon":135.7572,
     "alt":73,
     "station_name":"Shionomisaki (Japan)"
   },
@@ -2889,8 +2889,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"33.5822",
-    "lon":"130.3764",
+    "lat":33.5822,
+    "lon":130.3764,
     "alt":3,
     "station_name":"Fukuoka (Japan)"
   },
@@ -2899,8 +2899,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"31.555",
-    "lon":"130.5481",
+    "lat":31.555,
+    "lon":130.5481,
     "alt":4,
     "station_name":"Kagoshima (Japan)"
   },
@@ -2909,8 +2909,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"28.3942",
-    "lon":"129.5528",
+    "lat":28.3942,
+    "lon":129.5528,
     "alt":3,
     "station_name":"Naze (Japan)"
   },
@@ -2919,8 +2919,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"24.3367",
-    "lon":"124.1644",
+    "lat":24.3367,
+    "lon":124.1644,
     "alt":6,
     "station_name":"Ishigakijima (Japan)"
   },
@@ -2929,8 +2929,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"25.8289",
-    "lon":"131.2286",
+    "lat":25.8289,
+    "lon":131.2286,
     "alt":16,
     "station_name":"Minamidaitojima (Japan)"
   },
@@ -2939,8 +2939,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"27.0922",
-    "lon":"142.1914",
+    "lat":27.0922,
+    "lon":142.1914,
     "alt":3,
     "station_name":"Chichijima (Japan)"
   },
@@ -2949,8 +2949,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"24.2883",
-    "lon":"153.9833",
+    "lat":24.2883,
+    "lon":153.9833,
     "alt":8,
     "station_name":"Minamitorishima (Japan)"
   },
@@ -2959,8 +2959,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"16.7667",
-    "lon":"96.1667",
+    "lat":16.7667,
+    "lon":96.1667,
     "alt":14,
     "station_name":"Yangon (Myanmar)"
   },
@@ -2969,8 +2969,8 @@
     "rs_types":[
       "78"
     ],
-    "lat":"18.7706",
-    "lon":"98.9683",
+    "lat":18.7706,
+    "lon":98.9683,
     "alt":312,
     "station_name":"Chiang Mai (Thailand)"
   },
@@ -2979,8 +2979,8 @@
     "rs_types":[
       "97"
     ],
-    "lat":"16.4608",
-    "lon":"102.7894",
+    "lat":16.4608,
+    "lon":102.7894,
     "alt":165,
     "station_name":"Khon Kaen (Thailand)"
   },
@@ -2989,8 +2989,8 @@
     "rs_types":[
       "97"
     ],
-    "lat":"15.25",
-    "lon":"104.8667",
+    "lat":15.25,
+    "lon":104.8667,
     "alt":123,
     "station_name":"Ubon Ratchathani (Thailand)"
   },
@@ -2999,8 +2999,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"13.6664",
-    "lon":"100.6061",
+    "lat":13.6664,
+    "lon":100.6061,
     "alt":3,
     "station_name":"Bang Na Agromet (Thailand)"
   },
@@ -3009,8 +3009,8 @@
     "rs_types":[
       "97"
     ],
-    "lat":"8.145",
-    "lon":"98.3144",
+    "lat":8.145,
+    "lon":98.3144,
     "alt":6,
     "station_name":"Phuket Airport (Thailand)"
   },
@@ -3019,8 +3019,8 @@
     "rs_types":[
       "97"
     ],
-    "lat":"7.1819",
-    "lon":"100.6075",
+    "lat":7.1819,
+    "lon":100.6075,
     "alt":4,
     "station_name":"Songkhla (Thailand)"
   },
@@ -3029,8 +3029,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"5.3",
-    "lon":"100.2667",
+    "lat":5.3,
+    "lon":100.2667,
     "alt":3,
     "station_name":"Penang / Bayan Lepas (Malaysia)"
   },
@@ -3039,8 +3039,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"6.1667",
-    "lon":"102.2833",
+    "lat":6.1667,
+    "lon":102.2833,
     "alt":5,
     "station_name":"Kota Bharu (Malaysia)"
   },
@@ -3049,8 +3049,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"2.7167",
-    "lon":"101.7",
+    "lat":2.7167,
+    "lon":101.7,
     "alt":21,
     "station_name":"Sepang (Malaysia)"
   },
@@ -3059,8 +3059,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"3.7833",
-    "lon":"103.2167",
+    "lat":3.7833,
+    "lon":103.2167,
     "alt":18,
     "station_name":"Kuantan (Malaysia)"
   },
@@ -3069,8 +3069,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"1.3667",
-    "lon":"103.9833",
+    "lat":1.3667,
+    "lon":103.9833,
     "alt":5,
     "station_name":"Singapore / Changi Airport (Singapore)"
   },
@@ -3080,8 +3080,8 @@
       "41",
       "80"
     ],
-    "lat":"21.0333",
-    "lon":"105.8",
+    "lat":21.0333,
+    "lon":105.8,
     "alt":6,
     "station_name":"Ha Noi (Vietnam)"
   },
@@ -3091,8 +3091,8 @@
       "41",
       "80"
     ],
-    "lat":"20.1333",
-    "lon":"107.7167",
+    "lat":20.1333,
+    "lon":107.7167,
     "alt":60,
     "station_name":"Bach Long Vi (Vietnam)"
   },
@@ -3102,8 +3102,8 @@
       "41",
       "80"
     ],
-    "lat":"18.6667",
-    "lon":"105.6833",
+    "lat":18.6667,
+    "lon":105.6833,
     "alt":6,
     "station_name":"Vinh (Vietnam)"
   },
@@ -3113,8 +3113,8 @@
       "41",
       "80"
     ],
-    "lat":"16.0667",
-    "lon":"108.35",
+    "lat":16.0667,
+    "lon":108.35,
     "alt":7,
     "station_name":"Da Nang (Vietnam)"
   },
@@ -3124,8 +3124,8 @@
       "41",
       "80"
     ],
-    "lat":"10.8167",
-    "lon":"106.6667",
+    "lat":10.8167,
+    "lon":106.6667,
     "alt":19,
     "station_name":"Ho Chi Minh (Vietnam)"
   },
@@ -3134,8 +3134,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"49.25",
-    "lon":"119.7",
+    "lat":49.25,
+    "lon":119.7,
     "alt":611,
     "station_name":"Hailar (China)"
   },
@@ -3145,8 +3145,8 @@
       "02",
       "01"
     ],
-    "lat":"49.1667",
-    "lon":"125.2333",
+    "lat":49.1667,
+    "lon":125.2333,
     "alt":243,
     "station_name":"Nenjiang (China)"
   },
@@ -3155,8 +3155,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"47.7167",
-    "lon":"128.8333",
+    "lat":47.7167,
+    "lon":128.8333,
     "alt":232,
     "station_name":"Yichun (China)"
   },
@@ -3166,8 +3166,8 @@
       "02",
       "00"
     ],
-    "lat":"45.9333",
-    "lon":"126.5667",
+    "lat":45.9333,
+    "lon":126.5667,
     "alt":143,
     "station_name":"Harbin (China)"
   },
@@ -3176,8 +3176,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"47.7333",
-    "lon":"88.0833",
+    "lat":47.7333,
+    "lon":88.0833,
     "alt":737,
     "station_name":"Altay (China)"
   },
@@ -3186,8 +3186,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"43.95",
-    "lon":"81.3333",
+    "lat":43.95,
+    "lon":81.3333,
     "alt":663,
     "station_name":"Yining (China)"
   },
@@ -3196,8 +3196,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"43.7833",
-    "lon":"87.6167",
+    "lat":43.7833,
+    "lon":87.6167,
     "alt":919,
     "station_name":"Urumqi (China)"
   },
@@ -3206,8 +3206,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"41.7167",
-    "lon":"82.95",
+    "lat":41.7167,
+    "lon":82.95,
     "alt":1100,
     "station_name":"Kuqa (China)"
   },
@@ -3216,8 +3216,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"39.4833",
-    "lon":"75.75",
+    "lat":39.4833,
+    "lon":75.75,
     "alt":1291,
     "station_name":"Kashi (China)"
   },
@@ -3226,8 +3226,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"39.0333",
-    "lon":"88.1667",
+    "lat":39.0333,
+    "lon":88.1667,
     "alt":889,
     "station_name":"Ruoqiang (China)"
   },
@@ -3237,8 +3237,8 @@
       "01",
       "00"
     ],
-    "lat":"37.1333",
-    "lon":"79.9333",
+    "lat":37.1333,
+    "lon":79.9333,
     "alt":1375,
     "station_name":"Hotan (China)"
   },
@@ -3249,8 +3249,8 @@
       "01",
       "02"
     ],
-    "lat":"37.0667",
-    "lon":"82.7167",
+    "lat":37.0667,
+    "lon":82.7167,
     "alt":1410,
     "station_name":"Minfeng / Niya (China)"
   },
@@ -3259,8 +3259,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"42.8167",
-    "lon":"93.5167",
+    "lat":42.8167,
+    "lon":93.5167,
     "alt":739,
     "station_name":"Hami (China)"
   },
@@ -3270,8 +3270,8 @@
       "02",
       "01"
     ],
-    "lat":"41.95",
-    "lon":"101.0667",
+    "lat":41.95,
+    "lon":101.0667,
     "alt":941,
     "station_name":"Ejin Qi (China)"
   },
@@ -3280,8 +3280,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"41.8",
-    "lon":"97.0333",
+    "lat":41.8,
+    "lon":97.0333,
     "alt":1770,
     "station_name":"Mazong Shan (China)"
   },
@@ -3291,8 +3291,8 @@
       "01",
       "00"
     ],
-    "lat":"40.15",
-    "lon":"94.6833",
+    "lat":40.15,
+    "lon":94.6833,
     "alt":1140,
     "station_name":"Dunhuang (China)"
   },
@@ -3301,8 +3301,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"39.7667",
-    "lon":"98.4833",
+    "lat":39.7667,
+    "lon":98.4833,
     "alt":1478,
     "station_name":"Jiuquan (China)"
   },
@@ -3311,8 +3311,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"38.6333",
-    "lon":"103.0833",
+    "lat":38.6333,
+    "lon":103.0833,
     "alt":1367,
     "station_name":"Minqin (China)"
   },
@@ -3321,8 +3321,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"36.4167",
-    "lon":"94.9",
+    "lat":36.4167,
+    "lon":94.9,
     "alt":2809,
     "station_name":"Golmud (China)"
   },
@@ -3331,8 +3331,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"36.3",
-    "lon":"98.1",
+    "lat":36.3,
+    "lon":98.1,
     "alt":3192,
     "station_name":"Dulan (China)"
   },
@@ -3341,8 +3341,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"36.7167",
-    "lon":"101.75",
+    "lat":36.7167,
+    "lon":101.75,
     "alt":2262,
     "station_name":"Xining (China)"
   },
@@ -3351,8 +3351,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"35.8667",
-    "lon":"104.15",
+    "lat":35.8667,
+    "lon":104.15,
     "alt":1875,
     "station_name":"Yu Zhong (China)"
   },
@@ -3362,8 +3362,8 @@
       "01",
       "00"
     ],
-    "lat":"43.6333",
-    "lon":"111.95",
+    "lat":43.6333,
+    "lon":111.95,
     "alt":966,
     "station_name":"Erenhot (China)"
   },
@@ -3373,8 +3373,8 @@
       "01",
       "00"
     ],
-    "lat":"40.85",
-    "lon":"111.5667",
+    "lat":40.85,
+    "lon":111.5667,
     "alt":1065,
     "station_name":"Hohhot (China)"
   },
@@ -3383,8 +3383,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"40.7333",
-    "lon":"107.3667",
+    "lat":40.7333,
+    "lon":107.3667,
     "alt":1041,
     "station_name":"Linhe (China)"
   },
@@ -3394,8 +3394,8 @@
       "01",
       "02"
     ],
-    "lat":"38.4667",
-    "lon":"106.2",
+    "lat":38.4667,
+    "lon":106.2,
     "alt":1112,
     "station_name":"Yinchuan (China)"
   },
@@ -3405,8 +3405,8 @@
       "02",
       "01"
     ],
-    "lat":"37.6206",
-    "lon":"112.5767",
+    "lat":37.6206,
+    "lon":112.5767,
     "alt":779,
     "station_name":"Taiyuan (China)"
   },
@@ -3415,8 +3415,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"36.5667",
-    "lon":"109.45",
+    "lat":36.5667,
+    "lon":109.45,
     "alt":959,
     "station_name":"Yan An (China)"
   },
@@ -3426,8 +3426,8 @@
       "00",
       "01"
     ],
-    "lat":"35.55",
-    "lon":"106.6667",
+    "lat":35.55,
+    "lon":106.6667,
     "alt":1348,
     "station_name":"Pingliang (China)"
   },
@@ -3437,8 +3437,8 @@
       "00",
       "02"
     ],
-    "lat":"43.95",
-    "lon":"116.1167",
+    "lat":43.95,
+    "lon":116.1167,
     "alt":991,
     "station_name":"Xilin Hot (China)"
   },
@@ -3447,8 +3447,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"43.6",
-    "lon":"122.2667",
+    "lat":43.6,
+    "lon":122.2667,
     "alt":180,
     "station_name":"Tongliao (China)"
   },
@@ -3457,8 +3457,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"43.9",
-    "lon":"125.2167",
+    "lat":43.9,
+    "lon":125.2167,
     "alt":238,
     "station_name":"Changchun (China)"
   },
@@ -3467,8 +3467,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"42.3",
-    "lon":"118.8333",
+    "lat":42.3,
+    "lon":118.8333,
     "alt":572,
     "station_name":"Chifeng (China)"
   },
@@ -3477,8 +3477,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"42.8667",
-    "lon":"129.5",
+    "lat":42.8667,
+    "lon":129.5,
     "alt":178,
     "station_name":"Yanji (China)"
   },
@@ -3488,8 +3488,8 @@
       "01",
       "00"
     ],
-    "lat":"41.8",
-    "lon":"126.8833",
+    "lat":41.8,
+    "lon":126.8833,
     "alt":333,
     "station_name":"Linjiang (China)"
   },
@@ -3499,8 +3499,8 @@
       "00",
       "02"
     ],
-    "lat":"39.9333",
-    "lon":"116.2833",
+    "lat":39.9333,
+    "lon":116.2833,
     "alt":55,
     "station_name":"Beijing (China)"
   },
@@ -3509,8 +3509,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"38.9",
-    "lon":"121.6333",
+    "lat":38.9,
+    "lon":121.6333,
     "alt":97,
     "station_name":"Dalian (China)"
   },
@@ -3519,8 +3519,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"36.7",
-    "lon":"117.55",
+    "lat":36.7,
+    "lon":117.55,
     "alt":123,
     "station_name":"Zhangqui (China)"
   },
@@ -3529,8 +3529,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"36.0667",
-    "lon":"120.3333",
+    "lat":36.0667,
+    "lon":120.3333,
     "alt":77,
     "station_name":"Qingdao (China)"
   },
@@ -3539,8 +3539,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"31.4833",
-    "lon":"92.0667",
+    "lat":31.4833,
+    "lon":92.0667,
     "alt":4508,
     "station_name":"Nagqu (China)"
   },
@@ -3549,8 +3549,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"29.6667",
-    "lon":"91.1333",
+    "lat":29.6667,
+    "lon":91.1333,
     "alt":3650,
     "station_name":"Lhasa (China)"
   },
@@ -3559,8 +3559,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"33",
-    "lon":"96.95",
+    "lat":33.0,
+    "lon":96.95,
     "alt":3682,
     "station_name":"Yushu (China)"
   },
@@ -3569,8 +3569,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"35",
-    "lon":"102.9",
+    "lat":35.0,
+    "lon":102.9,
     "alt":2910,
     "station_name":"Hezuo (China)"
   },
@@ -3580,8 +3580,8 @@
       "02",
       "00"
     ],
-    "lat":"31.15",
-    "lon":"97.1667",
+    "lat":31.15,
+    "lon":97.1667,
     "alt":3307,
     "station_name":"Qamdo (China)"
   },
@@ -3590,8 +3590,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"31.6167",
-    "lon":"100",
+    "lat":31.6167,
+    "lon":100.0,
     "alt":3394,
     "station_name":"Garze (China)"
   },
@@ -3601,8 +3601,8 @@
       "02",
       "01"
     ],
-    "lat":"30.75",
-    "lon":"103.8667",
+    "lat":30.75,
+    "lon":103.8667,
     "alt":555,
     "station_name":"Wenjiang (China)"
   },
@@ -3611,8 +3611,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"27.9",
-    "lon":"102.2667",
+    "lat":27.9,
+    "lon":102.2667,
     "alt":1599,
     "station_name":"Xichang (China)"
   },
@@ -3621,8 +3621,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"26.8667",
-    "lon":"104.2833",
+    "lat":26.8667,
+    "lon":104.2833,
     "alt":2236,
     "station_name":"Weining (China)"
   },
@@ -3632,8 +3632,8 @@
       "02",
       "00"
     ],
-    "lat":"24.9844",
-    "lon":"98.5056",
+    "lat":24.9844,
+    "lon":98.5056,
     "alt":1649,
     "station_name":"Tengchong (China)"
   },
@@ -3643,8 +3643,8 @@
       "01",
       "00"
     ],
-    "lat":"25.0167",
-    "lon":"102.6833",
+    "lat":25.0167,
+    "lon":102.6833,
     "alt":1892,
     "station_name":"Kunming (China)"
   },
@@ -3653,8 +3653,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"22.7667",
-    "lon":"100.9833",
+    "lat":22.7667,
+    "lon":100.9833,
     "alt":1303,
     "station_name":"Simao (China)"
   },
@@ -3663,8 +3663,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"23.4444",
-    "lon":"103.3278",
+    "lat":23.4444,
+    "lon":103.3278,
     "alt":1302,
     "station_name":"Mengzi (China)"
   },
@@ -3674,8 +3674,8 @@
       "01",
       "00"
     ],
-    "lat":"34.7167",
-    "lon":"113.65",
+    "lat":34.7167,
+    "lon":113.65,
     "alt":111,
     "station_name":"Zhengzhou (China)"
   },
@@ -3684,8 +3684,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"33.0667",
-    "lon":"107.0333",
+    "lat":33.0667,
+    "lon":107.0333,
     "alt":509,
     "station_name":"Hanzhong (China)"
   },
@@ -3694,8 +3694,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"34.4333",
-    "lon":"108.9667",
+    "lat":34.4333,
+    "lon":108.9667,
     "alt":411,
     "station_name":"Jinghe (China)"
   },
@@ -3704,8 +3704,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"33.1",
-    "lon":"112.4833",
+    "lat":33.1,
+    "lon":112.4833,
     "alt":131,
     "station_name":"Nanyang (China)"
   },
@@ -3715,8 +3715,8 @@
       "00",
       "01"
     ],
-    "lat":"30.2833",
-    "lon":"109.4667",
+    "lat":30.2833,
+    "lon":109.4667,
     "alt":458,
     "station_name":"Enshi (China)"
   },
@@ -3725,8 +3725,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"30.7333",
-    "lon":"111.3667",
+    "lat":30.7333,
+    "lon":111.3667,
     "alt":134,
     "station_name":"Yichang (China)"
   },
@@ -3735,8 +3735,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"30.6",
-    "lon":"114.05",
+    "lat":30.6,
+    "lon":114.05,
     "alt":23,
     "station_name":"Wuhan (China)"
   },
@@ -3745,8 +3745,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"29.6",
-    "lon":"106.4",
+    "lat":29.6,
+    "lon":106.4,
     "alt":351,
     "station_name":"Chongqing (China)"
   },
@@ -3766,8 +3766,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"27.5667",
-    "lon":"110",
+    "lat":27.5667,
+    "lon":110.0,
     "alt":261,
     "station_name":"Huaihua (China)"
   },
@@ -3776,8 +3776,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"26.4833",
-    "lon":"106.65",
+    "lat":26.4833,
+    "lon":106.65,
     "alt":1074,
     "station_name":"Guiyang (China)"
   },
@@ -3786,8 +3786,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"25.3333",
-    "lon":"110.3",
+    "lat":25.3333,
+    "lon":110.3,
     "alt":166,
     "station_name":"Guilin (China)"
   },
@@ -3796,8 +3796,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"25.7353",
-    "lon":"112.9739",
+    "lat":25.7353,
+    "lon":112.9739,
     "alt":185,
     "station_name":"Chenzhou (China)"
   },
@@ -3807,8 +3807,8 @@
       "01",
       "02"
     ],
-    "lat":"25.8667",
-    "lon":"115",
+    "lat":25.8667,
+    "lon":115.0,
     "alt":125,
     "station_name":"Ganzhou (China)"
   },
@@ -3817,8 +3817,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"34.2833",
-    "lon":"117.15",
+    "lat":34.2833,
+    "lon":117.15,
     "alt":42,
     "station_name":"Xuzhou (China)"
   },
@@ -3827,8 +3827,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"33.75",
-    "lon":"120.3",
+    "lat":33.75,
+    "lon":120.3,
     "alt":7,
     "station_name":"Sheyang (China)"
   },
@@ -3837,8 +3837,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"32.8667",
-    "lon":"115.7333",
+    "lat":32.8667,
+    "lon":115.7333,
     "alt":39,
     "station_name":"Fuyang (China)"
   },
@@ -3847,8 +3847,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"31.9333",
-    "lon":"118.9",
+    "lat":31.9333,
+    "lon":118.9,
     "alt":12,
     "station_name":"Nanjing (China)"
   },
@@ -3858,8 +3858,8 @@
       "01",
       "00"
     ],
-    "lat":"31.4167",
-    "lon":"121.45",
+    "lat":31.4167,
+    "lon":121.45,
     "alt":8,
     "station_name":"Shanghai (China)"
   },
@@ -3868,8 +3868,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"30.6167",
-    "lon":"116.9667",
+    "lat":30.6167,
+    "lon":116.9667,
     "alt":20,
     "station_name":"Anqing (China)"
   },
@@ -3878,8 +3878,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"30.2333",
-    "lon":"120.1667",
+    "lat":30.2333,
+    "lon":120.1667,
     "alt":43,
     "station_name":"Hangzhou (China)"
   },
@@ -3888,8 +3888,8 @@
     "rs_types":[
       "02"
     ],
-    "lat":"28.6",
-    "lon":"115.9167",
+    "lat":28.6,
+    "lon":115.9167,
     "alt":50,
     "station_name":"Nanchang (China)"
   },
@@ -3899,8 +3899,8 @@
       "00",
       "01"
     ],
-    "lat":"28.9667",
-    "lon":"118.8667",
+    "lat":28.9667,
+    "lon":118.8667,
     "alt":71,
     "station_name":"Qu Xian (China)"
   },
@@ -3910,8 +3910,8 @@
       "00",
       "01"
     ],
-    "lat":"28.6167",
-    "lon":"121.4167",
+    "lat":28.6167,
+    "lon":121.4167,
     "alt":9,
     "station_name":"Hongjia (China)"
   },
@@ -3920,8 +3920,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"27.3333",
-    "lon":"117.4667",
+    "lat":27.3333,
+    "lon":117.4667,
     "alt":192,
     "station_name":"Shaowu (China)"
   },
@@ -3930,8 +3930,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"26.0833",
-    "lon":"119.2833",
+    "lat":26.0833,
+    "lon":119.2833,
     "alt":85,
     "station_name":"Fuzhou (China)"
   },
@@ -3942,8 +3942,8 @@
       "02",
       "00"
     ],
-    "lat":"24.4833",
-    "lon":"118.0833",
+    "lat":24.4833,
+    "lon":118.0833,
     "alt":139,
     "station_name":"Xiamen (China)"
   },
@@ -3954,8 +3954,8 @@
       "01",
       "02"
     ],
-    "lat":"23.9",
-    "lon":"106.6",
+    "lat":23.9,
+    "lon":106.6,
     "alt":242,
     "station_name":"Baise (China)"
   },
@@ -3964,8 +3964,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"23.4833",
-    "lon":"111.3",
+    "lat":23.4833,
+    "lon":111.3,
     "alt":120,
     "station_name":"Wuzhou (China)"
   },
@@ -3974,8 +3974,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"23.7",
-    "lon":"113.0833",
+    "lat":23.7,
+    "lon":113.0833,
     "alt":19,
     "station_name":"Qing Yuan (China)"
   },
@@ -3984,8 +3984,8 @@
     "rs_types":[
       "01"
     ],
-    "lat":"23.35",
-    "lon":"116.6667",
+    "lat":23.35,
+    "lon":116.6667,
     "alt":3,
     "station_name":"Shantou (China)"
   },
@@ -3994,8 +3994,8 @@
     "rs_types":[
       "00"
     ],
-    "lat":"22.6333",
-    "lon":"108.2167",
+    "lat":22.6333,
+    "lon":108.2167,
     "alt":73,
     "station_name":"Nanning (China)"
   },
@@ -4005,8 +4005,8 @@
       "00",
       "02"
     ],
-    "lat":"20",
-    "lon":"110.25",
+    "lat":20.0,
+    "lon":110.25,
     "alt":15,
     "station_name":"Haikou (China)"
   },
@@ -4016,8 +4016,8 @@
       "00",
       "02"
     ],
-    "lat":"16.8333",
-    "lon":"112.3333",
+    "lat":16.8333,
+    "lon":112.3333,
     "alt":5,
     "station_name":"Xisha Dao (China)"
   },
@@ -4026,8 +4026,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"28.3183",
-    "lon":"-16.3822",
+    "lat":28.3183,
+    "lon":-16.3822,
     "alt":105,
     "station_name":"Tenerife-Guimar (Spain)"
   },
@@ -4036,8 +4036,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"23.7111",
-    "lon":"-15.9308",
+    "lat":23.7111,
+    "lon":-15.9308,
     "alt":10,
     "station_name":"Dakhla (Western Sahara)"
   },
@@ -4046,8 +4046,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"33.5667",
-    "lon":"-7.6667",
+    "lat":33.5667,
+    "lon":-7.6667,
     "alt":62,
     "station_name":"Casablanca (Morocco)"
   },
@@ -4056,8 +4056,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"36.6833",
-    "lon":"3.2167",
+    "lat":36.6833,
+    "lon":3.2167,
     "alt":25,
     "station_name":"Dar-El-Beida (Algeria)"
   },
@@ -4066,8 +4066,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"31.5",
-    "lon":"-2.25",
+    "lat":31.5,
+    "lon":-2.25,
     "alt":773,
     "station_name":"Bechar (Algeria)"
   },
@@ -4076,8 +4076,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"27.2333",
-    "lon":"2.5",
+    "lat":27.2333,
+    "lon":2.5,
     "alt":293,
     "station_name":"In Salah (Algeria)"
   },
@@ -4086,8 +4086,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"27.7",
-    "lon":"-8.1667",
+    "lat":27.7,
+    "lon":-8.1667,
     "alt":431,
     "station_name":"Tindouf (Algeria)"
   },
@@ -4096,8 +4096,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"22.8",
-    "lon":"5.4333",
+    "lat":22.8,
+    "lon":5.4333,
     "alt":1378,
     "station_name":"Tamanrasset (Algeria)"
   },
@@ -4106,8 +4106,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"36.8333",
-    "lon":"10.2333",
+    "lat":36.8333,
+    "lon":10.2333,
     "alt":3,
     "station_name":"Tunis-Carthage (Tunisia)"
   },
@@ -4116,8 +4116,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"33.9167",
-    "lon":"8.1667",
+    "lat":33.9167,
+    "lon":8.1667,
     "alt":87,
     "station_name":"Tozeur (Tunisia)"
   },
@@ -4127,8 +4127,8 @@
       "54",
       "17"
     ],
-    "lat":"16.9667",
-    "lon":"7.9833",
+    "lat":16.9667,
+    "lon":7.9833,
     "alt":501,
     "station_name":"Agadez (Niger)"
   },
@@ -4137,8 +4137,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-15.9419",
-    "lon":"-5.6672",
+    "lat":-15.9419,
+    "lon":-5.6672,
     "alt":435,
     "station_name":"Saint Helena Island (Saint Helena, Ascension and Tristan da Cunha)"
   },
@@ -4167,8 +4167,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"31.3253",
-    "lon":"27.2217",
+    "lat":31.3253,
+    "lon":27.2217,
     "alt":25,
     "station_name":"Mersa Matruh (Egypt)"
   },
@@ -4177,8 +4177,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"29.8628",
-    "lon":"31.3492",
+    "lat":29.8628,
+    "lon":31.3492,
     "alt":139,
     "station_name":"Helwan (Egypt)"
   },
@@ -4187,8 +4187,8 @@
     "rs_types":[
       "63"
     ],
-    "lat":"26.2003",
-    "lon":"32.7467",
+    "lat":26.2003,
+    "lon":32.7467,
     "alt":77,
     "station_name":"South Of Valley University (Egypt)"
   },
@@ -4197,8 +4197,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"23.9644",
-    "lon":"32.82",
+    "lat":23.9644,
+    "lon":32.82,
     "alt":200,
     "station_name":"Asswan (Egypt)"
   },
@@ -4207,8 +4207,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"9.0333",
-    "lon":"38.75",
+    "lat":9.0333,
+    "lon":38.75,
     "alt":2355,
     "station_name":"Addis Ababa (Ethiopia)"
   },
@@ -4217,8 +4217,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"-1.3036",
-    "lon":"36.7597",
+    "lat":-1.3036,
+    "lon":36.7597,
     "alt":1798,
     "station_name":"Nairobi / Dagoretti (Kenya)"
   },
@@ -4227,8 +4227,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-4.6833",
-    "lon":"55.5167",
+    "lat":-4.6833,
+    "lon":55.5167,
     "alt":4,
     "station_name":"Seychelles International Airport Rawinsonde Station  (Seychelles)"
   },
@@ -4238,8 +4238,8 @@
       "54",
       "17"
     ],
-    "lat":"-4.8167",
-    "lon":"11.9",
+    "lat":-4.8167,
+    "lon":11.9,
     "alt":17,
     "station_name":"Pointe-Noire (Congo, Republic of the)"
   },
@@ -4248,8 +4248,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"0.45",
-    "lon":"9.4167",
+    "lat":0.45,
+    "lon":9.4167,
     "alt":12,
     "station_name":"Libreville (Gabon)"
   },
@@ -4258,8 +4258,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"12.1333",
-    "lon":"15.0333",
+    "lat":12.1333,
+    "lon":15.0333,
     "alt":295,
     "station_name":"Ndjamena (Chad)"
   },
@@ -4268,8 +4268,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"5.25",
-    "lon":"-3.9333",
+    "lat":5.25,
+    "lon":-3.9333,
     "alt":7,
     "station_name":"Abidjan (Cote d'Ivoire)"
   },
@@ -4278,8 +4278,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"-18.8",
-    "lon":"47.4833",
+    "lat":-18.8,
+    "lon":47.4833,
     "alt":1279,
     "station_name":"Antananarivo / Ivato (Madagascar)"
   },
@@ -4288,8 +4288,8 @@
     "rs_types":[
       "99"
     ],
-    "lat":"-22.5667",
-    "lon":"17.1",
+    "lat":-22.5667,
+    "lon":17.1,
     "alt":1728,
     "station_name":"Windhoek (Namibia)"
   },
@@ -4298,8 +4298,8 @@
     "rs_types":[
       "84"
     ],
-    "lat":"-25.91",
-    "lon":"28.2111",
+    "lat":-25.91,
+    "lon":28.2111,
     "alt":1526,
     "station_name":"Pretoria Irene (South Africa)"
   },
@@ -4308,8 +4308,8 @@
     "rs_types":[
       "84"
     ],
-    "lat":"-28.4136",
-    "lon":"21.2597",
+    "lat":-28.4136,
+    "lon":21.2597,
     "alt":839,
     "station_name":"Upington (South Africa)"
   },
@@ -4318,8 +4318,8 @@
     "rs_types":[
       "84"
     ],
-    "lat":"-29.1",
-    "lon":"26.3",
+    "lat":-29.1,
+    "lon":26.3,
     "alt":1354,
     "station_name":"Bloemfontein J. B. M. Hertzog  (South Africa)"
   },
@@ -4328,8 +4328,8 @@
     "rs_types":[
       "84"
     ],
-    "lat":"-29.6719",
-    "lon":"17.8875",
+    "lat":-29.6719,
+    "lon":17.8875,
     "alt":1006,
     "station_name":"Springbok (South Africa)"
   },
@@ -4338,8 +4338,8 @@
     "rs_types":[
       "84"
     ],
-    "lat":"-30.6747",
-    "lon":"23.9992",
+    "lat":-30.6747,
+    "lon":23.9992,
     "alt":384,
     "station_name":"De Aar (South Africa)"
   },
@@ -4348,8 +4348,8 @@
     "rs_types":[
       "84"
     ],
-    "lat":"-29.6017",
-    "lon":"31.13",
+    "lat":-29.6017,
+    "lon":31.13,
     "alt":105,
     "station_name":"King Shaka Int'l Airport (South Africa)"
   },
@@ -4358,8 +4358,8 @@
     "rs_types":[
       "84"
     ],
-    "lat":"-33.97",
-    "lon":"18.6",
+    "lat":-33.97,
+    "lon":18.6,
     "alt":42,
     "station_name":"Cape Town D. F. Malan  (South Africa)"
   },
@@ -4368,8 +4368,8 @@
     "rs_types":[
       "84"
     ],
-    "lat":"-33.9844",
-    "lon":"25.6108",
+    "lat":-33.9844,
+    "lon":25.6108,
     "alt":61,
     "station_name":"Port Elizabeth (South Africa)"
   },
@@ -4378,8 +4378,8 @@
     "rs_types":[
       "99"
     ],
-    "lat":"-40.35",
-    "lon":"-9.88",
+    "lat":-40.35,
+    "lon":-9.88,
     "alt":54,
     "station_name":"Gough Island (South Africa)"
   },
@@ -4388,8 +4388,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"71.2889",
-    "lon":"-156.7833",
+    "lat":71.2889,
+    "lon":-156.7833,
     "alt":13,
     "station_name":"Barrow, Wiley Post-Will Rogers Memorial Airport (United States)"
   },
@@ -4398,8 +4398,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"66.8864",
-    "lon":"-162.6133",
+    "lat":66.8864,
+    "lon":-162.6133,
     "alt":3,
     "station_name":"Kotzebue, Ralph Wien Memorial Airport (United States)"
   },
@@ -4408,8 +4408,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"64.5072",
-    "lon":"-165.4347",
+    "lat":64.5072,
+    "lon":-165.4347,
     "alt":11,
     "station_name":"Nome, Nome Airport (United States)"
   },
@@ -4418,8 +4418,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"60.785",
-    "lon":"-161.84",
+    "lat":60.785,
+    "lon":-161.84,
     "alt":38,
     "station_name":"Bethel, Bethel Airport (United States)"
   },
@@ -4428,8 +4428,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"62.9583",
-    "lon":"-155.5978",
+    "lat":62.9583,
+    "lon":-155.5978,
     "alt":103,
     "station_name":"McGrath, McGrath Airport (United States)"
   },
@@ -4438,8 +4438,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"64.8161",
-    "lon":"-147.8767",
+    "lat":64.8161,
+    "lon":-147.8767,
     "alt":132,
     "station_name":"Fairbanks, Fairbanks International Airport (United States)"
   },
@@ -4448,8 +4448,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"61.1567",
-    "lon":"-149.9864",
+    "lat":61.1567,
+    "lon":-149.9864,
     "alt":44,
     "station_name":"Anchorage, Ted Stevens Anchorage International Airport (United States)"
   },
@@ -4458,8 +4458,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"57.15",
-    "lon":"-170.2167",
+    "lat":57.15,
+    "lon":-170.2167,
     "alt":19,
     "station_name":"St. Paul Island, St. Paul Island Airport (United States)"
   },
@@ -4468,8 +4468,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"55.2011",
-    "lon":"-162.7164",
+    "lat":55.2011,
+    "lon":-162.7164,
     "alt":30,
     "station_name":"Cold Bay, Cold Bay Airport (United States)"
   },
@@ -4478,8 +4478,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"58.6794",
-    "lon":"-156.6683",
+    "lat":58.6794,
+    "lon":-156.6683,
     "alt":17,
     "station_name":"King Salmon, King Salmon Airport (United States)"
   },
@@ -4488,8 +4488,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"57.7431",
-    "lon":"-152.4867",
+    "lat":57.7431,
+    "lon":-152.4867,
     "alt":22,
     "station_name":"Kodiak, Kodiak Airport (United States)"
   },
@@ -4498,8 +4498,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"59.5167",
-    "lon":"-139.6667",
+    "lat":59.5167,
+    "lon":-139.6667,
     "alt":11,
     "station_name":"Yakutat (United States)"
   },
@@ -4508,8 +4508,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"55.0389",
-    "lon":"-131.5778",
+    "lat":55.0389,
+    "lon":-131.5778,
     "alt":36,
     "station_name":"Annette, Annette Island Airport (United States)"
   },
@@ -4518,8 +4518,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"52.7167",
-    "lon":"174.1",
+    "lat":52.7167,
+    "lon":174.1,
     "alt":29,
     "station_name":"Shemya, Eareckson As (United States)"
   },
@@ -4538,8 +4538,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"65.2833",
-    "lon":"-126.75",
+    "lat":65.2833,
+    "lon":-126.75,
     "alt":67,
     "station_name":"Norman Wells, N. W. T. (Canada)"
   },
@@ -4548,8 +4548,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"68.7667",
-    "lon":"-81.2167",
+    "lat":68.7667,
+    "lon":-81.2167,
     "alt":8,
     "station_name":"Hall Beach, N. W. T. (Canada)"
   },
@@ -4558,8 +4558,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"82.5",
-    "lon":"-62.3333",
+    "lat":82.5,
+    "lon":-62.3333,
     "alt":63,
     "station_name":"Alert, N. W. T. (Canada)"
   },
@@ -4568,8 +4568,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"50.685",
-    "lon":"-127.3758",
+    "lat":50.685,
+    "lon":-127.3758,
     "alt":22,
     "station_name":"Port Hardy, B. C. (Canada)"
   },
@@ -4578,8 +4578,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"53.5475",
-    "lon":"-114.1083",
+    "lat":53.5475,
+    "lon":-114.1083,
     "alt":766,
     "station_name":"Edmonton Stony Plain Alta. (Canada)"
   },
@@ -4588,8 +4588,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"43.8667",
-    "lon":"-66.1",
+    "lat":43.8667,
+    "lon":-66.1,
     "alt":43,
     "station_name":"Yarmouth, N. S. (Canada)"
   },
@@ -4598,8 +4598,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"45.8333",
-    "lon":"-66.4333",
+    "lat":45.8333,
+    "lon":-66.4333,
     "alt":51,
     "station_name":"Gagetown Can-Mil  (Canada)"
   },
@@ -4608,8 +4608,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"46.3019",
-    "lon":"-76.0061",
+    "lat":46.3019,
+    "lon":-76.0061,
     "alt":170,
     "station_name":"Maniwaki, Que. (Canada)"
   },
@@ -4618,8 +4618,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"47.5167",
-    "lon":"-52.7833",
+    "lat":47.5167,
+    "lon":-52.7833,
     "alt":46,
     "station_name":"St. Lawrence, Nfld. (Canada)"
   },
@@ -4628,8 +4628,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"50.2167",
-    "lon":"-66.25",
+    "lat":50.2167,
+    "lon":-66.25,
     "alt":55,
     "station_name":"Sept-Iles, Que. (Canada)"
   },
@@ -4638,8 +4638,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"48.5667",
-    "lon":"-58.5667",
+    "lat":48.5667,
+    "lon":-58.5667,
     "alt":8,
     "station_name":"Stephenville, Nfld. (Canada)"
   },
@@ -4648,8 +4648,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"53.3",
-    "lon":"-60.3667",
+    "lat":53.3,
+    "lon":-60.3667,
     "alt":46,
     "station_name":"Goose, Nfld. (Canada)"
   },
@@ -4658,8 +4658,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"53.7572",
-    "lon":"-73.6792",
+    "lat":53.7572,
+    "lon":-73.6792,
     "alt":306,
     "station_name":"La Grande Iv, Que. (Canada)"
   },
@@ -4668,8 +4668,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"51.2667",
-    "lon":"-80.65",
+    "lat":51.2667,
+    "lon":-80.65,
     "alt":10,
     "station_name":"Moosonee, Ont. (Canada)"
   },
@@ -4678,8 +4678,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"49.8",
-    "lon":"-97.1333",
+    "lat":49.8,
+    "lon":-97.1333,
     "alt":251,
     "station_name":"Winnipeg Ua, Man (Canada)"
   },
@@ -4688,8 +4688,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"51.45",
-    "lon":"-90.2",
+    "lat":51.45,
+    "lon":-90.2,
     "alt":389,
     "station_name":"Pickle Lake, Ont. (Canada)"
   },
@@ -4698,8 +4698,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"53.9667",
-    "lon":"-101.1",
+    "lat":53.9667,
+    "lon":-101.1,
     "alt":271,
     "station_name":"The Pas, Man. (Canada)"
   },
@@ -4708,8 +4708,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"58.1167",
-    "lon":"-68.4167",
+    "lat":58.1167,
+    "lon":-68.4167,
     "alt":37,
     "station_name":"Kuujjuaq, Que. (Canada)"
   },
@@ -4718,8 +4718,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"58.4667",
-    "lon":"-78.0833",
+    "lat":58.4667,
+    "lon":-78.0833,
     "alt":3,
     "station_name":"Inukjuak, Que (Canada)"
   },
@@ -4728,8 +4728,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"53.9",
-    "lon":"-122.79",
+    "lat":53.9,
+    "lon":-122.79,
     "alt":601,
     "station_name":"Prince George Ua, Bc (Canada)"
   },
@@ -4738,8 +4738,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"63.75",
-    "lon":"-68.55",
+    "lat":63.75,
+    "lon":-68.55,
     "alt":34,
     "station_name":"Iqaluit, N. W. T. (Canada)"
   },
@@ -4748,8 +4748,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"58.7333",
-    "lon":"-94.0667",
+    "lat":58.7333,
+    "lon":-94.0667,
     "alt":28,
     "station_name":"Churchill, Man. (Canada)"
   },
@@ -4758,8 +4758,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"79.9833",
-    "lon":"-85.9333",
+    "lat":79.9833,
+    "lon":-85.9333,
     "alt":10,
     "station_name":"Eureka, N. W. T. (Canada)"
   },
@@ -4768,8 +4768,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"74.7042",
-    "lon":"-94.9681",
+    "lat":74.7042,
+    "lon":-94.9681,
     "alt":67,
     "station_name":"Resolute, N. W. T. (Canada)"
   },
@@ -4778,8 +4778,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"69.1333",
-    "lon":"-105.0667",
+    "lat":69.1333,
+    "lon":-105.0667,
     "alt":23,
     "station_name":"Cambridge Bay, N. W. T. (Canada)"
   },
@@ -4788,8 +4788,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"64.3167",
-    "lon":"-96",
+    "lat":64.3167,
+    "lon":-96.0,
     "alt":18,
     "station_name":"Baker Lake, N. W. T. (Canada)"
   },
@@ -4798,8 +4798,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"60.0261",
-    "lon":"-111.9294",
+    "lat":60.0261,
+    "lon":-111.9294,
     "alt":203,
     "station_name":"Fort Smith, N. W. T. (Canada)"
   },
@@ -4808,8 +4808,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"58.8333",
-    "lon":"-122.6",
+    "lat":58.8333,
+    "lon":-122.6,
     "alt":382,
     "station_name":"Fort Nelson, B. C. (Canada)"
   },
@@ -4818,8 +4818,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"58.8333",
-    "lon":"-122.6",
+    "lat":58.8333,
+    "lon":-122.6,
     "alt":835,
     "station_name":"Muncho Lake (Canada)"
   },
@@ -4828,8 +4828,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"68.3167",
-    "lon":"-133.5167",
+    "lat":68.3167,
+    "lon":-133.5167,
     "alt":59,
     "station_name":"Inuvik, N. W. T. (Canada)"
   },
@@ -4838,8 +4838,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"24.5531",
-    "lon":"-81.7886",
+    "lat":24.5531,
+    "lon":-81.7886,
     "alt":1,
     "station_name":"Key West, Key West International Airport (United States)"
   },
@@ -4848,8 +4848,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"25.7544",
-    "lon":"-80.3831",
+    "lat":25.7544,
+    "lon":-80.3831,
     "alt":3,
     "station_name":"Miami, Miami International Airport (United States)"
   },
@@ -4858,8 +4858,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"30.4839",
-    "lon":"-81.7011",
+    "lat":30.4839,
+    "lon":-81.7011,
     "alt":9,
     "station_name":"Jacksonville, Jacksonville International Airport (United States)"
   },
@@ -4868,8 +4868,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"32.895",
-    "lon":"-80.0275",
+    "lat":32.895,
+    "lon":-80.0275,
     "alt":14,
     "station_name":"Charleston, Charleston Air Force Base (United States)"
   },
@@ -4878,8 +4878,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"27.7053",
-    "lon":"-82.4006",
+    "lat":27.7053,
+    "lon":-82.4006,
     "alt":12,
     "station_name":"Tampa Bay Area (United States)"
   },
@@ -4888,8 +4888,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"30.4461",
-    "lon":"-84.2994",
+    "lat":30.4461,
+    "lon":-84.2994,
     "alt":24,
     "station_name":"Tallahassee, Tallahassee Regional Airport (United States)"
   },
@@ -4898,8 +4898,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"33.3558",
-    "lon":"-84.5672",
+    "lat":33.3558,
+    "lon":-84.5672,
     "alt":262,
     "station_name":"Peachtree City, Ga. (United States)"
   },
@@ -4908,8 +4908,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"33.1789",
-    "lon":"-86.7822",
+    "lat":33.1789,
+    "lon":-86.7822,
     "alt":178,
     "station_name":"Shelby Country Airport, Al. (United States)"
   },
@@ -4918,8 +4918,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"30.3369",
-    "lon":"-89.825",
+    "lat":30.3369,
+    "lon":-89.825,
     "alt":8,
     "station_name":"Slidell (United States)"
   },
@@ -4928,8 +4928,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"32.3189",
-    "lon":"-90.08",
+    "lat":32.3189,
+    "lon":-90.08,
     "alt":105,
     "station_name":"Jackson, Jackson International Airport (United States)"
   },
@@ -4938,8 +4938,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"30.1253",
-    "lon":"-93.2161",
+    "lat":30.1253,
+    "lon":-93.2161,
     "alt":5,
     "station_name":"Lake Charles, Lake Charles Regional Airport (United States)"
   },
@@ -4948,8 +4948,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"32.4511",
-    "lon":"-93.8414",
+    "lat":32.4511,
+    "lon":-93.8414,
     "alt":78,
     "station_name":"Shreveport, Shreveport Regional Airport (United States)"
   },
@@ -4958,8 +4958,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"32.835",
-    "lon":"-97.2986",
+    "lat":32.835,
+    "lon":-97.2986,
     "alt":196,
     "station_name":"Fort Worth (United States)"
   },
@@ -4968,8 +4968,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"25.9167",
-    "lon":"-97.4192",
+    "lat":25.9167,
+    "lon":-97.4192,
     "alt":7,
     "station_name":"Brownsville, Brownsville / South Padre Island International Airport (United States)"
   },
@@ -4978,8 +4978,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"27.7789",
-    "lon":"-97.5056",
+    "lat":27.7789,
+    "lon":-97.5056,
     "alt":13,
     "station_name":"Corpus Christi, Corpus Christi International Airport (United States)"
   },
@@ -4988,8 +4988,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"29.3744",
-    "lon":"-100.9183",
+    "lat":29.3744,
+    "lon":-100.9183,
     "alt":304,
     "station_name":"Del Rio, Del Rio International Airport (United States)"
   },
@@ -4998,8 +4998,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"31.9425",
-    "lon":"-102.1892",
+    "lat":31.9425,
+    "lon":-102.1892,
     "alt":875,
     "station_name":"Midland, Midland International Airport (United States)"
   },
@@ -5008,8 +5008,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"32.2278",
-    "lon":"-110.9558",
+    "lat":32.2278,
+    "lon":-110.9558,
     "alt":805,
     "station_name":"Tucson, Tucson International Airport (United States)"
   },
@@ -5018,8 +5018,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"32.8333",
-    "lon":"-117.1167",
+    "lat":32.8333,
+    "lon":-117.1167,
     "alt":146,
     "station_name":"San Diego, Miramar MCAS/Mitscher Field Airport (United States)"
   },
@@ -5028,8 +5028,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"34.7761",
-    "lon":"-76.8767",
+    "lat":34.7761,
+    "lon":-76.8767,
     "alt":11,
     "station_name":"Newport (United States)"
   },
@@ -5038,8 +5038,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"36.0981",
-    "lon":"-79.9428",
+    "lat":36.0981,
+    "lon":-79.9428,
     "alt":282,
     "station_name":"Greensboro, Piedmont Triad International Airport (United States)"
   },
@@ -5048,8 +5048,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"37.2039",
-    "lon":"-80.4142",
+    "lat":37.2039,
+    "lon":-80.4142,
     "alt":653,
     "station_name":"Blacksburg, Va. (United States)"
   },
@@ -5058,8 +5058,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"36.2469",
-    "lon":"-86.5617",
+    "lat":36.2469,
+    "lon":-86.5617,
     "alt":182,
     "station_name":"Nashville, Nashville International Airport (United States)"
   },
@@ -5068,8 +5068,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"34.835",
-    "lon":"-92.2594",
+    "lat":34.835,
+    "lon":-92.2594,
     "alt":165,
     "station_name":"North Little Rock, North Little Rock Airport (United States)"
   },
@@ -5078,8 +5078,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"35.1808",
-    "lon":"-97.4378",
+    "lat":35.1808,
+    "lon":-97.4378,
     "alt":357,
     "station_name":"Norman / Max Westheimer (United States)"
   },
@@ -5088,8 +5088,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"35.2331",
-    "lon":"-101.7092",
+    "lat":35.2331,
+    "lon":-101.7092,
     "alt":1099,
     "station_name":"Amarillo, Amarillo International Airport (United States)"
   },
@@ -5098,8 +5098,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"31.8728",
-    "lon":"-106.6981",
+    "lat":31.8728,
+    "lon":-106.6981,
     "alt":1252,
     "station_name":"Santa Teresa (United States)"
   },
@@ -5108,8 +5108,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"35.0378",
-    "lon":"-106.6219",
+    "lat":35.0378,
+    "lon":-106.6219,
     "alt":1631,
     "station_name":"Albuquerque, Albuquerque International Airport (United States)"
   },
@@ -5118,8 +5118,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"35.23",
-    "lon":"-111.8217",
+    "lat":35.23,
+    "lon":-111.8217,
     "alt":2192,
     "station_name":"Flagstaff, Az. (United States)"
   },
@@ -5128,8 +5128,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"34.9167",
-    "lon":"-117.9",
+    "lat":34.9167,
+    "lon":-117.9,
     "alt":702,
     "station_name":"Edwards Air Force Base (United States)"
   },
@@ -5139,8 +5139,8 @@
       "11",
       "49"
     ],
-    "lat":"34.75",
-    "lon":"-120.5667",
+    "lat":34.75,
+    "lon":-120.5667,
     "alt":112,
     "station_name":"Vandenberg Air Force Base (United States)"
   },
@@ -5149,8 +5149,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"37.9333",
-    "lon":"-75.4833",
+    "lat":37.9333,
+    "lon":-75.4833,
     "alt":12,
     "station_name":"Wallops Island, Wallops Flight Facility Airport (United States)"
   },
@@ -5159,8 +5159,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"38.9767",
-    "lon":"-77.4858",
+    "lat":38.9767,
+    "lon":-77.4858,
     "alt":95,
     "station_name":"Washington DC, Washington-Dulles International Airport (United States)"
   },
@@ -5169,8 +5169,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"39.4214",
-    "lon":"-83.8217",
+    "lat":39.4214,
+    "lon":-83.8217,
     "alt":317,
     "station_name":"Wilmington, Oh. (United States)"
   },
@@ -5179,8 +5179,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"37.2347",
-    "lon":"-93.4014",
+    "lat":37.2347,
+    "lon":-93.4014,
     "alt":386,
     "station_name":"Springfield, Springfield Regional Airport (United States)"
   },
@@ -5189,8 +5189,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"37.7614",
-    "lon":"-99.9686",
+    "lat":37.7614,
+    "lon":-99.9686,
     "alt":790,
     "station_name":"Dodge City, Dodge City Regional Airport (United States)"
   },
@@ -5199,8 +5199,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"39.0722",
-    "lon":"-95.6306",
+    "lat":39.0722,
+    "lon":-95.6306,
     "alt":268,
     "station_name":"Topeka, Philip Billard Municipal Airport (United States)"
   },
@@ -5209,8 +5209,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"39.7675",
-    "lon":"-104.8694",
+    "lat":39.7675,
+    "lon":-104.8694,
     "alt":1626,
     "station_name":"Denver / Stapleton International, Co. (United States)"
   },
@@ -5219,8 +5219,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"39.12",
-    "lon":"-108.525",
+    "lat":39.12,
+    "lon":-108.525,
     "alt":1481,
     "station_name":"Grand Junction, Walker Field (United States)"
   },
@@ -5229,8 +5229,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"39.5681",
-    "lon":"-119.7967",
+    "lat":39.5681,
+    "lon":-119.7967,
     "alt":1463,
     "station_name":"Reno, Nv. (United States)"
   },
@@ -5239,8 +5239,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"37.7444",
-    "lon":"-122.2236",
+    "lat":37.7444,
+    "lon":-122.2236,
     "alt":1,
     "station_name":"Oakland, Metro Oakland International Airport (United States)"
   },
@@ -5249,8 +5249,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"40.865",
-    "lon":"-72.8628",
+    "lat":40.865,
+    "lon":-72.8628,
     "alt":20,
     "station_name":"Upton, Ny. (United States)"
   },
@@ -5259,8 +5259,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"42.6919",
-    "lon":"-73.8322",
+    "lat":42.6919,
+    "lon":-73.8322,
     "alt":87,
     "station_name":"Albany, Albany International Airport (United States)"
   },
@@ -5269,8 +5269,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"40.5317",
-    "lon":"-80.2172",
+    "lat":40.5317,
+    "lon":-80.2172,
     "alt":366,
     "station_name":"Pittsburgh, Pittsburgh International Airport (United States)"
   },
@@ -5279,8 +5279,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"42.9411",
-    "lon":"-78.7189",
+    "lat":42.9411,
+    "lon":-78.7189,
     "alt":220,
     "station_name":"Buffalo, Greater Buffalo International Airport (United States)"
   },
@@ -5289,8 +5289,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"41.32",
-    "lon":"-96.3669",
+    "lat":41.32,
+    "lon":-96.3669,
     "alt":350,
     "station_name":"Valley (United States)"
   },
@@ -5299,8 +5299,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"41.1328",
-    "lon":"-100.7",
+    "lat":41.1328,
+    "lon":-100.7,
     "alt":846,
     "station_name":"North Platte, North Platte Regional Airport (United States)"
   },
@@ -5309,8 +5309,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"40.7722",
-    "lon":"-111.9553",
+    "lat":40.7722,
+    "lon":-111.9553,
     "alt":1288,
     "station_name":"Salt Lake City, Salt Lake City International Airport (United States)"
   },
@@ -5319,8 +5319,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"40.86",
-    "lon":"-115.7422",
+    "lat":40.86,
+    "lon":-115.7422,
     "alt":1607,
     "station_name":"Elko, Nv. (United States)"
   },
@@ -5329,8 +5329,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"42.3769",
-    "lon":"-122.8822",
+    "lat":42.3769,
+    "lon":-122.8822,
     "alt":405,
     "station_name":"Medford, Rogue Valley International Airport (United States)"
   },
@@ -5339,8 +5339,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"42.6989",
-    "lon":"-83.4714",
+    "lat":42.6989,
+    "lon":-83.4714,
     "alt":321,
     "station_name":"White Lake, Mi. (United States)"
   },
@@ -5349,8 +5349,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"44.9075",
-    "lon":"-84.7189",
+    "lat":44.9075,
+    "lon":-84.7189,
     "alt":446,
     "station_name":"Gaylord, Mi. (United States)"
   },
@@ -5359,8 +5359,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"44.4986",
-    "lon":"-88.1119",
+    "lat":44.4986,
+    "lon":-88.1119,
     "alt":211,
     "station_name":"Green Bay, Austin Straubel International Airport (United States)"
   },
@@ -5369,8 +5369,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"44.8497",
-    "lon":"-93.5647",
+    "lat":44.8497,
+    "lon":-93.5647,
     "alt":287,
     "station_name":"Chanhaussen, Mn. (United States)"
   },
@@ -5379,8 +5379,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"45.4556",
-    "lon":"-98.4133",
+    "lat":45.4556,
+    "lon":-98.4133,
     "alt":396,
     "station_name":"Aberdeen, Aberdeen Regional Airport (United States)"
   },
@@ -5389,8 +5389,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"44.0728",
-    "lon":"-103.21",
+    "lat":44.0728,
+    "lon":-103.21,
     "alt":976,
     "station_name":"Rapid City, Rapid City Regional Airport (United States)"
   },
@@ -5399,8 +5399,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"43.0647",
-    "lon":"-108.4767",
+    "lat":43.0647,
+    "lon":-108.4767,
     "alt":1684,
     "station_name":"Riverton, Riverton Regional Airport (United States)"
   },
@@ -5409,8 +5409,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"43.5672",
-    "lon":"-116.2114",
+    "lat":43.5672,
+    "lon":-116.2114,
     "alt":871,
     "station_name":"Boise, Boise Air Terminal (United States)"
   },
@@ -5419,8 +5419,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"44.9092",
-    "lon":"-123.0083",
+    "lat":44.9092,
+    "lon":-123.0083,
     "alt":64,
     "station_name":"Salem, McNary Field (United States)"
   },
@@ -5429,8 +5429,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"46.8683",
-    "lon":"-68.0136",
+    "lat":46.8683,
+    "lon":-68.0136,
     "alt":191,
     "station_name":"Caribou, Caribou Municipal Airport (United States)"
   },
@@ -5439,8 +5439,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"48.5647",
-    "lon":"-93.3975",
+    "lat":48.5647,
+    "lon":-93.3975,
     "alt":361,
     "station_name":"International Falls, Falls International Airport (United States)"
   },
@@ -5449,8 +5449,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"46.7717",
-    "lon":"-100.7594",
+    "lat":46.7717,
+    "lon":-100.7594,
     "alt":511,
     "station_name":"Bismarck, Bismarck Municipal Airport (United States)"
   },
@@ -5459,8 +5459,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"48.2067",
-    "lon":"-106.6256",
+    "lat":48.2067,
+    "lon":-106.6256,
     "alt":699,
     "station_name":"Glasgow, Glasgow International Airport (United States)"
   },
@@ -5469,8 +5469,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"47.4614",
-    "lon":"-111.3847",
+    "lat":47.4614,
+    "lon":-111.3847,
     "alt":1131,
     "station_name":"Great Falls, Mt. (United States)"
   },
@@ -5479,8 +5479,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"47.6806",
-    "lon":"-117.6267",
+    "lat":47.6806,
+    "lon":-117.6267,
     "alt":728,
     "station_name":"Spokane, Wa. (United States)"
   },
@@ -5489,8 +5489,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"47.9339",
-    "lon":"-124.5603",
+    "lat":47.9339,
+    "lon":-124.5603,
     "alt":59,
     "station_name":"Quillayute, Quillayute State Airport (United States)"
   },
@@ -5499,8 +5499,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"32.8356",
-    "lon":"-114.4",
+    "lat":32.8356,
+    "lon":-114.4,
     "alt":231,
     "station_name":"Yuma Proving Grounds Az. (United States)"
   },
@@ -5509,8 +5509,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"43.8925",
-    "lon":"-70.2572",
+    "lat":43.8925,
+    "lon":-70.2572,
     "alt":125,
     "station_name":"Gray, Me. (United States)"
   },
@@ -5519,8 +5519,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"41.6114",
-    "lon":"-90.5817",
+    "lat":41.6114,
+    "lon":-90.5817,
     "alt":229,
     "station_name":"Davenport, Ia. (United States)"
   },
@@ -5529,8 +5529,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"40.1517",
-    "lon":"-89.3383",
+    "lat":40.1517,
+    "lon":-89.3383,
     "alt":178,
     "station_name":"Lincoln, Il. (United States)"
   },
@@ -5539,8 +5539,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"33.45",
-    "lon":"-111.95",
+    "lat":33.45,
+    "lon":-111.95,
     "alt":386,
     "station_name":"Wfo Phoenix, Az. (United States)"
   },
@@ -5549,8 +5549,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"36.6",
-    "lon":"-97.5",
+    "lat":36.6,
+    "lon":-97.5,
     "alt":320,
     "station_name":"Sulphur Municipal (United States)"
   },
@@ -5559,8 +5559,8 @@
     "rs_types":[
       "  "
     ],
-    "lat":"28.4667",
-    "lon":"-80.55",
+    "lat":28.4667,
+    "lon":-80.55,
     "alt":3,
     "station_name":"Cocoa Beach, Cape Canaveral Air Force Station Skid Strip (United States)"
   },
@@ -5570,8 +5570,8 @@
       "41",
       "35"
     ],
-    "lat":"28.6667",
-    "lon":"-106.0333",
+    "lat":28.6667,
+    "lon":-106.0333,
     "alt":1435,
     "station_name":"University De Chihuahua, Chihuahua, Chih. (Mexico)"
   },
@@ -5581,8 +5581,8 @@
       "41",
       "35"
     ],
-    "lat":"27.95",
-    "lon":"-110.8",
+    "lat":27.95,
+    "lon":-110.8,
     "alt":11,
     "station_name":"Empalme, Son. (Mexico)"
   },
@@ -5591,8 +5591,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"25.8667",
-    "lon":"-100.2333",
+    "lat":25.8667,
+    "lon":-100.2333,
     "alt":448,
     "station_name":"Aerop. Internacional Monterrey, N. L. (Mexico)"
   },
@@ -5601,8 +5601,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"24.1167",
-    "lon":"-110.3167",
+    "lat":24.1167,
+    "lon":-110.3167,
     "alt":18,
     "station_name":"La Paz, B. C. S. (Mexico)"
   },
@@ -5612,8 +5612,8 @@
       "41",
       "35"
     ],
-    "lat":"23.2167",
-    "lon":"-106.4",
+    "lat":23.2167,
+    "lon":-106.4,
     "alt":4,
     "station_name":"Colonia Juan Carras-Co Mazatlan, Sin. (Mexico)"
   },
@@ -5622,8 +5622,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"21.0167",
-    "lon":"-86.85",
+    "lat":21.0167,
+    "lon":-86.85,
     "alt":10,
     "station_name":"Cancun (Mexico)"
   },
@@ -5633,8 +5633,8 @@
       "41",
       "35"
     ],
-    "lat":"20.7",
-    "lon":"-103.3833",
+    "lat":20.7,
+    "lon":-103.3833,
     "alt":1551,
     "station_name":"Guadalajara, Jal. (Mexico)"
   },
@@ -5643,8 +5643,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"20.95",
-    "lon":"-89.65",
+    "lat":20.95,
+    "lon":-89.65,
     "alt":10,
     "station_name":"Merida / lic Manuel Crecencio (Mexico)"
   },
@@ -5653,8 +5653,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"19.0667",
-    "lon":"-104.3333",
+    "lat":19.0667,
+    "lon":-104.3333,
     "alt":3,
     "station_name":"Manzanillo, Col. (Mexico)"
   },
@@ -5664,8 +5664,8 @@
       "41",
       "35"
     ],
-    "lat":"19.4333",
-    "lon":"-99.1333",
+    "lat":19.4333,
+    "lon":-99.1333,
     "alt":2234,
     "station_name":"Aerop. Internacionalmexico, D. F. (Mexico)"
   },
@@ -5675,8 +5675,8 @@
       "41",
       "35"
     ],
-    "lat":"19.15",
-    "lon":"-96.1333",
+    "lat":19.15,
+    "lon":-96.1333,
     "alt":13,
     "station_name":"Hacienda Ylang Ylangveracruz, Ver. (Mexico)"
   },
@@ -5685,8 +5685,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"17.9833",
-    "lon":"-92.9333",
+    "lat":17.9833,
+    "lon":-92.9333,
     "alt":10,
     "station_name":"Villahermosa, Tab. (Mexico)"
   },
@@ -5696,8 +5696,8 @@
       "41",
       "35"
     ],
-    "lat":"16.75",
-    "lon":"-99.75",
+    "lat":16.75,
+    "lon":-99.75,
     "alt":13,
     "station_name":"Acapulco, Gro. (Mexico)"
   },
@@ -5706,8 +5706,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"14.9167",
-    "lon":"-92.25",
+    "lat":14.9167,
+    "lon":-92.25,
     "alt":118,
     "station_name":"Tapachula, Chis (Mexico)"
   },
@@ -5716,8 +5716,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"32.3669",
-    "lon":"-64.6772",
+    "lat":32.3669,
+    "lon":-64.6772,
     "alt":6,
     "station_name":"Bermuda (Bermuda)"
   },
@@ -5726,8 +5726,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"19.2917",
-    "lon":"-81.3583",
+    "lat":19.2917,
+    "lon":-81.3583,
     "alt":3,
     "station_name":"Owen Roberts Airportgrand Cayman (Cayman Islands)"
   },
@@ -5736,8 +5736,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"18.0667",
-    "lon":"-76.85",
+    "lat":18.0667,
+    "lon":-76.85,
     "alt":3,
     "station_name":"Kingston / Norman Manley (Jamaica)"
   },
@@ -5746,8 +5746,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"18.4333",
-    "lon":"-69.8833",
+    "lat":18.4333,
+    "lon":-69.8833,
     "alt":14,
     "station_name":"Santo Domingo (Dominican Republic)"
   },
@@ -5756,8 +5756,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"18.4317",
-    "lon":"-65.9919",
+    "lat":18.4317,
+    "lon":-65.9919,
     "alt":3,
     "station_name":"San Juan / Int., Puerto Rico (Puerto Rico)"
   },
@@ -5766,8 +5766,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"9.9833",
-    "lon":"-84.1833",
+    "lat":9.9833,
+    "lon":-84.1833,
     "alt":920,
     "station_name":"Juan Santamaria (Costa Rica)"
   },
@@ -5776,8 +5776,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"8.9667",
-    "lon":"-79.5667",
+    "lat":8.9667,
+    "lon":-79.5667,
     "alt":7,
     "station_name":"Corozal Oeste (Panama)"
   },
@@ -5786,8 +5786,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"18.0333",
-    "lon":"-63.1167",
+    "lat":18.0333,
+    "lon":-63.1167,
     "alt":4,
     "station_name":"Juliana Airport, Saint Maarten (Netherlands Antilles)"
   },
@@ -5806,8 +5806,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"13.0667",
-    "lon":"-59.4833",
+    "lat":13.0667,
+    "lon":-59.4833,
     "alt":50,
     "station_name":"Grantley Adams (Barbados)"
   },
@@ -5816,8 +5816,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"10.6167",
-    "lon":"-61.35",
+    "lat":10.6167,
+    "lon":-61.35,
     "alt":12,
     "station_name":"Piarco International Airport, Trinidad (Trinidad and Tobago)"
   },
@@ -5826,8 +5826,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"12.2",
-    "lon":"-68.9667",
+    "lat":12.2,
+    "lon":-68.9667,
     "alt":9,
     "station_name":"Hato Airport, Curacao (Netherlands Antilles)"
   },
@@ -5836,8 +5836,8 @@
     "rs_types":[
       "17"
     ],
-    "lat":"12.5833",
-    "lon":"-81.7167",
+    "lat":12.5833,
+    "lon":-81.7167,
     "alt":1,
     "station_name":"San Andres Isla / Sesquicentenario (Colombia)"
   },
@@ -5846,8 +5846,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"4.7",
-    "lon":"-74.15",
+    "lat":4.7,
+    "lon":-74.15,
     "alt":2547,
     "station_name":"Bogota / Eldorado (Colombia)"
   },
@@ -5866,8 +5866,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"2.8333",
-    "lon":"-60.7",
+    "lat":2.8333,
+    "lon":-60.7,
     "alt":84,
     "station_name":"Boa Vista, Boa Vista Intl  (Brazil)"
   },
@@ -5876,8 +5876,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"2.2239",
-    "lon":"-55.9472",
+    "lat":2.2239,
+    "lon":-55.9472,
     "alt":325,
     "station_name":"Tirios (Brazil)"
   },
@@ -5886,8 +5886,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"0.05",
-    "lon":"-51.0667",
+    "lat":0.05,
+    "lon":-51.0667,
     "alt":16,
     "station_name":"Macapa-Aeroporto (Brazil)"
   },
@@ -5896,8 +5896,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-0.1167",
-    "lon":"-66.9667",
+    "lat":-0.1167,
+    "lon":-66.9667,
     "alt":79,
     "station_name":"Sao Gabriel Da Cachoeira (Aero) (Brazil)"
   },
@@ -5906,8 +5906,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-1.3833",
-    "lon":"-48.4833",
+    "lat":-1.3833,
+    "lon":-48.4833,
     "alt":16,
     "station_name":"Belem Aeroporto  (Brazil)"
   },
@@ -5916,8 +5916,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-2.4333",
-    "lon":"-54.7167",
+    "lat":-2.4333,
+    "lon":-54.7167,
     "alt":72,
     "station_name":"Santarem-Aeroporto (Brazil)"
   },
@@ -5926,8 +5926,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-3.15",
-    "lon":"-59.9833",
+    "lat":-3.15,
+    "lon":-59.9833,
     "alt":84,
     "station_name":"Manaus Aeroporto  (Brazil)"
   },
@@ -5937,8 +5937,8 @@
       "24",
       "42"
     ],
-    "lat":"-3.85",
-    "lon":"-32.4167",
+    "lat":-3.85,
+    "lon":-32.4167,
     "alt":56,
     "station_name":"Fernando De Noronha (Brazil)"
   },
@@ -5947,8 +5947,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-4.25",
-    "lon":"-69.9333",
+    "lat":-4.25,
+    "lon":-69.9333,
     "alt":85,
     "station_name":"Tabatinga (Brazil)"
   },
@@ -5957,8 +5957,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-5.8167",
-    "lon":"-61.2833",
+    "lat":-5.8167,
+    "lon":-61.2833,
     "alt":53,
     "station_name":"Manicore (Aero) (Brazil)"
   },
@@ -5967,8 +5967,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-5.9167",
-    "lon":"-35.25",
+    "lat":-5.9167,
+    "lon":-35.25,
     "alt":52,
     "station_name":"Natal Aeroporto (Brazil)"
   },
@@ -5977,8 +5977,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-7.5833",
-    "lon":"-72.7667",
+    "lat":-7.5833,
+    "lon":-72.7667,
     "alt":199,
     "station_name":"Cruzeiro Do Sul (Aero) (Brazil)"
   },
@@ -5987,8 +5987,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-8.7667",
-    "lon":"-63.9167",
+    "lat":-8.7667,
+    "lon":-63.9167,
     "alt":102,
     "station_name":"Porto Velho Aeroporto  (Brazil)"
   },
@@ -5997,8 +5997,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-10",
-    "lon":"-67.8",
+    "lat":-10.0,
+    "lon":-67.8,
     "alt":142,
     "station_name":"Rio Branco (Brazil)"
   },
@@ -6007,8 +6007,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-9.8667",
-    "lon":"-56.1",
+    "lat":-9.8667,
+    "lon":-56.1,
     "alt":288,
     "station_name":"Alta Floresta Aeroporto  (Brazil)"
   },
@@ -6017,8 +6017,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-12.7",
-    "lon":"-60.1",
+    "lat":-12.7,
+    "lon":-60.1,
     "alt":612,
     "station_name":"Vilhena Aeroporto  (Brazil)"
   },
@@ -6027,8 +6027,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-15.65",
-    "lon":"-56.1",
+    "lat":-15.65,
+    "lon":-56.1,
     "alt":187,
     "station_name":"Cuiaba Aeroporto  (Brazil)"
   },
@@ -6037,8 +6037,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-15.8667",
-    "lon":"-47.9333",
+    "lat":-15.8667,
+    "lon":-47.9333,
     "alt":1061,
     "station_name":"Brasilia Aeroporto  (Brazil)"
   },
@@ -6047,8 +6047,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-18.8833",
-    "lon":"-48.2167",
+    "lat":-18.8833,
+    "lon":-48.2167,
     "alt":943,
     "station_name":"Uberlandia (Aero) (Brazil)"
   },
@@ -6057,8 +6057,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-19",
-    "lon":"-57.6667",
+    "lat":-19.0,
+    "lon":-57.6667,
     "alt":141,
     "station_name":"Corumba Aeroporto  (Brazil)"
   },
@@ -6067,8 +6067,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-19.6167",
-    "lon":"-43.9667",
+    "lat":-19.6167,
+    "lon":-43.9667,
     "alt":827,
     "station_name":"Confis Intnl Airport (Brazil)"
   },
@@ -6077,8 +6077,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-20.4667",
-    "lon":"-54.6667",
+    "lat":-20.4667,
+    "lon":-54.6667,
     "alt":567,
     "station_name":"Campo Grande Aeroporto  (Brazil)"
   },
@@ -6087,8 +6087,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-20.2667",
-    "lon":"-40.2833",
+    "lat":-20.2667,
+    "lon":-40.2833,
     "alt":4,
     "station_name":"Vitoria Aeroporto  (Brazil)"
   },
@@ -6097,8 +6097,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-22.8167",
-    "lon":"-43.25",
+    "lat":-22.8167,
+    "lon":-43.25,
     "alt":6,
     "station_name":"Galeao (Brazil)"
   },
@@ -6107,8 +6107,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-23.3333",
-    "lon":"-51.1333",
+    "lat":-23.3333,
+    "lon":-51.1333,
     "alt":569,
     "station_name":"Londrina Aeroporto  (Brazil)"
   },
@@ -6118,8 +6118,8 @@
       "14",
       "23"
     ],
-    "lat":"-23.5",
-    "lon":"-46.6333",
+    "lat":-23.5,
+    "lon":-46.6333,
     "alt":722,
     "station_name":"Marte Civ / Mil  (Brazil)"
   },
@@ -6128,8 +6128,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-25.5167",
-    "lon":"-54.5833",
+    "lat":-25.5167,
+    "lon":-54.5833,
     "alt":180,
     "station_name":"Foz Do Iguacu Aeroporto  (Brazil)"
   },
@@ -6138,8 +6138,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-25.5167",
-    "lon":"-49.1667",
+    "lat":-25.5167,
+    "lon":-49.1667,
     "alt":908,
     "station_name":"Curitiba Aeroporto  (Brazil)"
   },
@@ -6148,8 +6148,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-27.6667",
-    "lon":"-48.55",
+    "lat":-27.6667,
+    "lon":-48.55,
     "alt":5,
     "station_name":"Florianopolis Aeroporto  (Brazil)"
   },
@@ -6158,8 +6158,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"-29.7833",
-    "lon":"-57.0333",
+    "lat":-29.7833,
+    "lon":-57.0333,
     "alt":74,
     "station_name":"Uruguaiana Aeroporto  (Brazil)"
   },
@@ -6168,8 +6168,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-29.7167",
-    "lon":"-53.7",
+    "lat":-29.7167,
+    "lon":-53.7,
     "alt":85,
     "station_name":"Santa Maria Aero-Porto  (Brazil)"
   },
@@ -6178,8 +6178,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-30",
-    "lon":"-51.1833",
+    "lat":-30.0,
+    "lon":-51.1833,
     "alt":3,
     "station_name":"Porto Alegre Aero-Porto  (Brazil)"
   },
@@ -6188,8 +6188,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-23.4503",
-    "lon":"-70.4408",
+    "lat":-23.4503,
+    "lon":-70.4408,
     "alt":135,
     "station_name":"Antofagasta (Chile)"
   },
@@ -6198,8 +6198,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-27.1606",
-    "lon":"-109.4267",
+    "lat":-27.1606,
+    "lon":-109.4267,
     "alt":51,
     "station_name":"Isla De Pascua (Chile)"
   },
@@ -6218,8 +6218,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-33.6547",
-    "lon":"-71.6144",
+    "lat":-33.6547,
+    "lon":-71.6144,
     "alt":75,
     "station_name":"Santo Domingo (Chile)"
   },
@@ -6228,8 +6228,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-41.4347",
-    "lon":"-73.0975",
+    "lat":-41.4347,
+    "lon":-73.0975,
     "alt":85,
     "station_name":"Puerto Montt (Chile)"
   },
@@ -6238,8 +6238,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-53.0033",
-    "lon":"-70.845",
+    "lat":-53.0033,
+    "lon":-70.845,
     "alt":37,
     "station_name":"Punta Arenas (Chile)"
   },
@@ -6248,8 +6248,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-27.45",
-    "lon":"-59.05",
+    "lat":-27.45,
+    "lon":-59.05,
     "alt":53,
     "station_name":"Resistencia Aero. (Argentina)"
   },
@@ -6258,8 +6258,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-34.8167",
-    "lon":"-58.5333",
+    "lat":-34.8167,
+    "lon":-58.5333,
     "alt":20,
     "station_name":"Ezeiza Aerodrome (Argentina)"
   },
@@ -6268,8 +6268,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-45.7833",
-    "lon":"-67.5",
+    "lat":-45.7833,
+    "lon":-67.5,
     "alt":58,
     "station_name":"Comodoro Rivadavia Aerodrome (Argentina)"
   },
@@ -6278,8 +6278,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-51.82",
-    "lon":"-58.4481",
+    "lat":-51.82,
+    "lon":-58.4481,
     "alt":74,
     "station_name":"Mount Pleasant Airport (Falkland Islands)"
   },
@@ -6288,8 +6288,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-90",
-    "lon":"0",
+    "lat":-90.0,
+    "lon":0.0,
     "alt":2830,
     "station_name":"South Pole (Antarctica)"
   },
@@ -6298,8 +6298,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-67.5661",
-    "lon":"-68.1297",
+    "lat":-67.5661,
+    "lon":-68.1297,
     "alt":16,
     "station_name":"Rothera Point (Antarctica)"
   },
@@ -6308,8 +6308,8 @@
     "rs_types":[
       "22"
     ],
-    "lat":"-69.0053",
-    "lon":"39.5811",
+    "lat":-69.0053,
+    "lon":39.5811,
     "alt":18,
     "station_name":"Syowa (Antarctica)"
   },
@@ -6318,8 +6318,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-67.6017",
-    "lon":"62.8753",
+    "lat":-67.6017,
+    "lon":62.8753,
     "alt":10,
     "station_name":"Mawson (Antarctica)"
   },
@@ -6329,8 +6329,8 @@
       "41",
       "23"
     ],
-    "lat":"-68.5744",
-    "lon":"77.9672",
+    "lat":-68.5744,
+    "lon":77.9672,
     "alt":18,
     "station_name":"Davis (Antarctica)"
   },
@@ -6339,8 +6339,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-66.2825",
-    "lon":"110.5231",
+    "lat":-66.2825,
+    "lon":110.5231,
     "alt":40,
     "station_name":"Casey (Antarctica)"
   },
@@ -6349,8 +6349,8 @@
     "rs_types":[
       "23"
     ],
-    "lat":"-75.1017",
-    "lon":"123.4119",
+    "lat":-75.1017,
+    "lon":123.4119,
     "alt":3232,
     "station_name":"Concordia (Antarctica)"
   },
@@ -6359,8 +6359,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"-66.6631",
-    "lon":"140.0011",
+    "lat":-66.6631,
+    "lon":140.0011,
     "alt":41,
     "station_name":"Dumont D'Urville (Antarctica)"
   },
@@ -6370,8 +6370,8 @@
       "11",
       "24"
     ],
-    "lat":"21.9933",
-    "lon":"-159.3467",
+    "lat":21.9933,
+    "lon":-159.3467,
     "alt":45,
     "station_name":"Lihue, Lihue Airport (United States)"
   },
@@ -6380,8 +6380,8 @@
     "rs_types":[
       "52"
     ],
-    "lat":"13.4767",
-    "lon":"144.7944",
+    "lat":13.4767,
+    "lon":144.7944,
     "alt":91,
     "station_name":"Agana, Guam International Airport (United States)"
   },
@@ -6390,8 +6390,8 @@
     "rs_types":[
       "24"
     ],
-    "lat":"19.7183",
-    "lon":"-155.0583",
+    "lat":19.7183,
+    "lon":-155.0583,
     "alt":11,
     "station_name":"Hilo, Hilo International Airport (United States)"
   },
@@ -6400,8 +6400,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"7.45",
-    "lon":"151.8333",
+    "lat":7.45,
+    "lon":151.8333,
     "alt":3,
     "station_name":"Weno Island, Chuuk Int. Airp. (Micronesia, Federated States of)"
   },
@@ -6410,8 +6410,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"6.95",
-    "lon":"158.2",
+    "lat":6.95,
+    "lon":158.2,
     "alt":2,
     "station_name":"Pohnpei Island, Pohnpei Int. Airp. (Micronesia, Federated States of)"
   },
@@ -6421,8 +6421,8 @@
       "07",
       "90"
     ],
-    "lat":"8.7333",
-    "lon":"167.7333",
+    "lat":8.7333,
+    "lon":167.7333,
     "alt":3,
     "station_name":"Kwajalein, Bucholz AAF, Kwajalein KMR ATOL Airport (Marshall Islands)"
   },
@@ -6431,8 +6431,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"7.0683",
-    "lon":"171.2942",
+    "lat":7.0683,
+    "lon":171.2942,
     "alt":2,
     "station_name":"Majuro Atoll, Marshall Islands Int. Airp. (Marshall Islands)"
   },
@@ -6441,8 +6441,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"7.3687",
-    "lon":"134.5412",
+    "lat":7.3687,
+    "lon":134.5412,
     "alt":54,
     "station_name":"Babelthuap Island, Babelthuap/Koror Airport (Palau)"
   },
@@ -6451,8 +6451,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"9.4833",
-    "lon":"138.0667",
+    "lat":9.4833,
+    "lon":138.0667,
     "alt":28,
     "station_name":"Yap Island, Yap Int. Airp. (Micronesia, Federated States of)"
   },
@@ -6471,8 +6471,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"1.35",
-    "lon":"172.9167",
+    "lat":1.35,
+    "lon":172.9167,
     "alt":2,
     "station_name":"Tarawa (Kiribati)"
   },
@@ -6481,8 +6481,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-8.5167",
-    "lon":"179.2167",
+    "lat":-8.5167,
+    "lon":179.2167,
     "alt":1,
     "station_name":"Funafuti (Tuvalu)"
   },
@@ -6491,8 +6491,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-17.75",
-    "lon":"177.45",
+    "lat":-17.75,
+    "lon":177.45,
     "alt":13,
     "station_name":"Nandi (Fiji)"
   },
@@ -6501,8 +6501,8 @@
     "rs_types":[
       "82"
     ],
-    "lat":"-14.3383",
-    "lon":"-170.7192",
+    "lat":-14.3383,
+    "lon":-170.7192,
     "alt":3,
     "station_name":"Pago Pago / Int. Airport (United States Minor Outlying Islands)"
   },
@@ -6511,8 +6511,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"-9.8061",
-    "lon":"-139.0356",
+    "lat":-9.8061,
+    "lon":-139.0356,
     "alt":51,
     "station_name":"Atuona (French Polynesia)"
   },
@@ -6531,8 +6531,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"-23.1303",
-    "lon":"-134.9653",
+    "lat":-23.1303,
+    "lon":-134.9653,
     "alt":91,
     "station_name":"Rikitea (French Polynesia)"
   },
@@ -6541,8 +6541,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"-27.6183",
-    "lon":"-144.3347",
+    "lat":-27.6183,
+    "lon":-144.3347,
     "alt":1,
     "station_name":"Rapa (French Polynesia)"
   },
@@ -6551,8 +6551,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-36.7928",
-    "lon":"174.6214",
+    "lat":-36.7928,
+    "lon":174.6214,
     "alt":30,
     "station_name":"Whenuapai (New Zealand)"
   },
@@ -6561,8 +6561,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-40.9044",
-    "lon":"174.9839",
+    "lat":-40.9044,
+    "lon":174.9839,
     "alt":7,
     "station_name":"Paraparaumu Aerodrome (New Zealand)"
   },
@@ -6571,8 +6571,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-46.4108",
-    "lon":"168.3178",
+    "lat":-46.4108,
+    "lon":168.3178,
     "alt":4,
     "station_name":"Invercargill Aerodrome (New Zealand)"
   },
@@ -6581,8 +6581,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-12.4239",
-    "lon":"130.8925",
+    "lat":-12.4239,
+    "lon":130.8925,
     "alt":31,
     "station_name":"Darwin Airport (Australia)"
   },
@@ -6591,8 +6591,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-12.2742",
-    "lon":"136.8203",
+    "lat":-12.2742,
+    "lon":136.8203,
     "alt":52,
     "station_name":"Gove Airport (Australia)"
   },
@@ -6601,8 +6601,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-12.6778",
-    "lon":"141.9208",
+    "lat":-12.6778,
+    "lon":141.9208,
     "alt":20,
     "station_name":"Weipa Amo (Australia)"
   },
@@ -6611,8 +6611,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-17.9475",
-    "lon":"122.2353",
+    "lat":-17.9475,
+    "lon":122.2353,
     "alt":17,
     "station_name":"Broome Airport (Australia)"
   },
@@ -6621,8 +6621,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-16.2833",
-    "lon":"149.965",
+    "lat":-16.2833,
+    "lon":149.965,
     "alt":6,
     "station_name":"Willis Island (Australia)"
   },
@@ -6631,8 +6631,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-22.2406",
-    "lon":"114.0967",
+    "lat":-22.2406,
+    "lon":114.0967,
     "alt":5,
     "station_name":"Learmonth Airport (Australia)"
   },
@@ -6641,8 +6641,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-20.3725",
-    "lon":"118.6317",
+    "lat":-20.3725,
+    "lon":118.6317,
     "alt":9,
     "station_name":"Port Hedland Pardoo (Australia)"
   },
@@ -6651,8 +6651,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-23.795",
-    "lon":"133.8889",
+    "lat":-23.795,
+    "lon":133.8889,
     "alt":545,
     "station_name":"Alice Springs Aerodrome (Australia)"
   },
@@ -6661,8 +6661,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-20.6778",
-    "lon":"139.4875",
+    "lat":-20.6778,
+    "lon":139.4875,
     "alt":342,
     "station_name":"Mount Isa Amo (Australia)"
   },
@@ -6671,8 +6671,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-23.3753",
-    "lon":"150.4775",
+    "lat":-23.3753,
+    "lon":150.4775,
     "alt":10,
     "station_name":"Rockhampton Airport (Australia)"
   },
@@ -6681,8 +6681,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-28.8044",
-    "lon":"114.6989",
+    "lat":-28.8044,
+    "lon":114.6989,
     "alt":37,
     "station_name":"Geraldton Airport (Australia)"
   },
@@ -6691,8 +6691,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-26.6136",
-    "lon":"118.5372",
+    "lat":-26.6136,
+    "lon":118.5372,
     "alt":522,
     "station_name":"Meekatharra Airport (Australia)"
   },
@@ -6701,8 +6701,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-25.0342",
-    "lon":"128.3011",
+    "lat":-25.0342,
+    "lon":128.3011,
     "alt":580,
     "station_name":"Giles (Australia)"
   },
@@ -6711,8 +6711,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-26.4139",
-    "lon":"146.2558",
+    "lat":-26.4139,
+    "lon":146.2558,
     "alt":306,
     "station_name":"Charleville Airport (Australia)"
   },
@@ -6721,8 +6721,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-27.3917",
-    "lon":"153.1292",
+    "lat":-27.3917,
+    "lon":153.1292,
     "alt":4,
     "station_name":"Brisbane Airport M. O (Australia)"
   },
@@ -6731,8 +6731,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-31.9275",
-    "lon":"115.9764",
+    "lat":-31.9275,
+    "lon":115.9764,
     "alt":20,
     "station_name":"Belmont Perth Airport  (Australia)"
   },
@@ -6741,8 +6741,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-30.7847",
-    "lon":"121.4533",
+    "lat":-30.7847,
+    "lon":121.4533,
     "alt":367,
     "station_name":"Kalgoorlie Boulder Amo (Australia)"
   },
@@ -6751,8 +6751,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-33.83",
-    "lon":"121.8925",
+    "lat":-33.83,
+    "lon":121.8925,
     "alt":25,
     "station_name":"Esperance (Australia)"
   },
@@ -6761,8 +6761,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-32.1297",
-    "lon":"133.6975",
+    "lat":-32.1297,
+    "lon":133.6975,
     "alt":23,
     "station_name":"Ceduna Airport (Australia)"
   },
@@ -6771,8 +6771,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-31.1558",
-    "lon":"136.8053",
+    "lat":-31.1558,
+    "lon":136.8053,
     "alt":165,
     "station_name":"Woomera Aerodrome (Australia)"
   },
@@ -6781,8 +6781,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-34.9525",
-    "lon":"138.5203",
+    "lat":-34.9525,
+    "lon":138.5203,
     "alt":6,
     "station_name":"Adelaide Airport (Australia)"
   },
@@ -6791,8 +6791,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-31.4839",
-    "lon":"145.8294",
+    "lat":-31.4839,
+    "lon":145.8294,
     "alt":264,
     "station_name":"Cobar (Australia)"
   },
@@ -6801,8 +6801,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-34.9469",
-    "lon":"150.5353",
+    "lat":-34.9469,
+    "lon":150.5353,
     "alt":122,
     "station_name":"Nowra Ran Air Station (Australia)"
   },
@@ -6811,8 +6811,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-33.9464",
-    "lon":"151.1731",
+    "lat":-33.9464,
+    "lon":151.1731,
     "alt":6,
     "station_name":"Sydney Airport (Australia)"
   },
@@ -6821,8 +6821,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-32.7933",
-    "lon":"151.8358",
+    "lat":-32.7933,
+    "lon":151.8358,
     "alt":9,
     "station_name":"Williamtown Aerodrome (Australia)"
   },
@@ -6831,8 +6831,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-34.9414",
-    "lon":"117.8022",
+    "lat":-34.9414,
+    "lon":117.8022,
     "alt":71,
     "station_name":"Albany Airport (Australia)"
   },
@@ -6841,8 +6841,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-37.7472",
-    "lon":"140.7739",
+    "lat":-37.7472,
+    "lon":140.7739,
     "alt":65,
     "station_name":"Mount Gambier Aerodrome (Australia)"
   },
@@ -6851,8 +6851,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-37.6656",
-    "lon":"144.8322",
+    "lat":-37.6656,
+    "lon":144.8322,
     "alt":132,
     "station_name":"Melbourne Airport (Australia)"
   },
@@ -6861,8 +6861,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-35.1583",
-    "lon":"147.4572",
+    "lat":-35.1583,
+    "lon":147.4572,
     "alt":221,
     "station_name":"Wagga Airport (Australia)"
   },
@@ -6871,8 +6871,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"-42.8339",
-    "lon":"147.5033",
+    "lat":-42.8339,
+    "lon":147.5033,
     "alt":4,
     "station_name":"Hobart Airport (Australia)"
   },
@@ -6881,8 +6881,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-31.5422",
-    "lon":"159.0786",
+    "lat":-31.5422,
+    "lon":159.0786,
     "alt":5,
     "station_name":"Lord Howe Island (Australia)"
   },
@@ -6902,8 +6902,8 @@
       "41",
       "23"
     ],
-    "lat":"-54.4994",
-    "lon":"158.937",
+    "lat":-54.4994,
+    "lon":158.937,
     "alt":6,
     "station_name":"Macquarie Island (Australia)"
   },
@@ -6912,8 +6912,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-29.4897",
-    "lon":"149.8472",
+    "lat":-29.4897,
+    "lon":149.8472,
     "alt":214,
     "station_name":"Moree Mo (Australia)"
   },
@@ -6922,8 +6922,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"1.4833",
-    "lon":"110.3333",
+    "lat":1.4833,
+    "lon":110.3333,
     "alt":27,
     "station_name":"Kuching (Malaysia)"
   },
@@ -6932,8 +6932,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"3.2",
-    "lon":"113.0333",
+    "lat":3.2,
+    "lon":113.0333,
     "alt":2,
     "station_name":"Bintulu (Malaysia)"
   },
@@ -6942,8 +6942,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"5.9333",
-    "lon":"116.05",
+    "lat":5.9333,
+    "lon":116.05,
     "alt":3,
     "station_name":"Kota Kinabalu (Malaysia)"
   },
@@ -6952,8 +6952,8 @@
     "rs_types":[
       "54"
     ],
-    "lat":"4.2667",
-    "lon":"117.8833",
+    "lat":4.2667,
+    "lon":117.8833,
     "alt":18,
     "station_name":"Tawau (Malaysia)"
   },
@@ -6962,8 +6962,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"-0.15",
-    "lon":"109.4",
+    "lat":-0.15,
+    "lon":109.4,
     "alt":3,
     "station_name":"Pontianak / Supadio (Indonesia)"
   },
@@ -6972,8 +6972,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"-6.1167",
-    "lon":"106.65",
+    "lat":-6.1167,
+    "lon":106.65,
     "alt":8,
     "station_name":"Jakarta / Soekarno-Hatta (Indonesia)"
   },
@@ -6982,8 +6982,8 @@
     "rs_types":[
       "42"
     ],
-    "lat":"-12.1892",
-    "lon":"96.8344",
+    "lat":-12.1892,
+    "lon":96.8344,
     "alt":3,
     "station_name":"Cocos Island Airport (Christmas Island)"
   },
@@ -6992,8 +6992,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"1.5333",
-    "lon":"124.9167",
+    "lat":1.5333,
+    "lon":124.9167,
     "alt":80,
     "station_name":"Menado / Dr. Sam Ratulangi (Indonesia)"
   },
@@ -7002,8 +7002,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"-0.6833",
-    "lon":"119.7333",
+    "lat":-0.6833,
+    "lon":119.7333,
     "alt":6,
     "station_name":"Palu / Mutiara (Indonesia)"
   },
@@ -7012,8 +7012,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"-5.0667",
-    "lon":"119.55",
+    "lat":-5.0667,
+    "lon":119.55,
     "alt":14,
     "station_name":"Ujung Pandang / Hasanuddin (Indonesia)"
   },
@@ -7022,8 +7022,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"-10.1667",
-    "lon":"123.6667",
+    "lat":-10.1667,
+    "lon":123.6667,
     "alt":108,
     "station_name":"Kupang / El Tari (Indonesia)"
   },
@@ -7032,8 +7032,8 @@
     "rs_types":[
       "77"
     ],
-    "lat":"-0.8939",
-    "lon":"131.2858",
+    "lat":-0.8939,
+    "lon":131.2858,
     "alt":3,
     "station_name":"Sorong / Jefman (Indonesia)"
   },
@@ -7042,8 +7042,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"-1.1833",
-    "lon":"136.1167",
+    "lat":-1.1833,
+    "lon":136.1167,
     "alt":11,
     "station_name":"Biak / Mokmer (Indonesia)"
   },
@@ -7052,8 +7052,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"-3.7",
-    "lon":"128.0833",
+    "lat":-3.7,
+    "lon":128.0833,
     "alt":12,
     "station_name":"Ambon / Pattimura (Indonesia)"
   },
@@ -7062,8 +7062,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"-7.9833",
-    "lon":"131.3",
+    "lat":-7.9833,
+    "lon":131.3,
     "alt":24,
     "station_name":"Saumlaki (Indonesia)"
   },
@@ -7072,8 +7072,8 @@
     "rs_types":[
       "35"
     ],
-    "lat":"-8.4667",
-    "lon":"140.3833",
+    "lat":-8.4667,
+    "lon":140.3833,
     "alt":3,
     "station_name":"Merauke / Mopah (Indonesia)"
   },
@@ -7083,8 +7083,8 @@
       "11",
       "18"
     ],
-    "lat":"18.1828",
-    "lon":"120.5342",
+    "lat":18.1828,
+    "lon":120.5342,
     "alt":4,
     "station_name":"Laoag (Philippines)"
   },
@@ -7093,8 +7093,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"17.6375",
-    "lon":"121.7525",
+    "lat":17.6375,
+    "lon":121.7525,
     "alt":61,
     "station_name":"Tuguegarao (Philippines)"
   },
@@ -7103,8 +7103,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"16.4039",
-    "lon":"120.6014",
+    "lat":16.4039,
+    "lon":120.6014,
     "alt":1500,
     "station_name":"Baguio (Philippines)"
   },
@@ -7113,8 +7113,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"14.5814",
-    "lon":"121.3692",
+    "lat":14.5814,
+    "lon":121.3692,
     "alt":614,
     "station_name":"Tanay (Philippines)"
   },
@@ -7123,8 +7123,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"13.1506",
-    "lon":"123.7283",
+    "lat":13.1506,
+    "lon":123.7283,
     "alt":16,
     "station_name":"Legaspi (Philippines)"
   },
@@ -7143,8 +7143,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"9.7403",
-    "lon":"118.7586",
+    "lat":9.7403,
+    "lon":118.7586,
     "alt":14,
     "station_name":"Puerto Princesa (Philippines)"
   },
@@ -7153,8 +7153,8 @@
     "rs_types":[
       "41"
     ],
-    "lat":"10.3222",
-    "lon":"123.98",
+    "lat":10.3222,
+    "lon":123.98,
     "alt":23,
     "station_name":"Mactan (Philippines)"
   },
@@ -7163,8 +7163,8 @@
     "rs_types":[
       "11"
     ],
-    "lat":"7.1278",
-    "lon":"125.6547",
+    "lat":7.1278,
+    "lon":125.6547,
     "alt":17,
     "station_name":"Davao Airport (Philippines)"
   }
