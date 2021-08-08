@@ -2281,7 +2281,7 @@ function addPosition(position) {
             // calculate vertical rate
             if (dtt > 10) {
                 var rate = (position.gps_alt - vehicle.curr_position.gps_alt) / dt;
-                if (!isNaN(rate) && dt != 0) {
+                if (!isNaN(rate) && isFinite(rate) && dt != 0) {
                     vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
                 }
             } else {
@@ -2294,7 +2294,7 @@ function addPosition(position) {
             // calculate horizontal rate
             if (dtt > 10) {
                 horizontal_rate_temp = new_latlng.distanceTo(new L.LatLng(vehicle.curr_position.gps_lat, vehicle.curr_position.gps_lon)) / dt;
-                if (!isNaN(horizontal_rate_temp) && dt != 0) {
+                if (!isNaN(horizontal_rate_temp) && isFinite(horizontal_rate_temp) && dt != 0) {
                     vehicle.horizontal_rate = horizontal_rate_temp;
                 }
             } else {
