@@ -672,6 +672,7 @@
   {"station":"94802","rs_types":["42"],"lat":-34.9414,"lon":117.8022,"alt":71,"station_name":"Albany Airport (Australia)"},
   {"station":"94821","rs_types":["42"],"lat":-37.7472,"lon":140.7739,"alt":65,"station_name":"Mount Gambier Aerodrome (Australia)"},
   {"station":"94866","rs_types":["41"],"lat":-37.6656,"lon":144.8322,"alt":132,"station_name":"Melbourne Airport (Australia)"},
+  {"station":"-1","rs_types":["41"],"lat":-37.689883,"lon":144.947375,"alt":119,"station_name":"Melbourne BoM Training Annex (Training and Ozonesondes) (Australia)"},
   {"station":"94910","rs_types":["42"],"lat":-35.1583,"lon":147.4572,"alt":221,"station_name":"Wagga Airport (Australia)"},
   {"station":"94975","rs_types":["41"],"lat":-42.8339,"lon":147.5033,"alt":4,"station_name":"Hobart Airport (Australia)"},
   {"station":"94995","rs_types":["42"],"lat":-31.5422,"lon":159.0786,"alt":5,"station_name":"Lord Howe Island (Australia)"},
