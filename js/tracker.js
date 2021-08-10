@@ -345,6 +345,8 @@ function clean_refresh(text, force, history_step) {
     if(text == wvar.mode && !force) return false;
     stopAjax();
 
+    live_data_buffer.positions.position=[];
+
     if (clientActive) {
         clientActive = false;
         if (!document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
