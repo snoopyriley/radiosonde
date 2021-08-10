@@ -345,6 +345,8 @@ function clean_refresh(text, force, history_step) {
     if(text == wvar.mode && !force) return false;
     stopAjax();
 
+    live_data_buffer.positions.position=[];
+
     if (clientActive) {
         clientActive = false;
         if (!document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
@@ -3290,14 +3292,6 @@ function updateReceiverMarker(receiver) {
 
   // init a marker if the receiver doesn't already have one
   if(!receiver.marker) {
-    
-    if (receiver.software == "radiosonde_auto_rx") {
-        //future option to show different icon per software
-    } else if (receiver.software == "rdzTTGO") {
-        //future option to show different icon per software
-    } else {
-        //future option to show different icon per software
-    }
 
     receiverIcon = new L.icon({
         iconUrl: host_url + markers_url + "antenna-green.png",
@@ -3311,7 +3305,10 @@ function updateReceiverMarker(receiver) {
         title: receiver.name,
         zIndexOffset: Z_STATION, 
     });
-    
+
+    //receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "gold" }).setContent(receiver.description);
+    //receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "silver" }).setContent(receiver.description);
+    //receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "bronze" }).setContent(receiver.description);
     receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
 
     receiver.marker.bindPopup(receiver.infobox);
