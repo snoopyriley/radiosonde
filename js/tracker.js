@@ -3317,7 +3317,7 @@ function updateReceiverMarker(receiver) {
   if(!receiver.marker) {
 
     receiverIcon = new L.icon({
-        iconUrl: host_url + markers_url + "antenna.png",
+        iconUrl: host_url + markers_url + "antenna-white.png",
         iconSize: [26, 36],
         iconAnchor: [13, 18],
         popupAnchor: [0, -18]
@@ -3326,25 +3326,25 @@ function updateReceiverMarker(receiver) {
     receiverIconGold = new L.icon({
         iconUrl: host_url + markers_url + "antenna-gold.png",
         zIndexOffset: 100,
-        iconSize: [52, 72],
-        iconAnchor: [26, 72],
-        popupAnchor: [0, -72]
+        iconSize: [26, 36],
+        iconAnchor: [13, 18],
+        popupAnchor: [0, -18]
     })
 
     receiverIconSilver = new L.icon({
         iconUrl: host_url + markers_url + "antenna-silver.png",
         zIndexOffset: 90,
-        iconSize: [52, 72],
-        iconAnchor: [26, 72],
-        popupAnchor: [0, -72]
+        iconSize: [26, 36],
+        iconAnchor: [13, 18],
+        popupAnchor: [0, -18]
     })
 
     receiverIconBronze = new L.icon({
         iconUrl: host_url + markers_url + "antenna-bronze.png",
         zIndexOffset: 80,
-        iconSize: [52, 72],
-        iconAnchor: [26, 72],
-        popupAnchor: [0, -72]
+        iconSize: [26, 36],
+        iconAnchor: [13, 18],
+        popupAnchor: [0, -18]
     })
 
     if (pledges.hasOwnProperty(receiver.name)) {
