@@ -15,6 +15,9 @@ var clientTopic;
 var messageRate = 0;
 var messageRateAverage = 10;
 
+var pledges = {};
+var pledges_loaded = false
+
 var host_url = "";
 var markers_url = "img/markers/";
 var vehicles = {};
@@ -420,7 +423,7 @@ function load() {
         zoomControl: false,
         zoomAnimationThreshold: 0,
         center: [53.467511,-2.233894],
-        layers: [osm],
+        layers: baseMaps["Mapnik"],
         preferCanvas: true,
     });
 
@@ -2979,7 +2982,6 @@ function liveData() {
             clientTopic = "sondes/#";
         }
         clientConnected = true;
-        clientActive = true;
         $("#stText").text("websocket |");
     };
 
@@ -3117,6 +3119,27 @@ function refreshSingleNew(serial) {
     });
 }
 
+function refreshPatreons() {
+
+    patreon_url = "https://api.v2.sondehub.org/pledges";
+
+    $.ajax({
+        type: "GET",
+        url: patreon_url,
+        dataType: "json",
+        success: function(response, textStatus) {
+            pledges = response;
+            pledges_loaded = true;
+        },
+        error: function() {
+            pledges_loaded = true;
+        },
+        complete: function(request, textStatus) {
+            refreshReceivers();
+        }
+    });
+}
+
 function refreshReceivers() {
     if(offline.get('opt_hide_receivers')) {
         refreshNewReceivers(true);
@@ -3236,7 +3259,7 @@ function startAjax() {
     //periodical = setInterval(refresh, timer_seconds * 1000);
     refresh();
 
-    refreshReceivers();
+    refreshPatreons();
     refreshRecoveries();
 }
 
@@ -3294,23 +3317,68 @@ function updateReceiverMarker(receiver) {
   if(!receiver.marker) {
 
     receiverIcon = new L.icon({
-        iconUrl: host_url + markers_url + "antenna-green.png",
-        iconSize: [26, 34],
-        iconAnchor: [13, 34],
-        popupAnchor: [0, -34]
-    }),
+        iconUrl: host_url + markers_url + "antenna.png",
+        iconSize: [26, 36],
+        iconAnchor: [13, 18],
+        popupAnchor: [0, -18]
+    })
 
-    receiver.marker = new L.Marker(latlng, {
-        icon: receiverIcon,
-        title: receiver.name,
-        zIndexOffset: Z_STATION, 
-    });
+    receiverIconGold = new L.icon({
+        iconUrl: host_url + markers_url + "antenna-gold.png",
+        zIndexOffset: 100,
+        iconSize: [52, 72],
+        iconAnchor: [26, 72],
+        popupAnchor: [0, -72]
+    })
 
-    //receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "gold" }).setContent(receiver.description);
-    //receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "silver" }).setContent(receiver.description);
-    //receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "bronze" }).setContent(receiver.description);
-    receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
+    receiverIconSilver = new L.icon({
+        iconUrl: host_url + markers_url + "antenna-silver.png",
+        zIndexOffset: 90,
+        iconSize: [52, 72],
+        iconAnchor: [26, 72],
+        popupAnchor: [0, -72]
+    })
 
+    receiverIconBronze = new L.icon({
+        iconUrl: host_url + markers_url + "antenna-bronze.png",
+        zIndexOffset: 80,
+        iconSize: [52, 72],
+        iconAnchor: [26, 72],
+        popupAnchor: [0, -72]
+    })
+
+    if (pledges.hasOwnProperty(receiver.name)) {
+        if (pledges[receiver.name].icon == "bronze") {
+            receiver.marker = new L.Marker(latlng, {
+                icon: receiverIconBronze,
+                title: receiver.name,
+                zIndexOffset: Z_STATION, 
+            });
+            receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "bronze" }).setContent(receiver.description);
+        } else if (pledges[receiver.name].icon == "silver") {
+            receiver.marker = new L.Marker(latlng, {
+                icon: receiverIconSilver,
+                title: receiver.name,
+                zIndexOffset: Z_STATION, 
+            });
+            receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "silver" }).setContent(receiver.description);
+        } else {
+            receiver.marker = new L.Marker(latlng, {
+                icon: receiverIconGold,
+                title: receiver.name,
+                zIndexOffset: Z_STATION, 
+            });
+            receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "gold" }).setContent(receiver.description);
+        };
+    } else {
+        receiver.marker = new L.Marker(latlng, {
+            icon: receiverIcon,
+            title: receiver.name,
+            zIndexOffset: Z_STATION, 
+        });
+        receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
+    }
+    
     receiver.marker.bindPopup(receiver.infobox);
 
     receiverCanvas.addMarker(receiver.marker);
