@@ -488,7 +488,14 @@ function load() {
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
     //Receiver canvas
-    receiverCanvas = new L.canvasIconLayer();
+    receiverCanvas = new L.markerClusterGroup({
+        iconCreateFunction: function(cluster) {
+            var childCount = cluster.getChildCount();
+            var c = ' marker-cluster-station';
+            return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
+        },
+        showCoverageOnHover: false,
+    });
     receiverCanvas.addTo(map);
     
     // initalize nite overlay
@@ -611,7 +618,15 @@ function setTimeValue() {
 
 function showLaunchSites() {
     if (!launches) {
-        launches = new L.layerGroup([], {attribution: "© <a href='https://github.com/rs1729/RS/issues/15' target='_blank' rel='noopener'>rs1729</a>"});
+        launches = new L.markerClusterGroup({
+            attribution: "© <a href='https://github.com/rs1729/RS/issues/15' target='_blank' rel='noopener'>rs1729</a>",
+            iconCreateFunction: function(cluster) {
+                var childCount = cluster.getChildCount();
+                var c = ' marker-cluster-launch';
+                return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
+            },
+            showCoverageOnHover: false,
+        });
         $.getJSON("launchSites.json", function(json) {
             for (var key in json) {
                 if (json.hasOwnProperty(key)) {
@@ -3319,72 +3334,41 @@ function updateReceiverMarker(receiver) {
   // init a marker if the receiver doesn't already have one
   if(!receiver.marker) {
 
-    receiverIcon = new L.icon({
-        iconUrl: host_url + markers_url + "antenna-white.png",
-        iconSize: [26, 36],
-        iconAnchor: [13, 18],
-        popupAnchor: [0, -18]
-    })
-
-    receiverIconGold = new L.icon({
-        iconUrl: host_url + markers_url + "antenna-gold.png",
-        zIndexOffset: 100,
-        iconSize: [26, 36],
-        iconAnchor: [13, 18],
-        popupAnchor: [0, -18]
-    })
-
-    receiverIconSilver = new L.icon({
-        iconUrl: host_url + markers_url + "antenna-silver.png",
-        zIndexOffset: 90,
-        iconSize: [26, 36],
-        iconAnchor: [13, 18],
-        popupAnchor: [0, -18]
-    })
-
-    receiverIconBronze = new L.icon({
-        iconUrl: host_url + markers_url + "antenna-bronze.png",
-        zIndexOffset: 80,
-        iconSize: [26, 36],
-        iconAnchor: [13, 18],
-        popupAnchor: [0, -18]
-    })
-
     if (pledges.hasOwnProperty(receiver.name)) {
         if (pledges[receiver.name].icon == "bronze") {
-            receiver.marker = new L.Marker(latlng, {
-                icon: receiverIconBronze,
-                title: receiver.name,
-                zIndexOffset: Z_STATION, 
+            receiver.marker = new L.CircleMarker(latlng, {
+                radius: 8,
+                fillOpacity: 0.6,
+                color: "#CD7F32",
             });
             receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "bronze" }).setContent(receiver.description);
         } else if (pledges[receiver.name].icon == "silver") {
-            receiver.marker = new L.Marker(latlng, {
-                icon: receiverIconSilver,
-                title: receiver.name,
-                zIndexOffset: Z_STATION, 
+            receiver.marker = new L.CircleMarker(latlng, {
+                radius: 8,
+                fillOpacity: 0.6,
+                color: "#C0C0C0",
             });
             receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "silver" }).setContent(receiver.description);
         } else {
-            receiver.marker = new L.Marker(latlng, {
-                icon: receiverIconGold,
-                title: receiver.name,
-                zIndexOffset: Z_STATION, 
+            receiver.marker = new L.CircleMarker(latlng, {
+                radius: 8,
+                fillOpacity: 0.6,
+                color: "#FFD700",
             });
             receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "gold" }).setContent(receiver.description);
         };
     } else {
-        receiver.marker = new L.Marker(latlng, {
-            icon: receiverIcon,
-            title: receiver.name,
-            zIndexOffset: Z_STATION, 
+        receiver.marker = new L.CircleMarker(latlng, {
+            radius: 8,
+            fillOpacity: 0.6,
+            color: "#008000",
         });
         receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
     }
     
     receiver.marker.bindPopup(receiver.infobox);
 
-    receiverCanvas.addMarker(receiver.marker);
+    receiverCanvas.addLayer(receiver.marker);
   } else {
     receiver.marker.setLatLng(latlng);
     receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
@@ -3479,7 +3463,7 @@ function updateReceivers(r) {
         }
         else {
             map.removeLayer(e.infobox);
-            receiverCanvas.removeMarker(e.marker);
+            receiverCanvas.removeLayer(e.marker);
 
             // remove from arrays
             receivers.splice(i,1);
