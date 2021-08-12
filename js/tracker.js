@@ -488,14 +488,7 @@ function load() {
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
     //Receiver canvas
-    receiverCanvas = new L.markerClusterGroup({
-        iconCreateFunction: function(cluster) {
-            var childCount = cluster.getChildCount();
-            var c = ' marker-cluster-station';
-            return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
-        },
-        showCoverageOnHover: false,
-    });
+    receiverCanvas = new L.markerGroup();
     receiverCanvas.addTo(map);
     
     // initalize nite overlay
@@ -618,15 +611,7 @@ function setTimeValue() {
 
 function showLaunchSites() {
     if (!launches) {
-        launches = new L.markerClusterGroup({
-            attribution: "© <a href='https://github.com/rs1729/RS/issues/15' target='_blank' rel='noopener'>rs1729</a>",
-            iconCreateFunction: function(cluster) {
-                var childCount = cluster.getChildCount();
-                var c = ' marker-cluster-launch';
-                return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
-            },
-            showCoverageOnHover: false,
-        });
+        launches = new new L.markerGroup();
         $.getJSON("launchSites.json", function(json) {
             for (var key in json) {
                 if (json.hasOwnProperty(key)) {
