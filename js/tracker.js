@@ -488,7 +488,7 @@ function load() {
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
     //Receiver canvas
-    receiverCanvas = new L.markerGroup();
+    receiverCanvas = new L.LayerGroup();
     receiverCanvas.addTo(map);
     
     // initalize nite overlay
@@ -611,7 +611,7 @@ function setTimeValue() {
 
 function showLaunchSites() {
     if (!launches) {
-        launches = new new L.markerGroup();
+        launches = new L.LayerGroup();
         $.getJSON("launchSites.json", function(json) {
             for (var key in json) {
                 if (json.hasOwnProperty(key)) {
