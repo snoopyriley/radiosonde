@@ -3344,7 +3344,7 @@ function updateReceiverMarker(receiver) {
         };
     } else {
         receiver.marker = new L.CircleMarker(latlng, {
-            radius: 8,
+            radius: 6,
             fillOpacity: 0.6,
             color: "#008000",
         });
