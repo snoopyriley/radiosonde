@@ -7,7 +7,7 @@ var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 
 var livedata = "wss://ws-reader.v2.sondehub.org/";
-var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000);
+var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000000000);
 var client = new Paho.Client(livedata, clientID);
 var clientConnected = false;
 var clientActive = false;
