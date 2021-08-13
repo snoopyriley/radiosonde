@@ -3605,34 +3605,40 @@ function updateRecoveryMarker(recovery) {
 
       if(!r) return;
       ls_recoveries = true;
+
+      var dateNow = Date.now();
+        
   
       var i = 0, ii = r.length;
       for(; i < ii; i++) {
-          var lat = parseFloat(r[i].lat);
-          var lon = parseFloat(r[i].lon);
-  
-          if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
-  
-          var r_index = $.inArray(r[i].serial, recovery_names);
-  
-          if(r_index == -1) {
-              recovery_names.push(r[i].serial);
-              r_index = recovery_names.length - 1;
-              recoveries[r_index] = {marker: null, infobox: null};
-          }
-  
-          var recovery = recoveries[r_index];
-          recovery.serial = r[i].serial;
-          recovery.lat = lat;
-          recovery.lon = lon;
-          recovery.recovered_by = r[i].recovered_by;
-          recovery.alt = parseFloat(r[i].alt);
-          recovery.recovered = r[i].recovered;
-          recovery.description = r[i].description;
-          recovery.datetime = r[i].datetime;
-          recovery.fresh = true;
-  
-          updateRecoveryMarker(recovery);
+          var date = Date.parse(r[i].datetime);
+          if (((dateNow - date) / 86400000) < 3) {
+            var lat = parseFloat(r[i].lat);
+            var lon = parseFloat(r[i].lon);
+    
+            if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
+    
+            var r_index = $.inArray(r[i].serial, recovery_names);
+    
+            if(r_index == -1) {
+                recovery_names.push(r[i].serial);
+                r_index = recovery_names.length - 1;
+                recoveries[r_index] = {marker: null, infobox: null};
+            }
+    
+            var recovery = recoveries[r_index];
+            recovery.serial = r[i].serial;
+            recovery.lat = lat;
+            recovery.lon = lon;
+            recovery.recovered_by = r[i].recovered_by;
+            recovery.alt = parseFloat(r[i].alt);
+            recovery.recovered = r[i].recovered;
+            recovery.description = r[i].description;
+            recovery.datetime = r[i].datetime;
+            recovery.fresh = true;
+    
+            updateRecoveryMarker(recovery);
+        }
       }
   
       // clear old recovery markers
@@ -3708,11 +3714,13 @@ function updateLeaderboardPane(r){
     if(!r) return;
 
     html = "";
-    var leaderboard = [];
+    var leaderboard = {};
+    var recovered = 0;
 
     var i = 0, ii = r.length;
     for(; i < ii; i++) {
         if (r[i].recovered) {
+            recovered+=1;
             if (leaderboard.hasOwnProperty(r[i].recovered_by)) {
                 leaderboard[r[i].recovered_by] = leaderboard[r[i].recovered_by] + 1;
             } else {
@@ -3731,6 +3739,10 @@ function updateLeaderboardPane(r){
     });
 
     var list = sortable.slice(0,5);
+
+    html += "<div><b>Total sondes recovered: " + recovered + "/" + r.length + "</b></div>";
+    html += "<div><b>Total hunters: " + sortable.length + "</b></div><br>";
+    html += "<div><b>Leaderboard: </b></div>";
 
     for (var i = 0; i < list.length; i++) {
         html += "<div><b>" + (parseInt(i)+1) + ". </b>" + list[i][0] + " - " + list[i][1] + "</div>";
