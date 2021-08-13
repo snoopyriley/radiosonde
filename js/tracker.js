@@ -7,13 +7,16 @@ var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 
 var livedata = "wss://ws-reader.v2.sondehub.org/";
-var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000);
+var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000000000);
 var client = new Paho.Client(livedata, clientID);
 var clientConnected = false;
 var clientActive = false;
 var clientTopic;
 var messageRate = 0;
 var messageRateAverage = 10;
+
+var pledges = {};
+var pledges_loaded = false
 
 var host_url = "";
 var markers_url = "img/markers/";
@@ -345,6 +348,8 @@ function clean_refresh(text, force, history_step) {
     if(text == wvar.mode && !force) return false;
     stopAjax();
 
+    live_data_buffer.positions.position=[];
+
     if (clientActive) {
         clientActive = false;
         if (!document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
@@ -361,8 +366,8 @@ function clean_refresh(text, force, history_step) {
             client.subscribe(topic);
             clientTopic = topic;
         } else {
-            client.subscribe("sondes/#");
-            clientTopic = "sondes/#";
+            client.subscribe("batch");
+            clientTopic = "batch";
         }
     } catch (err) {}
 
@@ -418,7 +423,7 @@ function load() {
         zoomControl: false,
         zoomAnimationThreshold: 0,
         center: [53.467511,-2.233894],
-        layers: [osm],
+        layers: baseMaps["Mapnik"],
         preferCanvas: true,
     });
 
@@ -483,7 +488,7 @@ function load() {
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
     //Receiver canvas
-    receiverCanvas = new L.canvasIconLayer();
+    receiverCanvas = new L.LayerGroup();
     receiverCanvas.addTo(map);
     
     // initalize nite overlay
@@ -606,7 +611,7 @@ function setTimeValue() {
 
 function showLaunchSites() {
     if (!launches) {
-        launches = new L.layerGroup([], {attribution: "© <a href='https://github.com/rs1729/RS/issues/15' target='_blank' rel='noopener'>rs1729</a>"});
+        launches = new L.LayerGroup();
         $.getJSON("launchSites.json", function(json) {
             for (var key in json) {
                 if (json.hasOwnProperty(key)) {
@@ -633,7 +638,7 @@ function showLaunchSites() {
                     sondes = sondes.replace(new RegExp("\\b77\\b"), "M10 (possible to track)");
                     sondes = sondes.replace(new RegExp("\\b82\\b"), "LMS6-1680 (possible to track)");
                     sondes = sondes.replace(new RegExp("\\b84\\b"), "iMet-54 (possible to track)");
-                    var marker = new L.circleMarker(latlon, {color: 'black', radius: 8});
+                    var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
                     var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes);
                     marker.bindPopup(popup);
                     launches.addLayer(marker);
@@ -2671,82 +2676,164 @@ function formatData(data, live) {
     response.positions = {};
     var dataTemp = [];
     if (live) {
-        var dataTempEntry = {};
-        var station = data.uploader_callsign;
-        dataTempEntry.callsign = {};
-        //check if other stations also received this packet
-        if (vehicles.hasOwnProperty(data.serial)) {
-            if (data.datetime == vehicles[data.serial].curr_position.gps_time) {
-                for (let key in vehicles[data.serial].curr_position.callsign) {
-                    if (vehicles[data.serial].curr_position.callsign.hasOwnProperty(key)) {
-                        if (key != station) {
-                            dataTempEntry.callsign[key] = {};
-                            if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("snr")) {
-                                dataTempEntry.callsign[key].snr = vehicles[data.serial].curr_position.callsign[key].snr;
+        if (data.length) {
+            for (let entry in data) {
+                var dataTempEntry = {};
+                var station = data[entry].uploader_callsign;
+                dataTempEntry.callsign = {};
+                //check if other stations also received this packet
+                if (vehicles.hasOwnProperty(data[entry].serial)) {
+                    if (data[entry].datetime == vehicles[data[entry].serial].curr_position.gps_time) {
+                        for (let key in vehicles[data[entry].serial].curr_position.callsign) {
+                            if (vehicles[data[entry].serial].curr_position.callsign.hasOwnProperty(key)) {
+                                if (key != station) {
+                                    dataTempEntry.callsign[key] = {};
+                                    if (vehicles[data[entry].serial].curr_position.callsign[key].hasOwnProperty("snr")) {
+                                        dataTempEntry.callsign[key].snr = vehicles[data[entry].serial].curr_position.callsign[key].snr;
+                                    }
+                                    if (vehicles[data[entry].serial].curr_position.callsign[key].hasOwnProperty("rssi")) {
+                                        dataTempEntry.callsign[key].rssi = vehicles[data[entry].serial].curr_position.callsign[key].rssi;
+                                    }
+                                }
                             }
-                            if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("rssi")) {
-                                dataTempEntry.callsign[key].rssi = vehicles[data.serial].curr_position.callsign[key].rssi;
+                        }
+                    }
+                }
+                dataTempEntry.callsign[station] = {};
+                if (data[entry].snr) {
+                    dataTempEntry.callsign[station].snr = data[entry].snr;
+                }
+                if (data[entry].rssi) {
+                    dataTempEntry.callsign[station].rssi = data[entry].rssi;
+                }
+                dataTempEntry.gps_alt = data[entry].alt;
+                dataTempEntry.gps_lat = data[entry].lat;
+                dataTempEntry.gps_lon = data[entry].lon;
+                if (data[entry].heading) {
+                    dataTempEntry.gps_heading = data[entry].heading;
+                }
+                dataTempEntry.gps_time = data[entry].datetime;
+                dataTempEntry.server_time = data[entry].datetime;
+                dataTempEntry.vehicle = data[entry].serial;
+                dataTempEntry.position_id = data[entry].serial + "-" + data[entry].datetime;
+                dataTempEntry.data = {};
+                if (data[entry].batt) {
+                    dataTempEntry.data.batt = data[entry].batt;
+                }
+                if (data[entry].burst_timer) {
+                    dataTempEntry.data.burst_timer = data[entry].burst_timer;
+                }
+                if (data[entry].frequency) {
+                    dataTempEntry.data.frequency = data[entry].frequency;
+                }
+                if (data[entry].humidity) {
+                    dataTempEntry.data.humidity = data[entry].humidity;
+                }
+                if (data[entry].manufacturer) {
+                    dataTempEntry.data.manufacturer = data[entry].manufacturer;
+                }
+                if (data[entry].sats) {
+                    dataTempEntry.data.sats = data[entry].sats;
+                }
+                if (data[entry].temp) {
+                    dataTempEntry.data.temperature_external = data[entry].temp;
+                }
+                if (data[entry].type) {
+                    dataTempEntry.data.type = data[entry].type;
+                    dataTempEntry.type = data[entry].type;
+                }
+                if (data[entry].subtype) {
+                    dataTempEntry.data.type = data[entry].subtype;
+                    dataTempEntry.type = data[entry].subtype;
+                }
+                if (data[entry].pressure) {
+                    dataTempEntry.data.pressure = data[entry].pressure;
+                }
+                if (data[entry].xdata) {
+                    dataTempEntry.data.xdata = data[entry].xdata;
+                }
+                if (data[entry].serial.toLowerCase() != "xxxxxxxx") {
+                    dataTemp.push(dataTempEntry);
+                }
+            }
+        } else {
+            var dataTempEntry = {};
+            var station = data.uploader_callsign;
+            dataTempEntry.callsign = {};
+            //check if other stations also received this packet
+            if (vehicles.hasOwnProperty(data.serial)) {
+                if (data.datetime == vehicles[data.serial].curr_position.gps_time) {
+                    for (let key in vehicles[data.serial].curr_position.callsign) {
+                        if (vehicles[data.serial].curr_position.callsign.hasOwnProperty(key)) {
+                            if (key != station) {
+                                dataTempEntry.callsign[key] = {};
+                                if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("snr")) {
+                                    dataTempEntry.callsign[key].snr = vehicles[data.serial].curr_position.callsign[key].snr;
+                                }
+                                if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("rssi")) {
+                                    dataTempEntry.callsign[key].rssi = vehicles[data.serial].curr_position.callsign[key].rssi;
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-        dataTempEntry.callsign[station] = {};
-        if (data.snr) {
-            dataTempEntry.callsign[station].snr = data.snr;
-        }
-        if (data.rssi) {
-            dataTempEntry.callsign[station].rssi = data.rssi;
-        }
-        dataTempEntry.gps_alt = data.alt;
-        dataTempEntry.gps_lat = data.lat;
-        dataTempEntry.gps_lon = data.lon;
-        if (data.heading) {
-            dataTempEntry.gps_heading = data.heading;
-        }
-        dataTempEntry.gps_time = data.datetime;
-        dataTempEntry.server_time = data.datetime;
-        dataTempEntry.vehicle = data.serial;
-        dataTempEntry.position_id = data.serial + "-" + data.datetime;
-        dataTempEntry.data = {};
-        if (data.batt) {
-            dataTempEntry.data.batt = data.batt;
-        }
-        if (data.burst_timer) {
-            dataTempEntry.data.burst_timer = data.burst_timer;
-        }
-        if (data.frequency) {
-            dataTempEntry.data.frequency = data.frequency;
-        }
-        if (data.humidity) {
-            dataTempEntry.data.humidity = data.humidity;
-        }
-        if (data.manufacturer) {
-            dataTempEntry.data.manufacturer = data.manufacturer;
-        }
-        if (data.sats) {
-            dataTempEntry.data.sats = data.sats;
-        }
-        if (data.temp) {
-            dataTempEntry.data.temperature_external = data.temp;
-        }
-        if (data.type) {
-            dataTempEntry.data.type = data.type;
-            dataTempEntry.type = data.type;
-        }
-        if (data.subtype) {
-            dataTempEntry.data.type = data.subtype;
-            dataTempEntry.type = data.subtype;
-        }
-        if (data.pressure) {
-            dataTempEntry.data.pressure = data.pressure;
-        }
-        if (data.xdata) {
-            dataTempEntry.data.xdata = data.xdata;
-        }
-        if (data.serial.toLowerCase() != "xxxxxxxx") {
-            dataTemp.push(dataTempEntry);
+            dataTempEntry.callsign[station] = {};
+            if (data.snr) {
+                dataTempEntry.callsign[station].snr = data.snr;
+            }
+            if (data.rssi) {
+                dataTempEntry.callsign[station].rssi = data.rssi;
+            }
+            dataTempEntry.gps_alt = data.alt;
+            dataTempEntry.gps_lat = data.lat;
+            dataTempEntry.gps_lon = data.lon;
+            if (data.heading) {
+                dataTempEntry.gps_heading = data.heading;
+            }
+            dataTempEntry.gps_time = data.datetime;
+            dataTempEntry.server_time = data.datetime;
+            dataTempEntry.vehicle = data.serial;
+            dataTempEntry.position_id = data.serial + "-" + data.datetime;
+            dataTempEntry.data = {};
+            if (data.batt) {
+                dataTempEntry.data.batt = data.batt;
+            }
+            if (data.burst_timer) {
+                dataTempEntry.data.burst_timer = data.burst_timer;
+            }
+            if (data.frequency) {
+                dataTempEntry.data.frequency = data.frequency;
+            }
+            if (data.humidity) {
+                dataTempEntry.data.humidity = data.humidity;
+            }
+            if (data.manufacturer) {
+                dataTempEntry.data.manufacturer = data.manufacturer;
+            }
+            if (data.sats) {
+                dataTempEntry.data.sats = data.sats;
+            }
+            if (data.temp) {
+                dataTempEntry.data.temperature_external = data.temp;
+            }
+            if (data.type) {
+                dataTempEntry.data.type = data.type;
+                dataTempEntry.type = data.type;
+            }
+            if (data.subtype) {
+                dataTempEntry.data.type = data.subtype;
+                dataTempEntry.type = data.subtype;
+            }
+            if (data.pressure) {
+                dataTempEntry.data.pressure = data.pressure;
+            }
+            if (data.xdata) {
+                dataTempEntry.data.xdata = data.xdata;
+            }
+            if (data.serial.toLowerCase() != "xxxxxxxx") {
+                dataTemp.push(dataTempEntry);
+            }
         }
     } else if (data.length == null) {
         for (let key in data) {
@@ -2809,7 +2896,9 @@ function formatData(data, live) {
                         if (data[key][i].xdata) {
                             dataTempEntry.data.xdata = data[key][i].xdata;
                         }
-                        dataTemp.push(dataTempEntry);
+                        if (data[key][i].serial.toLowerCase() != "xxxxxxxx") {
+                            dataTemp.push(dataTempEntry);
+                        }
                     }
                 }
             }
@@ -2973,11 +3062,10 @@ function liveData() {
             client.subscribe(topic);
             clientTopic = topic;
         } else {
-            client.subscribe("sondes/#");
-            clientTopic = "sondes/#";
+            client.subscribe("batch");
+            clientTopic = "batch";
         }
         clientConnected = true;
-        clientActive = true;
         $("#stText").text("websocket |");
     };
 
@@ -3009,18 +3097,22 @@ function liveData() {
         setTimeout(function(){
             messageRate -= 1;
           }, (1000 * messageRateAverage));
-        var messageCalculatedRate = Math.round(messageRate / messageRateAverage / 10) * 10;
         if ( document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
             document.getElementById("stTimer").classList.remove('friendly-dtime');
         }
-        $("#stTimer").text(messageCalculatedRate + " msg/s");
+        $("#stTimer").text(Math.round(messageRate/10) + " msg/s");
         $("#updatedText").text(" ");
         var dateNow = new Date().getTime();
         try {
             if (clientActive) {
                 var frame = JSON.parse(message.payloadString.toString());
                 if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1 || wvar.query == frame.serial) {
-                    if ((dateNow - new Date(frame.time_received).getTime()) < 30000) {
+                    if (frame.length == null) {
+                        var tempDate = new Date(frame.time_received).getTime();
+                    } else {
+                        var tempDate = new Date(frame[frame.length - 1].time_received).getTime()
+                    }
+                    if ((dateNow - tempDate) < 30000) {
                         var test = formatData(frame, true);
                         if (clientActive) {
                             live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
@@ -3112,6 +3204,27 @@ function refreshSingleNew(serial) {
           clearTimeout(periodical_focus_new);
           ajax_inprogress_single_new = false;
       }
+    });
+}
+
+function refreshPatreons() {
+
+    patreon_url = "https://api.v2.sondehub.org/pledges";
+
+    $.ajax({
+        type: "GET",
+        url: patreon_url,
+        dataType: "json",
+        success: function(response, textStatus) {
+            pledges = response;
+            pledges_loaded = true;
+        },
+        error: function() {
+            pledges_loaded = true;
+        },
+        complete: function(request, textStatus) {
+            refreshReceivers();
+        }
     });
 }
 
@@ -3234,7 +3347,7 @@ function startAjax() {
     //periodical = setInterval(refresh, timer_seconds * 1000);
     refresh();
 
-    refreshReceivers();
+    refreshPatreons();
     refreshRecoveries();
 }
 
@@ -3290,33 +3403,42 @@ function updateReceiverMarker(receiver) {
 
   // init a marker if the receiver doesn't already have one
   if(!receiver.marker) {
-    
-    if (receiver.software == "radiosonde_auto_rx") {
-        //future option to show different icon per software
-    } else if (receiver.software == "rdzTTGO") {
-        //future option to show different icon per software
+
+    if (pledges.hasOwnProperty(receiver.name)) {
+        if (pledges[receiver.name].icon == "bronze") {
+            receiver.marker = new L.CircleMarker(latlng, {
+                radius: 8,
+                fillOpacity: 0.6,
+                color: "#CD7F32",
+            });
+            receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "bronze" }).setContent(receiver.description);
+        } else if (pledges[receiver.name].icon == "silver") {
+            receiver.marker = new L.CircleMarker(latlng, {
+                radius: 8,
+                fillOpacity: 0.6,
+                color: "#C0C0C0",
+            });
+            receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "silver" }).setContent(receiver.description);
+        } else {
+            receiver.marker = new L.CircleMarker(latlng, {
+                radius: 8,
+                fillOpacity: 0.6,
+                color: "#FFD700",
+            });
+            receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "gold" }).setContent(receiver.description);
+        };
     } else {
-        //future option to show different icon per software
+        receiver.marker = new L.CircleMarker(latlng, {
+            radius: 6,
+            fillOpacity: 0.6,
+            color: "#008000",
+        });
+        receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
     }
-
-    receiverIcon = new L.icon({
-        iconUrl: host_url + markers_url + "antenna-green.png",
-        iconSize: [26, 34],
-        iconAnchor: [13, 34],
-        popupAnchor: [0, -34]
-    }),
-
-    receiver.marker = new L.Marker(latlng, {
-        icon: receiverIcon,
-        title: receiver.name,
-        zIndexOffset: Z_STATION, 
-    });
     
-    receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
-
     receiver.marker.bindPopup(receiver.infobox);
 
-    receiverCanvas.addMarker(receiver.marker);
+    receiverCanvas.addLayer(receiver.marker);
   } else {
     receiver.marker.setLatLng(latlng);
     receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
@@ -3411,7 +3533,7 @@ function updateReceivers(r) {
         }
         else {
             map.removeLayer(e.infobox);
-            receiverCanvas.removeMarker(e.marker);
+            receiverCanvas.removeLayer(e.marker);
 
             // remove from arrays
             receivers.splice(i,1);
