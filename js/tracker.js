@@ -3295,6 +3295,8 @@ function refreshRecoveries() {
             }
         },
         error: function() {
+            updateRecoveryPane([]);
+            updateLeaderboardPane([]);
         },
         complete: function(request, textStatus) {
             periodical_recoveries = setTimeout(refreshRecoveries, 600 * 1000);
@@ -3706,6 +3708,10 @@ function updateRecoveryPane(r){
         }
     }
 
+    if (html == "") {
+        html = "<div>No recent recoveries :-(</div>"
+    }
+
     $("#recovery-list").html(html);
 
 }
@@ -3746,6 +3752,10 @@ function updateLeaderboardPane(r){
 
     for (var i = 0; i < list.length; i++) {
         html += "<div><b>" + (parseInt(i)+1) + ". </b>" + list[i][0] + " - " + list[i][1] + "</div>";
+    }
+
+    if (r.length == 0) {
+        html = "<div>No recent recoveries :-(</div>"
     }
 
     $("#leaderboard-list").html(html);
