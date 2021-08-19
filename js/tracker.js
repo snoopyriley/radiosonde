@@ -639,7 +639,33 @@ function showLaunchSites() {
                     sondes = sondes.replace(new RegExp("\\b82\\b"), "LMS6-1680 (possible to track)");
                     sondes = sondes.replace(new RegExp("\\b84\\b"), "iMet-54 (possible to track)");
                     var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
-                    var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes);
+                    if (json[key].hasOwnProperty('times')) {
+                        var tempDate = null;
+                        for (var i = 0; i < json[key]['times'].length; i++) {
+                            var date = new Date();
+                            var now = new Date();
+                            var time = json[key]['times'][i].split(":");
+                            date.setUTCHours(time[0]);
+                            date.setUTCMinutes(time[1]);
+                            date.setSeconds(0);
+                            if (date < now) {
+                                date.setDate(date.getDate() + 1);
+                            }
+                            if (tempDate) {
+                                if (date < tempDate) {
+                                    tempDate = date;
+                                    var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes +
+                                    "<br><b>Next launch:</b> " + date.toString());
+                                }
+                            } else {
+                                tempDate = date;
+                                var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes +
+                                "<br><b>Next launch:</b> " + date.toString());
+                            }
+                        }
+                    } else {
+                        var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes);
+                    }
                     marker.bindPopup(popup);
                     launches.addLayer(marker);
                 }
