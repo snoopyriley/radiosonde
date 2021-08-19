@@ -3282,17 +3282,21 @@ function refreshRecoveries() {
     $.ajax({
         type: "GET",
         url: recovered_sondes_url,
-        data: "",
+        data: "last=0",
         dataType: "json",
         success: function(response, textStatus) {
             if(offline.get('opt_hide_recoveries')) {
                 updateRecoveryPane(response);
+                updateLeaderboardPane(response);
             } else {
                 updateRecoveryPane(response);
+                updateLeaderboardPane(response);
                 updateRecoveries(response);
             }
         },
         error: function() {
+            updateRecoveryPane([]);
+            updateLeaderboardPane([]);
         },
         complete: function(request, textStatus) {
             periodical_recoveries = setTimeout(refreshRecoveries, 600 * 1000);
@@ -3603,34 +3607,40 @@ function updateRecoveryMarker(recovery) {
 
       if(!r) return;
       ls_recoveries = true;
+
+      var dateNow = Date.now();
+        
   
       var i = 0, ii = r.length;
       for(; i < ii; i++) {
-          var lat = parseFloat(r[i].lat);
-          var lon = parseFloat(r[i].lon);
-  
-          if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
-  
-          var r_index = $.inArray(r[i].serial, recovery_names);
-  
-          if(r_index == -1) {
-              recovery_names.push(r[i].serial);
-              r_index = recovery_names.length - 1;
-              recoveries[r_index] = {marker: null, infobox: null};
-          }
-  
-          var recovery = recoveries[r_index];
-          recovery.serial = r[i].serial;
-          recovery.lat = lat;
-          recovery.lon = lon;
-          recovery.recovered_by = r[i].recovered_by;
-          recovery.alt = parseFloat(r[i].alt);
-          recovery.recovered = r[i].recovered;
-          recovery.description = r[i].description;
-          recovery.datetime = r[i].datetime;
-          recovery.fresh = true;
-  
-          updateRecoveryMarker(recovery);
+          var date = Date.parse(r[i].datetime);
+          if (((dateNow - date) / 86400000) < 3) {
+            var lat = parseFloat(r[i].lat);
+            var lon = parseFloat(r[i].lon);
+    
+            if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
+    
+            var r_index = $.inArray(r[i].serial, recovery_names);
+    
+            if(r_index == -1) {
+                recovery_names.push(r[i].serial);
+                r_index = recovery_names.length - 1;
+                recoveries[r_index] = {marker: null, infobox: null};
+            }
+    
+            var recovery = recoveries[r_index];
+            recovery.serial = r[i].serial;
+            recovery.lat = lat;
+            recovery.lon = lon;
+            recovery.recovered_by = r[i].recovered_by;
+            recovery.alt = parseFloat(r[i].alt);
+            recovery.recovered = r[i].recovered;
+            recovery.description = r[i].description;
+            recovery.datetime = r[i].datetime;
+            recovery.fresh = true;
+    
+            updateRecoveryMarker(recovery);
+        }
       }
   
       // clear old recovery markers
@@ -3661,39 +3671,94 @@ function updateRecoveryPane(r){
 
     html = "";
 
+    var dateNow = Date.now();
+
     var i = 0, ii = r.length;
     for(; i < ii; i++) {
-        var lat = parseFloat(r[i].lat);
-        var lon = parseFloat(r[i].lon);
-        var alt = parseFloat(r[i].alt);
+        var date = Date.parse(r[i].datetime);
+        if (((dateNow - date) / 86400000) < 3) {
+            var lat = parseFloat(r[i].lat);
+            var lon = parseFloat(r[i].lon);
+            var alt = parseFloat(r[i].alt);
 
-        if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
+            if(lat < -90 || lat > 90 || lon < -180 || lon > 180) continue;
 
-        var r_index = $.inArray(r[i].serial, recovery_names);
+            var r_index = $.inArray(r[i].serial, recovery_names);
 
-        if(r_index == -1) {
-            recovery_names.push(r[i].serial);
-            r_index = recovery_names.length - 1;
-            recoveries[r_index] = {marker: null, infobox: null};
+            if(r_index == -1) {
+                recovery_names.push(r[i].serial);
+                r_index = recovery_names.length - 1;
+                recoveries[r_index] = {marker: null, infobox: null};
+            }
+
+            html += "<div style='line-height:16px;position:relative;'>";
+            html += "<div><b><u>"+r[i].serial+(r[i].recovered ? " Recovered by " : " Not Recovered by ")+r[i].recovered_by+"</u></b></div>";
+            html += "<div style='margin-bottom:5px;'><b><button style='margin-bottom:0px;' onclick='panToRecovery(\"" + r[i].serial + "\")'><i class='icon-location'></i></button>&nbsp;</b>"+roundNumber(lat, 5) + ',&nbsp;' + roundNumber(lon, 5)+"</div>";
+    
+            var imp = offline.get('opt_imperial');
+            var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(alt)) : parseInt(alt)).toLocaleString("us");
+            text_alt     += "&nbsp;" + ((imp) ? 'ft':'m');
+    
+            html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(r[i].datetime))+"</div>";
+            html += "<div><b>Reported by:&nbsp;</b>"+r[i].recovered_by+"</div>";
+            html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(r[i].description).html()+"</div>";
+            html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+r[i].serial+"' target='_blank' rel='noopener'>"+r[i].serial+"</a></div>";
+            html += "<hr style='margin:5px 0px'>";
+            html += "</div>";
         }
+    }
 
-        html += "<div style='line-height:16px;position:relative;'>";
-        html += "<div><b><u>"+r[i].serial+(r[i].recovered ? " Recovered by " : " Not Recovered by ")+r[i].recovered_by+"</u></b></div>";
-        html += "<div style='margin-bottom:5px;'><b><button style='margin-bottom:0px;' onclick='panToRecovery(\"" + r[i].serial + "\")'><i class='icon-location'></i></button>&nbsp;</b>"+roundNumber(lat, 5) + ',&nbsp;' + roundNumber(lon, 5)+"</div>";
-  
-        var imp = offline.get('opt_imperial');
-        var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(alt)) : parseInt(alt)).toLocaleString("us");
-        text_alt     += "&nbsp;" + ((imp) ? 'ft':'m');
-  
-        html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(r[i].datetime))+"</div>";
-        html += "<div><b>Reported by:&nbsp;</b>"+r[i].recovered_by+"</div>";
-        html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(r[i].description).html()+"</div>";
-        html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+r[i].serial+"' target='_blank' rel='noopener'>"+r[i].serial+"</a></div>";
-        html += "<hr style='margin:5px 0px'>";
-        html += "</div>";
+    if (html == "") {
+        html = "<div>No recent recoveries :-(</div>"
     }
 
     $("#recovery-list").html(html);
+
+}
+
+function updateLeaderboardPane(r){
+    if(!r) return;
+
+    html = "";
+    var leaderboard = {};
+    var recovered = 0;
+
+    var i = 0, ii = r.length;
+    for(; i < ii; i++) {
+        if (r[i].recovered) {
+            recovered+=1;
+            if (leaderboard.hasOwnProperty(r[i].recovered_by)) {
+                leaderboard[r[i].recovered_by] = leaderboard[r[i].recovered_by] + 1;
+            } else {
+                leaderboard[r[i].recovered_by] = 1
+            }
+        }
+    }
+
+    var sortable = [];
+    for (var score in leaderboard) {
+        sortable.push([score, leaderboard[score]]);
+    }
+
+    sortable.sort(function(a, b) {
+        return b[1] - a[1];
+    });
+
+    var list = sortable.slice(0,5);
+
+    html += "<div><b>Total sondes recovered: " + recovered + "/" + r.length + "</b></div>";
+    html += "<div><b>Total hunters: " + sortable.length + "</b></div><br>";
+    html += "<div><b>Leaderboard: </b></div>";
+
+    for (var i = 0; i < list.length; i++) {
+        html += "<div><b>" + (parseInt(i)+1) + ". </b>" + list[i][0] + " - " + list[i][1] + "</div>";
+    }
+
+    if (r.length == 0) {
+        html = "<div>No recent recoveries :-(</div>"
+    }
+
+    $("#leaderboard-list").html(html);
 
 }
 
