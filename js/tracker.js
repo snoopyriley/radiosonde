@@ -28,6 +28,8 @@ var receivers = [];
 var recovery_names = [];
 var recoveries = [];
 
+var launchPredictions = {};
+
 var launches = null;
 var receiverCanvas = null;
 
@@ -563,6 +565,34 @@ function load() {
         liveData();
     };
 
+    L.NumberedDivIcon = L.Icon.extend({
+        options: {
+        iconUrl: host_url + markers_url + "marker_hole.png",
+        number: '',
+        shadowUrl: null,
+        iconSize: new L.Point(25, 41),
+            iconAnchor: new L.Point(13, 41),
+            popupAnchor: new L.Point(0, -33),
+            className: 'leaflet-div-icon'
+        },
+    
+        createIcon: function () {
+            var div = document.createElement('div');
+            var img = this._createImg(this.options['iconUrl']);
+            var numdiv = document.createElement('div');
+            numdiv.setAttribute ( "class", "number" );
+            numdiv.innerHTML = this.options['number'] || '';
+            div.appendChild ( img );
+            div.appendChild ( numdiv );
+            this._setIconStyles(div, 'icon');
+            return div;
+        },
+    
+        createShadow: function () {
+            return null;
+        }
+    });
+
     map.whenReady(callBack);
 
     // animate-in the timebox,
@@ -609,6 +639,141 @@ function setTimeValue() {
       }, 100);
 }
 
+function launchSitePredictions(times, station, marker) {
+    var popup = launches.getLayer(marker).getPopup();
+    var popupContent = popup.getContent();
+    var popupContentSplit = popupContent.split("<button onclick='launchSitePredictions(")[0];
+    popupContentSplit += "<img style='width:60px;height:20px' src='img/hab-spinner.gif' />";
+    popup.setContent(popupContentSplit);
+    if (popupContent.includes("Delete</button>")) {
+        deletePredictions(marker);
+        popupContent = popupContent.split("<button onclick='deletePredictions(")[0];
+    }
+    times = times.split(",");
+    position = station.split(",");
+    var now = new Date();
+    var count = 0;
+    var day = 0;
+    var dates = [];
+    while (count < 7) {
+        for (var i = 0; i < times.length; i++) {
+            var date = new Date();
+            var time = times[i].split(":");
+            date.setUTCHours(time[0]);
+            date.setUTCMinutes(time[1]);
+            date.setSeconds(0);
+            date.setMilliseconds(0);
+            if (date < now) {
+                date.setDate(date.getDate() + 1);
+            }
+            if (day > 0) {
+                date.setDate(date.getDate() + day);
+            }
+            if (count < 7) {
+                dates.push(date.toISOString().split('.')[0]+"Z");
+                count += 1;
+            }
+        }
+        day += 1;
+    }
+    var completed = 0;
+    for (var i = 0; i < dates.length; i++) {
+        //var url = "http://predict.cusf.co.uk/api/v1/?launch_latitude=" + position[0] + "&launch_longitude=" + position[1] + "&launch_datetime=" + dates[i] + "&ascent_rate=5&burst_altitude=26000&descent_rate=6";
+        var url = "https://api.v2.sondehub.org/tawhiri?launch_latitude=" + position[0] + "&launch_longitude=" + position[1] + "&launch_datetime=" + dates[i] + "&ascent_rate=5&burst_altitude=26000&descent_rate=6";
+        showPrediction(url).done(handleData).fail(handleError);
+    }
+    function handleData(data) {
+        completed += 1;
+        plotPrediction(data, dates, marker);
+        if (completed == 7) {
+            popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
+            popup.setContent(popupContent);
+        }
+    }
+    function handleError(error) {
+        completed += 1;
+        console.log(error);
+        if (completed == 7) {
+            popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
+            popup.setContent(popupContent);
+        }
+    }
+}
+
+function plotPrediction (data, dates, marker) {
+    if (!launchPredictions.hasOwnProperty(marker)) {
+        launchPredictions[marker] = {};
+    }
+    launchPredictions[marker][dates.indexOf(data.request.launch_datetime)+1] = {};
+    plot = launchPredictions[marker][dates.indexOf(data.request.launch_datetime)+1];
+
+    ascent = data.prediction[0].trajectory;
+    descent = data.prediction[1].trajectory;
+    var predictionPath = [];
+    for (var i = 0; i < ascent.length; i++) {
+        predictionPath.push([ascent[i].latitude, ascent[i].longitude]);
+    };
+    for (var x = 0; x < descent.length; x++) {
+        predictionPath.push([descent[x].latitude, descent[x].longitude]);
+    };
+    var burstPoint = ascent[ascent.length-1];
+    var landingPoint = descent[descent.length-1];
+
+    plot.predictionPath = new L.polyline(predictionPath, {color: 'red'}).addTo(map);
+
+    burstIconImage = host_url + markers_url + "balloon-pop.png";
+
+    burstIcon = new L.icon({
+        iconUrl: burstIconImage,
+        iconSize: [20,20],
+        iconAnchor: [10, 10],
+    });
+
+    plot.burstMarker = new L.marker([burstPoint.latitude, burstPoint.longitude], {
+        icon: burstIcon
+    }).addTo(map);
+
+    var burstTime = new Date(burstPoint.datetime);
+    var burstTooltip = "<b>Time: </b>" + burstTime.toLocaleString() + "<br><b>Altitude: </b>" + Math.round(burstPoint.altitude) + "m";
+    plot.burstMarker.bindTooltip(burstTooltip, {offset: [5,0]});
+
+    plot.landingMarker = new L.marker([landingPoint.latitude, landingPoint.longitude], {
+        icon: new L.NumberedDivIcon({number: dates.indexOf(data.request.launch_datetime)+1})
+    }).addTo(map);
+
+    var landingTime = new Date(landingPoint.datetime);
+    var landingTooltip = "<b>Time: </b>" + landingTime.toLocaleString();
+    plot.landingMarker.bindTooltip(landingTooltip, {offset: [13,-28]});
+}
+
+function showPrediction(url) {
+    return $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "json",
+    });
+}
+
+function deletePredictions(marker) {
+    if (launchPredictions.hasOwnProperty(marker)) {
+        for (var prediction in launchPredictions[marker]) {
+            if (launchPredictions[marker].hasOwnProperty(prediction)) {
+                for (var object in launchPredictions[marker][prediction]) {
+                    if (launchPredictions[marker][prediction].hasOwnProperty(object)) {
+                        map.removeLayer(launchPredictions[marker][prediction][object]);
+                    }
+                }
+            }
+        }
+    }
+    var popup = launches.getLayer(marker).getPopup();
+    var popupContent = popup.getContent();
+    if (popupContent.includes("Delete</button>")) {
+        popupContent = popupContent.split("<button onclick='deletePredictions(")[0];
+        popup.setContent(popupContent);
+    }
+}
+
 function showLaunchSites() {
     if (!launches) {
         launches = new L.LayerGroup();
@@ -639,8 +804,12 @@ function showLaunchSites() {
                     sondes = sondes.replace(new RegExp("\\b82\\b"), "LMS6-1680 (possible to track)");
                     sondes = sondes.replace(new RegExp("\\b84\\b"), "iMet-54 (possible to track)");
                     var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
+                    var popup = new L.popup({ autoClose: false, closeOnClick: false });
+                    marker.bindPopup(popup);
+                    launches.addLayer(marker);
                     if (json[key].hasOwnProperty('times')) {
                         var tempDate = null;
+                        var popupContent = null;
                         for (var i = 0; i < json[key]['times'].length; i++) {
                             var date = new Date();
                             var now = new Date();
@@ -654,20 +823,18 @@ function showLaunchSites() {
                             if (tempDate) {
                                 if (date < tempDate) {
                                     tempDate = date;
-                                    var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes +
-                                    "<br><b>Next launch:</b> " + date.toString());
+                                    popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes + "<br><b>Next launch:</b> " + date.toString();
                                 }
                             } else {
                                 tempDate = date;
-                                var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes +
-                                "<br><b>Next launch:</b> " + date.toString());
+                                popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes + "<br><b>Next launch:</b> " + date.toString();
                             }
                         }
+                        popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
                     } else {
-                        var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes);
+                        popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes;
                     }
-                    marker.bindPopup(popup);
-                    launches.addLayer(marker);
+                    popup.setContent(popupContent);
                 }
             }
         });
