@@ -652,26 +652,40 @@ function launchSitePredictions(times, station, marker) {
     times = times.split(",");
     position = station.split(",");
     var now = new Date();
+    var maxCount = 7
     var count = 0;
     var day = 0;
     var dates = [];
-    while (count < 7) {
+    while (day < 8) {
         for (var i = 0; i < times.length; i++) {
             var date = new Date();
             var time = times[i].split(":");
-            date.setUTCHours(time[0]);
-            date.setUTCMinutes(time[1]);
+            if (time[0] != 0) {
+                date.setDate(date.getDate() + (7 + time[0]-1 - date.getDay()) % 7);
+            }
+            date.setUTCHours(time[1]);
+            date.setUTCMinutes(time[2]);
             date.setSeconds(0);
             date.setMilliseconds(0);
             if (date < now) {
-                date.setDate(date.getDate() + 1);
+                if (time[0] == 0) {
+                    date.setDate(date.getDate() + 1);
+                } else {
+                    date.setDate(date.getDate() + 7);
+                }
             }
             if (day > 0) {
-                date.setDate(date.getDate() + day);
+                if (time[0] == 0) {
+                    date.setDate(date.getDate() + day);
+                } else {
+                    date.setDate(date.getDate() + (7*day));
+                }
             }
-            if (count < 7) {
-                dates.push(date.toISOString().split('.')[0]+"Z");
-                count += 1;
+            if (count < maxCount) {
+                if (((date - now) / 36e5) < 170) {
+                    dates.push(date.toISOString().split('.')[0]+"Z");
+                    count += 1;
+                }
             }
         }
         day += 1;
@@ -685,7 +699,7 @@ function launchSitePredictions(times, station, marker) {
     function handleData(data) {
         completed += 1;
         plotPrediction(data, dates, marker);
-        if (completed == 7) {
+        if (completed == dates.length) {
             popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
             popup.setContent(popupContent);
         }
@@ -693,7 +707,7 @@ function launchSitePredictions(times, station, marker) {
     function handleError(error) {
         completed += 1;
         console.log(error);
-        if (completed == 7) {
+        if (completed == dates.length) {
             popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
             popup.setContent(popupContent);
         }
@@ -814,11 +828,18 @@ function showLaunchSites() {
                             var date = new Date();
                             var now = new Date();
                             var time = json[key]['times'][i].split(":");
-                            date.setUTCHours(time[0]);
-                            date.setUTCMinutes(time[1]);
+                            if (time[0] != 0) {
+                                date.setDate(date.getDate() + (7 + time[0]-1 - date.getDay()) % 7);
+                            }
+                            date.setUTCHours(time[1]);
+                            date.setUTCMinutes(time[2]);
                             date.setSeconds(0);
                             if (date < now) {
-                                date.setDate(date.getDate() + 1);
+                                if (time[0] == 0) {
+                                    date.setDate(date.getDate() + 1);
+                                } else {
+                                    date.setDate(date.getDate() + 7);
+                                }
                             }
                             if (tempDate) {
                                 if (date < tempDate) {
