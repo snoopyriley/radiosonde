@@ -709,7 +709,6 @@ function launchSitePredictions(times, station, properties, marker) {
     }
     function handleError(error) {
         completed += 1;
-        console.log(error);
         if (completed == dates.length) {
             popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
             popup.setContent(popupContent);
@@ -781,7 +780,8 @@ function plotPrediction (data, dates, marker) {
     }).addTo(map);
 
     var landingTime = new Date(landingPoint.datetime);
-    var landingTooltip = "<b>Time: </b>" + landingTime.toLocaleString();
+    var landingTooltip = "<b>Time:</b> " + landingTime.toLocaleString() + "<br><b>Model Dataset:</b> " + data.request.dataset + 
+    "<br><b>Model Assumptions:</b><br>- " + data.request.ascent_rate + "m/s ascent<br>- " + data.request.burst_altitude + "m burst altitude<br>- " + data.request.descent_rate + "m/s descent";
     plot.landingMarker.bindTooltip(landingTooltip, {offset: [13,-28]});
 }
 
@@ -894,9 +894,34 @@ function showLaunchSites() {
                         if (json[key].hasOwnProperty('burst_altitude')) {
                             burst_altitude = json[key]["burst_altitude"];
                         }
+                        popupContent += "<br><b>Launch schedule:</b>";
+                        for (var x = 0; x < json[key]['times'].length; x++) {
+                            popupContent += "<br>- ";
+                            var day = json[key]['times'][x].split(":")[0];
+                            if (day == 0) {
+                                popupContent += "Everyday at ";
+                            } else if (day == 1) {
+                                popupContent += "Monday at ";
+                            } else if (day == 2) {
+                                popupContent += "Tuesday at ";
+                            } else if (day == 3) {
+                                popupContent += "Wednesday at ";
+                            } else if (day == 4) {
+                                popupContent += "Thursday at ";
+                            } else if (day == 5) {
+                                popupContent += "Friday at ";
+                            } else if (day == 6) {
+                                popupContent += "Saturday at ";
+                            } else if (day == 7) {
+                                popupContent += "Sunday at ";
+                            }
+                            popupContent += json[key]['times'][x].split(":")[1] + ":" + json[key]['times'][x].split(":")[2] + " UTC";
+                        }
+                        popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
                         popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
                     } else {
                         popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes;
+                        popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
                     }
                     popup.setContent(popupContent);
                 }
