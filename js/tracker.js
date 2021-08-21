@@ -709,7 +709,6 @@ function launchSitePredictions(times, station, properties, marker) {
     }
     function handleError(error) {
         completed += 1;
-        console.log(error);
         if (completed == dates.length) {
             popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
             popup.setContent(popupContent);
@@ -779,8 +778,6 @@ function plotPrediction (data, dates, marker) {
     plot.landingMarker = new L.marker([landingPoint.latitude, landingLongitude], {
         icon: new L.NumberedDivIcon({number: dates.indexOf(data.request.launch_datetime)+1})
     }).addTo(map);
-
-    console.log(data.request);
 
     var landingTime = new Date(landingPoint.datetime);
     var landingTooltip = "<b>Time:</b> " + landingTime.toLocaleString() + "<br><b>Model Dataset:</b> " + data.request.dataset + 
