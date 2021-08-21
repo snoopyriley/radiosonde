@@ -662,7 +662,7 @@ function launchSitePredictions(times, station, properties, marker) {
             var date = new Date();
             var time = times[i].split(":");
             if (time[0] != 0) {
-                date.setDate(date.getDate() + (7 + time[0]-1 - date.getDay()) % 7);
+                date.setDate(date.getDate() + (7 + time[0] - date.getDay()) % 7);
             }
             date.setUTCHours(time[1]);
             date.setUTCMinutes(time[2]);
@@ -854,7 +854,7 @@ function showLaunchSites() {
                             var now = new Date();
                             var time = json[key]['times'][i].split(":");
                             if (time[0] != 0) {
-                                date.setDate(date.getDate() + (7 + time[0]-1 - date.getDay()) % 7);
+                                date.setDate(date.getDate() + (7 + time[0] - date.getDay()) % 7);
                             }
                             date.setUTCHours(time[1]);
                             date.setUTCMinutes(time[2]);
