@@ -25,7 +25,7 @@
   {"station":"04417","rs_types":["23"],"lat":72.5803,"lon":-38.4586,"alt":3255,"station_name":"Geosummit (Greenland)"},
   {"station":"06011","rs_types":["07"],"lat":62.0231,"lon":-6.7647,"alt":54,"station_name":"Thorshavn (Denmark)","times":["0:00:00","0:12:00"]},
   {"station":"06260","rs_types":["23"],"lat":52.0989,"lon":5.1797,"alt":2,"station_name":"De Bilt (Netherlands)","times":["3:00:00","4:00:00","4:12:00","7:00:00","1:00:00","2:00:00","6:00:00"]},
-  {"station":"06447","rs_types":["23"],"lat":50.7969,"lon":4.3581,"alt":100,"station_name":"Uccle (Belgium)","times":["0:12:00"]},
+  {"station":"06447","rs_types":["23"],"lat":50.7969,"lon":4.3581,"alt":100,"station_name":"Uccle (Belgium)","times":["1:12:00","3:12:00","5:12:00"]},
   {"station":"06458","rs_types":["34"],"lat":50.7456,"lon":4.7633,"alt":105,"station_name":"Beauvechain (Belgium)","times":["2:21:00","4:21:00","6:21:00","1:00:00","1:21:00","3:21:00"]},
   {"station":"06610","rs_types":["41","42"],"lat":46.8117,"lon":6.9425,"alt":490,"station_name":"Payerne (Switzerland)","times":["0:00:00","0:12:00"]},
   {"station":"07110","rs_types":["77"],"lat":48.444549,"lon":-4.4124,"alt":99,"station_name":"Brest (France)","times":["0:12:00","0:00:00"],"burst_altitude":35000},
