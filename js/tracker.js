@@ -639,7 +639,7 @@ function setTimeValue() {
       }, 100);
 }
 
-function launchSitePredictions(times, station, marker) {
+function launchSitePredictions(times, station, properties, marker) {
     var popup = launches.getLayer(marker).getPopup();
     var popupContent = popup.getContent();
     var popupContentSplit = popupContent.split("<button onclick='launchSitePredictions(")[0];
@@ -651,6 +651,7 @@ function launchSitePredictions(times, station, marker) {
     }
     times = times.split(",");
     position = station.split(",");
+    properties = properties.split(":");
     var now = new Date();
     var maxCount = 7
     var count = 0;
@@ -667,6 +668,7 @@ function launchSitePredictions(times, station, marker) {
             date.setUTCMinutes(time[2]);
             date.setSeconds(0);
             date.setMilliseconds(0);
+            date.setMinutes( date.getMinutes() - 45 );
             if (date < now) {
                 if (time[0] == 0) {
                     date.setDate(date.getDate() + 1);
@@ -692,8 +694,9 @@ function launchSitePredictions(times, station, marker) {
     }
     var completed = 0;
     for (var i = 0; i < dates.length; i++) {
-        //var url = "http://predict.cusf.co.uk/api/v1/?launch_latitude=" + position[0] + "&launch_longitude=" + position[1] + "&launch_datetime=" + dates[i] + "&ascent_rate=5&burst_altitude=26000&descent_rate=6";
-        var url = "https://api.v2.sondehub.org/tawhiri?launch_latitude=" + position[0] + "&launch_longitude=" + position[1] + "&launch_datetime=" + dates[i] + "&ascent_rate=5&burst_altitude=26000&descent_rate=6";
+        var lon = ((360 + (position[1] % 360)) % 360)
+        var url = "http://predict.cusf.co.uk/api/v1/?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
+        //var url = "https://api.v2.sondehub.org/tawhiri?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
         showPrediction(url).done(handleData).fail(handleError);
     }
     function handleData(data) {
@@ -725,10 +728,20 @@ function plotPrediction (data, dates, marker) {
     descent = data.prediction[1].trajectory;
     var predictionPath = [];
     for (var i = 0; i < ascent.length; i++) {
-        predictionPath.push([ascent[i].latitude, ascent[i].longitude]);
+        if (ascent[i].longitude > 180.0) {
+            var longitude = ascent[i].longitude - 360.0;
+        } else {
+            var longitude = ascent[i].longitude;
+        }
+        predictionPath.push([ascent[i].latitude, longitude]);
     };
     for (var x = 0; x < descent.length; x++) {
-        predictionPath.push([descent[x].latitude, descent[x].longitude]);
+        if (descent[x].longitude > 180.0) {
+            var longitude = descent[x].longitude - 360.0;
+        } else {
+            var longitude = descent[x].longitude;
+        }
+        predictionPath.push([descent[x].latitude, longitude]);
     };
     var burstPoint = ascent[ascent.length-1];
     var landingPoint = descent[descent.length-1];
@@ -743,7 +756,13 @@ function plotPrediction (data, dates, marker) {
         iconAnchor: [10, 10],
     });
 
-    plot.burstMarker = new L.marker([burstPoint.latitude, burstPoint.longitude], {
+    if (burstPoint.longitude > 180.0) {
+        var burstLongitude = burstPoint.longitude - 360.0;
+    } else {
+        var burstLongitude = burstPoint.longitude;
+    }
+
+    plot.burstMarker = new L.marker([burstPoint.latitude, burstLongitude], {
         icon: burstIcon
     }).addTo(map);
 
@@ -751,7 +770,13 @@ function plotPrediction (data, dates, marker) {
     var burstTooltip = "<b>Time: </b>" + burstTime.toLocaleString() + "<br><b>Altitude: </b>" + Math.round(burstPoint.altitude) + "m";
     plot.burstMarker.bindTooltip(burstTooltip, {offset: [5,0]});
 
-    plot.landingMarker = new L.marker([landingPoint.latitude, landingPoint.longitude], {
+    if (landingPoint.longitude > 180.0) {
+        var landingLongitude = landingPoint.longitude - 360.0;
+    } else {
+        var landingLongitude = landingPoint.longitude;
+    }
+
+    plot.landingMarker = new L.marker([landingPoint.latitude, landingLongitude], {
         icon: new L.NumberedDivIcon({number: dates.indexOf(data.request.launch_datetime)+1})
     }).addTo(map);
 
@@ -834,6 +859,7 @@ function showLaunchSites() {
                             date.setUTCHours(time[1]);
                             date.setUTCMinutes(time[2]);
                             date.setSeconds(0);
+                            date.setMinutes( date.getMinutes() - 45 );
                             if (date < now) {
                                 if (time[0] == 0) {
                                     date.setDate(date.getDate() + 1);
@@ -851,7 +877,24 @@ function showLaunchSites() {
                                 popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes + "<br><b>Next launch:</b> " + date.toString();
                             }
                         }
-                        popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
+                        var ascent_rate = 5;
+                        var descent_rate = 6;
+                        var burst_altitude = 26000;
+                        if (json[key].rs_types.includes("11") || json[key].rs_types.includes("82")) { //LMS6
+                            ascent_rate = 5;
+                            descent_rate = 3;
+                            burst_altitude = 26000;
+                        }
+                        if (json[key].hasOwnProperty('ascent_rate')) {
+                            ascent_rate = json[key]["ascent_rate"];
+                        }
+                        if (json[key].hasOwnProperty('descent_rate')) {
+                            descent_rate = json[key]["descent_rate"];
+                        }
+                        if (json[key].hasOwnProperty('burst_altitude')) {
+                            burst_altitude = json[key]["burst_altitude"];
+                        }
+                        popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
                     } else {
                         popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes;
                     }
@@ -964,7 +1007,7 @@ function habitat_data(jsondata, alternative) {
     "temperature_internal": "&deg;C",
     "temperature_external": "&deg;C",
     "temperature_radio": "&deg;C",
-    "pressure": " Pa",
+    "pressure": " hPa",
     "voltage_solar_1": " V",
     "voltage_solar_2": " V",
     "battery_percent": "%",
