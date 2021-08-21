@@ -692,6 +692,7 @@ function launchSitePredictions(times, station, properties, marker) {
         }
         day += 1;
     }
+    dates.sort();
     var completed = 0;
     for (var i = 0; i < dates.length; i++) {
         var lon = ((360 + (position[1] % 360)) % 360)
@@ -882,8 +883,8 @@ function showLaunchSites() {
                         var burst_altitude = 26000;
                         if (json[key].rs_types.includes("11") || json[key].rs_types.includes("82")) { //LMS6
                             ascent_rate = 5;
-                            descent_rate = 3;
-                            burst_altitude = 26000;
+                            descent_rate = 2.5;
+                            burst_altitude = 33500;
                         }
                         if (json[key].hasOwnProperty('ascent_rate')) {
                             ascent_rate = json[key]["ascent_rate"];
