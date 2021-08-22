@@ -34,6 +34,14 @@ var launches = null;
 var receiverCanvas = null;
 
 var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ", "chase"];
+var sondeCodes = {
+    "07":"iMet-1", "11":"LMS6-403", "13":"RS92", "14":"RS92", "17":"DFM-09", "19":"MRZ-N1", "22":"RS-11G", "23":"RS41", "24":"RS41", "34":"iMet-4", "35":"iMS-100", "41":"RS41", "42":"RS41", "52":"RS92-NGP", "54":"DFM-17", 
+    "62":"MRZ-3MK", "63":"M20", "77":"M10", "82":"LMS6-1680", "84":"iMet-54"
+};
+var unsupportedSondeCodes = {
+    "15":"PAZA-12M", "16":"PAZA-22", "18":"DFM-06", "20":"MK3", "21":"1524LA LORAN-C/GL5000", "26":"SRS-C34", "27":"AVK-MRZ", "28":"AVK–AK2-02", "29":"MARZ2-2", "30":"RS2-80", "33":"GTS1-2/GFE(L)", "45":"CF-06", "58":"AVK-BAR", 
+    "59":"M2K2-R", "68":"AVK-RZM-2", "69":"MARL-A/Vektor-M-RZM-2", "73":"MARL-A", "78":"RS90", "80":"RS92", "88":"MARL-A/Vektor-M-MRZ", "89":"MARL-A/Vektor-M-BAR", "97":"iMet-2", "99":"iMet-2"
+};
 
 var got_positions = false;
 var zoomed_in = false;
@@ -821,28 +829,27 @@ function showLaunchSites() {
             for (var key in json) {
                 if (json.hasOwnProperty(key)) {
                     var latlon = [json[key].lat, json[key].lon];
-                    var sondes = json[key].rs_types.toString();
-                    sondes = sondes.replace(new RegExp("\\b07\\b"), "iMet-1 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b11\\b"), "LMS6-403 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b13\\b"), "RS92 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b14\\b"), "RS92 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b17\\b"), "DFM-09 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b19\\b"), "MRZ-N1 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b21\\b"), "RS-11G (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b22\\b"), "RS-11G (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b23\\b"), "RS41 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b24\\b"), "RS41 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b34\\b"), "iMet-4 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b35\\b"), "iMS-100 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b41\\b"), "RS41 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b42\\b"), "RS41 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b52\\b"), "RS92-NGP (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b54\\b"), "DFM-17 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b62\\b"), "MRZ-3MK (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b63\\b"), "M20 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b77\\b"), "M10 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b82\\b"), "LMS6-1680 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b84\\b"), "iMet-54 (possible to track)");
+                    var sondes = json[key].rs_types;
+                    var sondesList = "";
+                    for (var y = 0; y < sondes.length; y++) {
+                        if (Array.isArray(sondes[y]) == false) {
+                            sondes[y] = [sondes[y]];
+                        }
+                        if (sondeCodes.hasOwnProperty(sondes[y][0])) {
+                            sondesList += sondeCodes[sondes[y][0]]
+                            if (sondes[y].length > 1) {
+                                sondesList += " (" + sondes[y][1] + " MHz)";
+                            }
+                        } else if (unsupportedSondeCodes.hasOwnProperty(sondes[y][0])) {
+                            sondesList += unsupportedSondeCodes[sondes[y][0]];
+                            sondesList += " (cannot track)";
+                        } else {
+                            sondesList += sondes[y][0] + " (unknown WMO code)";
+                        }
+                        if (y < sondes.length-1) {
+                            sondesList += ", ";
+                        }
+                    }
                     var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
                     var popup = new L.popup({ autoClose: false, closeOnClick: false });
                     marker.bindPopup(popup);
@@ -871,11 +878,11 @@ function showLaunchSites() {
                             if (tempDate) {
                                 if (date < tempDate) {
                                     tempDate = date;
-                                    popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes + "<br><b>Next launch:</b> " + date.toString();
+                                    popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList + "<br><b>Next launch:</b> " + date.toString();
                                 }
                             } else {
                                 tempDate = date;
-                                popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes + "<br><b>Next launch:</b> " + date.toString();
+                                popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList + "<br><b>Next launch:</b> " + date.toString();
                             }
                         }
                         var ascent_rate = 5;
@@ -921,7 +928,7 @@ function showLaunchSites() {
                         popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
                         popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
                     } else {
-                        popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes;
+                        popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
                         popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
                     }
                     popup.setContent(popupContent);
