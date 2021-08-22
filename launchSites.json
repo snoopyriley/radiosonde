@@ -668,7 +668,7 @@
   {"station":"94711","rs_types":["42"],"lat":-31.4839,"lon":145.8294,"alt":264,"station_name":"Cobar (Australia)","times":["3:00:00","4:00:00","6:00:00"]},
   {"station":"94750","rs_types":["41"],"lat":-34.9469,"lon":150.5353,"alt":122,"station_name":"Nowra Ran Air Station (Australia)"},
   {"station":"94767","rs_types":["41"],"lat":-33.9464,"lon":151.1731,"alt":6,"station_name":"Sydney Airport (Australia)","times":["0:21:00"]},
-  {"station":"94776","rs_types":["42"],"lat":-32.7933,"lon":151.8358,"alt":9,"station_name":"Williamtown Aerodrome (Australia)","times":["0:00:00"]},
+  {"station":"94776","rs_types":[["42","402.500"]],"lat":-32.7933,"lon":151.8358,"alt":9,"station_name":"Williamtown Aerodrome (Australia)","times":["0:00:00"]},
   {"station":"94802","rs_types":["42"],"lat":-34.9414,"lon":117.8022,"alt":71,"station_name":"Albany Airport (Australia)","times":["4:00:00","5:00:00","6:00:00","2:00:00"]},
   {"station":"94821","rs_types":["42"],"lat":-37.7472,"lon":140.7739,"alt":65,"station_name":"Mount Gambier Aerodrome (Australia)","times":["4:00:00","1:00:00"]},
   {"station":"94866","rs_types":["41"],"lat":-37.6656,"lon":144.8322,"alt":132,"station_name":"Melbourne Airport (Australia)","times":["0:12:00","0:00:00"]},
