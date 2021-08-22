@@ -35,11 +35,11 @@ var receiverCanvas = null;
 
 var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ", "chase"];
 var sondeCodes = {
-    "07":"iMet-1", "11":"LMS6-403", "13":"RS92", "14":"RS92", "17":"DFM-09", "19":"MRZ-N1", "22":"RS-11G", "23":"RS41", "24":"RS41", "34":"iMet-4", "35":"iMS-100", "41":"RS41", "42":"RS41", "52":"RS92-NGP", "54":"DFM-17", 
-    "62":"MRZ-3MK", "63":"M20", "77":"M10", "82":"LMS6-1680", "84":"iMet-54"
+    "07":"iMet-1", "11":"LMS6-403", "13":"RS92", "14":"RS92", "17":"DFM-09", "18":"DFM-06", "19":"MRZ-N1", "22":"RS-11G", "23":"RS41", "24":"RS41", "34":"iMet-4", "35":"iMS-100", "41":"RS41", "42":"RS41", "52":"RS92-NGP", 
+    "54":"DFM-17", "62":"MRZ-3MK", "63":"M20", "77":"M10", "82":"LMS6-1680", "84":"iMet-54"
 };
 var unsupportedSondeCodes = {
-    "15":"PAZA-12M", "16":"PAZA-22", "18":"DFM-06", "20":"MK3", "21":"1524LA LORAN-C/GL5000", "26":"SRS-C34", "27":"AVK-MRZ", "28":"AVK–AK2-02", "29":"MARZ2-2", "30":"RS2-80", "33":"GTS1-2/GFE(L)", "45":"CF-06", "58":"AVK-BAR", 
+    "15":"PAZA-12M", "16":"PAZA-22", "20":"MK3", "21":"1524LA LORAN-C/GL5000", "26":"SRS-C34", "27":"AVK-MRZ", "28":"AVK–AK2-02", "29":"MARZ2-2", "30":"RS2-80", "33":"GTS1-2/GFE(L)", "45":"CF-06", "58":"AVK-BAR", 
     "59":"M2K2-R", "68":"AVK-RZM-2", "69":"MARL-A/Vektor-M-RZM-2", "73":"MARL-A", "78":"RS90", "80":"RS92", "88":"MARL-A/Vektor-M-MRZ", "89":"MARL-A/Vektor-M-BAR", "97":"iMet-2", "99":"iMet-2"
 };
 
@@ -855,36 +855,8 @@ function showLaunchSites() {
                     marker.bindPopup(popup);
                     launches.addLayer(marker);
                     if (json[key].hasOwnProperty('times')) {
-                        var tempDate = null;
                         var popupContent = null;
-                        for (var i = 0; i < json[key]['times'].length; i++) {
-                            var date = new Date();
-                            var now = new Date();
-                            var time = json[key]['times'][i].split(":");
-                            if (time[0] != 0) {
-                                date.setDate(date.getDate() + (7 + time[0] - date.getDay()) % 7);
-                            }
-                            date.setUTCHours(time[1]);
-                            date.setUTCMinutes(time[2]);
-                            date.setSeconds(0);
-                            date.setMinutes( date.getMinutes() - 45 );
-                            while (date < now) {
-                                if (time[0] == 0) {
-                                    date.setDate(date.getDate() + 1);
-                                } else {
-                                    date.setDate(date.getDate() + 7);
-                                }
-                            }
-                            if (tempDate) {
-                                if (date < tempDate) {
-                                    tempDate = date;
-                                    popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList + "<br><b>Next launch:</b> " + date.toString();
-                                }
-                            } else {
-                                tempDate = date;
-                                popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList + "<br><b>Next launch:</b> " + date.toString();
-                            }
-                        }
+                        popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
                         var ascent_rate = 5;
                         var descent_rate = 6;
                         var burst_altitude = 26000;
@@ -924,6 +896,9 @@ function showLaunchSites() {
                                 popupContent += "Sunday at ";
                             }
                             popupContent += json[key]['times'][x].split(":")[1] + ":" + json[key]['times'][x].split(":")[2] + " UTC";
+                        }
+                        if (json[key].hasOwnProperty('notes')) {
+                            popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
                         }
                         popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
                         popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
