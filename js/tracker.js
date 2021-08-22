@@ -669,7 +669,7 @@ function launchSitePredictions(times, station, properties, marker) {
             date.setSeconds(0);
             date.setMilliseconds(0);
             date.setMinutes( date.getMinutes() - 45 );
-            if (date < now) {
+            while (date < now) {
                 if (time[0] == 0) {
                     date.setDate(date.getDate() + 1);
                 } else {
@@ -861,7 +861,7 @@ function showLaunchSites() {
                             date.setUTCMinutes(time[2]);
                             date.setSeconds(0);
                             date.setMinutes( date.getMinutes() - 45 );
-                            if (date < now) {
+                            while (date < now) {
                                 if (time[0] == 0) {
                                     date.setDate(date.getDate() + 1);
                                 } else {
