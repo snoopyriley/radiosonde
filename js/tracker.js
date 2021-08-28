@@ -28,10 +28,20 @@ var receivers = [];
 var recovery_names = [];
 var recoveries = [];
 
+var launchPredictions = {};
+
 var launches = null;
 var receiverCanvas = null;
 
 var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ", "chase"];
+var sondeCodes = {
+    "07":"iMet-1", "11":"LMS6-403", "13":"RS92", "14":"RS92", "17":"DFM-09", "18":"DFM-06", "19":"MRZ-N1", "22":"RS-11G", "23":"RS41", "24":"RS41", "34":"iMet-4", "35":"iMS-100", "41":"RS41", "42":"RS41", "52":"RS92-NGP", 
+    "54":"DFM-17", "62":"MRZ-3MK", "63":"M20", "77":"M10", "82":"LMS6-1680", "84":"iMet-54"
+};
+var unsupportedSondeCodes = {
+    "15":"PAZA-12M", "16":"PAZA-22", "20":"MK3", "21":"1524LA LORAN-C/GL5000", "26":"SRS-C34", "27":"AVK-MRZ", "28":"AVK–AK2-02", "29":"MARZ2-2", "30":"RS2-80", "33":"GTS1-2/GFE(L)", "45":"CF-06", "58":"AVK-BAR", 
+    "59":"M2K2-R", "68":"AVK-RZM-2", "69":"MARL-A/Vektor-M-RZM-2", "73":"MARL-A", "78":"RS90", "80":"RS92", "88":"MARL-A/Vektor-M-MRZ", "89":"MARL-A/Vektor-M-BAR", "97":"iMet-2", "99":"iMet-2"
+};
 
 var got_positions = false;
 var zoomed_in = false;
@@ -563,6 +573,34 @@ function load() {
         liveData();
     };
 
+    L.NumberedDivIcon = L.Icon.extend({
+        options: {
+        iconUrl: host_url + markers_url + "marker_hole.png",
+        number: '',
+        shadowUrl: null,
+        iconSize: new L.Point(25, 41),
+            iconAnchor: new L.Point(13, 41),
+            popupAnchor: new L.Point(0, -33),
+            className: 'leaflet-div-icon'
+        },
+    
+        createIcon: function () {
+            var div = document.createElement('div');
+            var img = this._createImg(this.options['iconUrl']);
+            var numdiv = document.createElement('div');
+            numdiv.setAttribute ( "class", "number" );
+            numdiv.innerHTML = this.options['number'] || '';
+            div.appendChild ( img );
+            div.appendChild ( numdiv );
+            this._setIconStyles(div, 'icon');
+            return div;
+        },
+    
+        createShadow: function () {
+            return null;
+        }
+    });
+
     map.whenReady(callBack);
 
     // animate-in the timebox,
@@ -609,6 +647,186 @@ function setTimeValue() {
       }, 100);
 }
 
+function launchSitePredictions(times, station, properties, marker) {
+    var popup = launches.getLayer(marker).getPopup();
+    var popupContent = popup.getContent();
+    var popupContentSplit = popupContent.split("<button onclick='launchSitePredictions(")[0];
+    popupContentSplit += "<img style='width:60px;height:20px' src='img/hab-spinner.gif' />";
+    popup.setContent(popupContentSplit);
+    if (popupContent.includes("Delete</button>")) {
+        deletePredictions(marker);
+        popupContent = popupContent.split("<button onclick='deletePredictions(")[0];
+    }
+    times = times.split(",");
+    position = station.split(",");
+    properties = properties.split(":");
+    var now = new Date();
+    var maxCount = 7
+    var count = 0;
+    var day = 0;
+    var dates = [];
+    while (day < 8) {
+        for (var i = 0; i < times.length; i++) {
+            var date = new Date();
+            var time = times[i].split(":");
+            if (time[0] != 0) {
+                date.setDate(date.getDate() + (7 + time[0] - date.getDay()) % 7);
+            }
+            date.setUTCHours(time[1]);
+            date.setUTCMinutes(time[2]);
+            date.setSeconds(0);
+            date.setMilliseconds(0);
+            date.setMinutes( date.getMinutes() - 45 );
+            while (date < now) {
+                if (time[0] == 0) {
+                    date.setDate(date.getDate() + 1);
+                } else {
+                    date.setDate(date.getDate() + 7);
+                }
+            }
+            if (day > 0) {
+                if (time[0] == 0) {
+                    date.setDate(date.getDate() + day);
+                } else {
+                    date.setDate(date.getDate() + (7*day));
+                }
+            }
+            if (count < maxCount) {
+                if (((date - now) / 36e5) < 170) {
+                    dates.push(date.toISOString().split('.')[0]+"Z");
+                    count += 1;
+                }
+            }
+        }
+        day += 1;
+    }
+    dates.sort();
+    var completed = 0;
+    for (var i = 0; i < dates.length; i++) {
+        var lon = ((360 + (position[1] % 360)) % 360)
+        var url = "https://predict.cusf.co.uk/api/v1/?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
+        //var url = "https://api.v2.sondehub.org/tawhiri?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
+        showPrediction(url).done(handleData).fail(handleError);
+    }
+    function handleData(data) {
+        completed += 1;
+        plotPrediction(data, dates, marker, properties);
+        if (completed == dates.length) {
+            popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
+            popup.setContent(popupContent);
+        }
+    }
+    function handleError(error) {
+        completed += 1;
+        if (completed == dates.length) {
+            popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
+            popup.setContent(popupContent);
+        }
+    }
+}
+
+function plotPrediction (data, dates, marker, properties) {
+    if (!launchPredictions.hasOwnProperty(marker)) {
+        launchPredictions[marker] = {};
+    }
+    launchPredictions[marker][dates.indexOf(data.request.launch_datetime)+1] = {};
+    plot = launchPredictions[marker][dates.indexOf(data.request.launch_datetime)+1];
+
+    ascent = data.prediction[0].trajectory;
+    descent = data.prediction[1].trajectory;
+    var predictionPath = [];
+    for (var i = 0; i < ascent.length; i++) {
+        if (ascent[i].longitude > 180.0) {
+            var longitude = ascent[i].longitude - 360.0;
+        } else {
+            var longitude = ascent[i].longitude;
+        }
+        predictionPath.push([ascent[i].latitude, longitude]);
+    };
+    for (var x = 0; x < descent.length; x++) {
+        if (descent[x].longitude > 180.0) {
+            var longitude = descent[x].longitude - 360.0;
+        } else {
+            var longitude = descent[x].longitude;
+        }
+        predictionPath.push([descent[x].latitude, longitude]);
+    };
+    var burstPoint = ascent[ascent.length-1];
+    var landingPoint = descent[descent.length-1];
+
+    plot.predictionPath = new L.polyline(predictionPath, {color: 'red'}).addTo(map);
+
+    burstIconImage = host_url + markers_url + "balloon-pop.png";
+
+    burstIcon = new L.icon({
+        iconUrl: burstIconImage,
+        iconSize: [20,20],
+        iconAnchor: [10, 10],
+    });
+
+    if (burstPoint.longitude > 180.0) {
+        var burstLongitude = burstPoint.longitude - 360.0;
+    } else {
+        var burstLongitude = burstPoint.longitude;
+    }
+
+    plot.burstMarker = new L.marker([burstPoint.latitude, burstLongitude], {
+        icon: burstIcon
+    }).addTo(map);
+
+    var burstTime = new Date(burstPoint.datetime);
+    var burstTooltip = "<b>Time: </b>" + burstTime.toLocaleString() + "<br><b>Altitude: </b>" + Math.round(burstPoint.altitude) + "m";
+    plot.burstMarker.bindTooltip(burstTooltip, {offset: [5,0]});
+
+    if (landingPoint.longitude > 180.0) {
+        var landingLongitude = landingPoint.longitude - 360.0;
+    } else {
+        var landingLongitude = landingPoint.longitude;
+    }
+
+    plot.landingMarker = new L.marker([landingPoint.latitude, landingLongitude], {
+        icon: new L.NumberedDivIcon({number: dates.indexOf(data.request.launch_datetime)+1})
+    }).addTo(map);
+
+    var landingTime = new Date(landingPoint.datetime);
+    if (properties[3] != "" && properties[4] != "") {
+        var landingTooltip = "<b>Time:</b> " + landingTime.toLocaleString() + "<br><b>Model Dataset:</b> " + data.request.dataset + 
+        "<br><b>Model Assumptions:</b><br>- " + data.request.ascent_rate + "m/s ascent<br>- " + data.request.burst_altitude + "m burst altitude (" + properties[3] + " samples)<br>- " + data.request.descent_rate + "m/s descent (" + properties[4] + " samples)";
+    } else {
+        var landingTooltip = "<b>Time:</b> " + landingTime.toLocaleString() + "<br><b>Model Dataset:</b> " + data.request.dataset + 
+        "<br><b>Model Assumptions:</b><br>- " + data.request.ascent_rate + "m/s ascent<br>- " + data.request.burst_altitude + "m burst altitude<br>- " + data.request.descent_rate + "m/s descent";
+    }
+    plot.landingMarker.bindTooltip(landingTooltip, {offset: [13,-28]});
+}
+
+function showPrediction(url) {
+    return $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "json",
+    });
+}
+
+function deletePredictions(marker) {
+    if (launchPredictions.hasOwnProperty(marker)) {
+        for (var prediction in launchPredictions[marker]) {
+            if (launchPredictions[marker].hasOwnProperty(prediction)) {
+                for (var object in launchPredictions[marker][prediction]) {
+                    if (launchPredictions[marker][prediction].hasOwnProperty(object)) {
+                        map.removeLayer(launchPredictions[marker][prediction][object]);
+                    }
+                }
+            }
+        }
+    }
+    var popup = launches.getLayer(marker).getPopup();
+    var popupContent = popup.getContent();
+    if (popupContent.includes("Delete</button>")) {
+        popupContent = popupContent.split("<button onclick='deletePredictions(")[0];
+        popup.setContent(popupContent);
+    }
+}
+
 function showLaunchSites() {
     if (!launches) {
         launches = new L.LayerGroup();
@@ -616,32 +834,92 @@ function showLaunchSites() {
             for (var key in json) {
                 if (json.hasOwnProperty(key)) {
                     var latlon = [json[key].lat, json[key].lon];
-                    var sondes = json[key].rs_types.toString();
-                    sondes = sondes.replace(new RegExp("\\b07\\b"), "iMet-1 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b11\\b"), "LMS6-403 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b13\\b"), "RS92 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b14\\b"), "RS92 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b17\\b"), "DFM-09 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b19\\b"), "MRZ-N1 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b21\\b"), "RS-11G (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b22\\b"), "RS-11G (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b23\\b"), "RS41 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b24\\b"), "RS41 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b34\\b"), "iMet-4 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b35\\b"), "iMS-100 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b41\\b"), "RS41 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b42\\b"), "RS41 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b52\\b"), "RS92-NGP (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b54\\b"), "DFM-17 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b62\\b"), "MRZ-3MK (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b63\\b"), "M20 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b77\\b"), "M10 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b82\\b"), "LMS6-1680 (possible to track)");
-                    sondes = sondes.replace(new RegExp("\\b84\\b"), "iMet-54 (possible to track)");
+                    var sondes = json[key].rs_types;
+                    var sondesList = "";
+                    for (var y = 0; y < sondes.length; y++) {
+                        if (Array.isArray(sondes[y]) == false) {
+                            sondes[y] = [sondes[y]];
+                        }
+                        if (sondeCodes.hasOwnProperty(sondes[y][0])) {
+                            sondesList += sondeCodes[sondes[y][0]]
+                            if (sondes[y].length > 1) {
+                                sondesList += " (" + sondes[y][1] + " MHz)";
+                            }
+                        } else if (unsupportedSondeCodes.hasOwnProperty(sondes[y][0])) {
+                            sondesList += unsupportedSondeCodes[sondes[y][0]];
+                            sondesList += " (cannot track)";
+                        } else {
+                            sondesList += sondes[y][0] + " (unknown WMO code)";
+                        }
+                        if (y < sondes.length-1) {
+                            sondesList += ", ";
+                        }
+                    }
                     var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
-                    var popup = new L.popup({ autoClose: false, closeOnClick: false }).setContent("<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondes);
+                    var popup = new L.popup({ autoClose: false, closeOnClick: false });
                     marker.bindPopup(popup);
                     launches.addLayer(marker);
+                    if (json[key].hasOwnProperty('times')) {
+                        var popupContent = null;
+                        popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
+                        var ascent_rate = 5;
+                        var descent_rate = 6;
+                        var burst_altitude = 26000;
+                        var burst_samples = "";
+                        var descent_samples = "";
+                        if (json[key].rs_types.includes("11") || json[key].rs_types.includes("82")) { //LMS6
+                            ascent_rate = 5;
+                            descent_rate = 2.5;
+                            burst_altitude = 33500;
+                        }
+                        if (json[key].hasOwnProperty('ascent_rate')) {
+                            ascent_rate = json[key]["ascent_rate"];
+                        }
+                        if (json[key].hasOwnProperty('descent_rate')) {
+                            descent_rate = json[key]["descent_rate"];
+                        }
+                        if (json[key].hasOwnProperty('burst_altitude')) {
+                            burst_altitude = json[key]["burst_altitude"];
+                        }
+                        if (json[key].hasOwnProperty('burst_samples')) {
+                            burst_samples = json[key]["burst_samples"];
+                        }
+                        if (json[key].hasOwnProperty('descent_samples')) {
+                            descent_samples = json[key]["descent_samples"];
+                        }
+                        popupContent += "<br><b>Launch schedule:</b>";
+                        for (var x = 0; x < json[key]['times'].length; x++) {
+                            popupContent += "<br>- ";
+                            var day = json[key]['times'][x].split(":")[0];
+                            if (day == 0) {
+                                popupContent += "Everyday at ";
+                            } else if (day == 1) {
+                                popupContent += "Monday at ";
+                            } else if (day == 2) {
+                                popupContent += "Tuesday at ";
+                            } else if (day == 3) {
+                                popupContent += "Wednesday at ";
+                            } else if (day == 4) {
+                                popupContent += "Thursday at ";
+                            } else if (day == 5) {
+                                popupContent += "Friday at ";
+                            } else if (day == 6) {
+                                popupContent += "Saturday at ";
+                            } else if (day == 7) {
+                                popupContent += "Sunday at ";
+                            }
+                            popupContent += json[key]['times'][x].split(":")[1] + ":" + json[key]['times'][x].split(":")[2] + " UTC";
+                        }
+                        if (json[key].hasOwnProperty('notes')) {
+                            popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
+                        }
+                        popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
+                        popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
+                    } else {
+                        popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
+                        popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
+                    }
+                    popup.setContent(popupContent);
                 }
             }
         });
@@ -750,7 +1028,7 @@ function habitat_data(jsondata, alternative) {
     "temperature_internal": "&deg;C",
     "temperature_external": "&deg;C",
     "temperature_radio": "&deg;C",
-    "pressure": " Pa",
+    "pressure": " hPa",
     "voltage_solar_1": " V",
     "voltage_solar_2": " V",
     "battery_percent": "%",
