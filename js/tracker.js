@@ -710,7 +710,7 @@ function launchSitePredictions(times, station, properties, marker) {
     }
     function handleData(data) {
         completed += 1;
-        plotPrediction(data, dates, marker);
+        plotPrediction(data, dates, marker, properties);
         if (completed == dates.length) {
             popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
             popup.setContent(popupContent);
@@ -725,7 +725,7 @@ function launchSitePredictions(times, station, properties, marker) {
     }
 }
 
-function plotPrediction (data, dates, marker) {
+function plotPrediction (data, dates, marker, properties) {
     if (!launchPredictions.hasOwnProperty(marker)) {
         launchPredictions[marker] = {};
     }
@@ -789,8 +789,13 @@ function plotPrediction (data, dates, marker) {
     }).addTo(map);
 
     var landingTime = new Date(landingPoint.datetime);
-    var landingTooltip = "<b>Time:</b> " + landingTime.toLocaleString() + "<br><b>Model Dataset:</b> " + data.request.dataset + 
-    "<br><b>Model Assumptions:</b><br>- " + data.request.ascent_rate + "m/s ascent<br>- " + data.request.burst_altitude + "m burst altitude<br>- " + data.request.descent_rate + "m/s descent";
+    if (properties[3] != "" && properties[4] != "") {
+        var landingTooltip = "<b>Time:</b> " + landingTime.toLocaleString() + "<br><b>Model Dataset:</b> " + data.request.dataset + 
+        "<br><b>Model Assumptions:</b><br>- " + data.request.ascent_rate + "m/s ascent<br>- " + data.request.burst_altitude + "m burst altitude (" + properties[3] + " samples)<br>- " + data.request.descent_rate + "m/s descent (" + properties[4] + " samples)";
+    } else {
+        var landingTooltip = "<b>Time:</b> " + landingTime.toLocaleString() + "<br><b>Model Dataset:</b> " + data.request.dataset + 
+        "<br><b>Model Assumptions:</b><br>- " + data.request.ascent_rate + "m/s ascent<br>- " + data.request.burst_altitude + "m burst altitude<br>- " + data.request.descent_rate + "m/s descent";
+    }
     plot.landingMarker.bindTooltip(landingTooltip, {offset: [13,-28]});
 }
 
@@ -860,6 +865,8 @@ function showLaunchSites() {
                         var ascent_rate = 5;
                         var descent_rate = 6;
                         var burst_altitude = 26000;
+                        var burst_samples = "";
+                        var descent_samples = "";
                         if (json[key].rs_types.includes("11") || json[key].rs_types.includes("82")) { //LMS6
                             ascent_rate = 5;
                             descent_rate = 2.5;
@@ -873,6 +880,12 @@ function showLaunchSites() {
                         }
                         if (json[key].hasOwnProperty('burst_altitude')) {
                             burst_altitude = json[key]["burst_altitude"];
+                        }
+                        if (json[key].hasOwnProperty('burst_samples')) {
+                            burst_samples = json[key]["burst_samples"];
+                        }
+                        if (json[key].hasOwnProperty('descent_samples')) {
+                            descent_samples = json[key]["descent_samples"];
                         }
                         popupContent += "<br><b>Launch schedule:</b>";
                         for (var x = 0; x < json[key]['times'].length; x++) {
@@ -901,7 +914,7 @@ function showLaunchSites() {
                             popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
                         }
                         popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
-                        popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
+                        popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
                     } else {
                         popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
                         popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
