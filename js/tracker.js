@@ -1012,6 +1012,11 @@ function habitat_data(jsondata, alternative) {
     "xdata": "XDATA"
   };
 
+  var tooltips = {
+    "burst_timer": "If active, this indicates the time (HH:MM:SS) until the radiosonde will automatically power-off.",
+    "xdata": "Raw auxiliary data (as hexadecimal) from an external sensor package (often an Ozone sensor)."
+  }
+
   var hide_keys = {
     "spam": true,
     "battery_millivolts": true,
@@ -1068,11 +1073,14 @@ function habitat_data(jsondata, alternative) {
       if (hide_keys[k] === true)
         continue;
 
-      var name = "", suffix = "";
+        var name = "", suffix = "", tooltip = "";
       if (keys[k] !== undefined)
         name = keys[k];
       else
         name = guess_name(k);
+    
+      if (tooltips[k] !== undefined)
+        tooltip = tooltips[k];
 
       if (suffixes[k] !== undefined)
         suffix = suffixes[k];
@@ -1104,7 +1112,11 @@ function habitat_data(jsondata, alternative) {
       if(typeof alternative == 'boolean' && alternative) {
           output += "<div><b>" + name + ":&nbsp;</b>" + v + suffix + "</div>";
       } else {
-          output += "<dt>" + v + suffix + "</dt><dd>" + name + "</dd>";
+          if (tooltip != "") {
+            output += "<dt>" + v + suffix + "</dt><dd>" + name + ' <div class="tooltip">🛈<span class="tooltiptext">' + tooltip + '</span></div></dd>';
+          } else {
+            output += "<dt>" + v + suffix + "</dt><dd>" + name + "</dd>";
+          }
       }
     }
     return output;
