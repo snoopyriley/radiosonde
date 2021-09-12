@@ -1079,8 +1079,8 @@ function habitat_data(jsondata, alternative) {
       else
         name = guess_name(k);
     
-      if (keys[k] !== undefined)
-        name = keys[k];
+      if (tooltips[k] !== undefined)
+        tooltip = tooltips[k];
 
       if (suffixes[k] !== undefined)
         suffix = suffixes[k];
