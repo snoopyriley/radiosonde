@@ -1,7 +1,7 @@
 [
   {"station": "-1", "rs_types": ["41"], "lat": -37.689883, "lon": 144.947375, "alt": 119, "station_name": "Melbourne BoM Training Annex (Training and Ozonesondes) (Australia)", "burst_altitude": 28068, "burst_samples": 52, "burst_std": 5382, "descent_rate": 5.7, "descent_samples": 48, "descent_std": 2.5},
   {"station": "-2", "rs_types": ["63", "77"], "lat": 48.337861, "lon": 2.60012, "alt": 118, "station_name": "METEOMODEM Headquarters (France)"},
-  {"station": "-3", "rs_types": ["17"], "lat": 44.35714, "lon": -1.23813, "alt": 15, "station_name": "DGA Essais de missiles (France)", "burst_altitude": 20000"},
+  {"station": "-3", "rs_types": ["17"], "lat": 44.35714, "lon": -1.23813, "alt": 15, "station_name": "DGA Essais de missiles (France)", "burst_altitude": 20000},
   {"station": "01001", "rs_types": ["77", "23"], "lat": 70.93965, "lon": -8.66914, "alt": 10, "station_name": "Jan Mayen (Norway)", "times": ["0:12:00", "0:00:00"]},
   {"station": "01004", "rs_types": ["23"], "lat": 78.92321, "lon": 11.92314, "alt": 8, "station_name": "Ny-Alesund Ii (Norway)", "times": ["0:12:00"]},
   {"station": "01010", "rs_types": ["24"], "lat": 69.31522, "lon": 16.13091, "alt": 3, "station_name": "Andoya (Norway)", "times": ["0:00:00", "0:09:00", "0:12:00"]},
