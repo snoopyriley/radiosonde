@@ -70,6 +70,7 @@ var svgRenderer = L.svg();
 
 var modeList = [
 //    "Position",
+    "0",
     "15s",
     "1m",
     "30m",
@@ -477,7 +478,7 @@ function load() {
         onAdd: function(map) {
             var div = L.DomUtil.create('div');
     
-            div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="1h">1 hour</option><option value="3h" selected="selected">3 hours</option><option value="6h">6 hours</option><option value="12h">12 hours</option></select>';
+            div.innerHTML = '<select name="timeperiod" id="timeperiod" style="width:auto !important;height:30px;" onchange="clean_refresh(this.value)"><option value="0">Live Only</option><option value="1h">1 hour</option><option value="3h" selected="selected">3 hours</option><option value="6h">6 hours</option><option value="12h">12 hours</option></select>';
             div.innerHTML.onload = setTimeValue();
 
             return div;
@@ -4223,7 +4224,10 @@ function update(response) {
 
                 if(listScroll) listScroll.refresh();
                 if(zoomed_in && follow_vehicle == vcallsign && !manual_pan) panTo(follow_vehicle);
-                if(follow_vehicle == vcallsign) drawLOSPaths(vcallsign);
+                if (follow_vehicle == vcallsign) {
+                    update_lookangles(follow_vehicle);
+                    drawLOSPaths(vcallsign);
+                }
             }
 
             // step to the next callsign
