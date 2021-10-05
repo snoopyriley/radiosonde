@@ -831,96 +831,102 @@ function deletePredictions(marker) {
 function showLaunchSites() {
     if (!launches) {
         launches = new L.LayerGroup();
-        $.getJSON("launchSites.json", function(json) {
-            for (var key in json) {
-                if (json.hasOwnProperty(key)) {
-                    var latlon = [json[key].lat, json[key].lon];
-                    var sondes = json[key].rs_types;
-                    var sondesList = "";
-                    for (var y = 0; y < sondes.length; y++) {
-                        if (Array.isArray(sondes[y]) == false) {
-                            sondes[y] = [sondes[y]];
-                        }
-                        if (sondeCodes.hasOwnProperty(sondes[y][0])) {
-                            sondesList += sondeCodes[sondes[y][0]]
-                            if (sondes[y].length > 1) {
-                                sondesList += " (" + sondes[y][1] + " MHz)";
+        launches_url = "https://api.v2.sondehub.org/sites";
+        $.ajax({
+            type: "GET",
+            url: launches_url,
+            dataType: "json",
+            success: function(json, textStatus) {
+                for (var key in json) {
+                    if (json.hasOwnProperty(key)) {
+                        var latlon = [json[key].position[1], json[key].position[0]];
+                        var sondes = json[key].rs_types;
+                        var sondesList = "";
+                        for (var y = 0; y < sondes.length; y++) {
+                            if (Array.isArray(sondes[y]) == false) {
+                                sondes[y] = [sondes[y]];
                             }
-                        } else if (unsupportedSondeCodes.hasOwnProperty(sondes[y][0])) {
-                            sondesList += unsupportedSondeCodes[sondes[y][0]];
-                            sondesList += " (cannot track)";
+                            if (sondeCodes.hasOwnProperty(sondes[y][0])) {
+                                sondesList += sondeCodes[sondes[y][0]]
+                                if (sondes[y].length > 1) {
+                                    sondesList += " (" + sondes[y][1] + " MHz)";
+                                }
+                            } else if (unsupportedSondeCodes.hasOwnProperty(sondes[y][0])) {
+                                sondesList += unsupportedSondeCodes[sondes[y][0]];
+                                sondesList += " (cannot track)";
+                            } else {
+                                sondesList += sondes[y][0] + " (unknown WMO code)";
+                            }
+                            if (y < sondes.length-1) {
+                                sondesList += ", ";
+                            }
+                        }
+                        var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
+                        var popup = new L.popup({ autoClose: false, closeOnClick: false });
+                        marker.bindPopup(popup);
+                        launches.addLayer(marker);
+                        if (json[key].hasOwnProperty('times')) {
+                            var popupContent = null;
+                            popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
+                            var ascent_rate = 5;
+                            var descent_rate = 6;
+                            var burst_altitude = 26000;
+                            var burst_samples = "";
+                            var descent_samples = "";
+                            if (json[key].rs_types.includes("11") || json[key].rs_types.includes("82")) { //LMS6
+                                ascent_rate = 5;
+                                descent_rate = 2.5;
+                                burst_altitude = 33500;
+                            }
+                            if (json[key].hasOwnProperty('ascent_rate')) {
+                                ascent_rate = json[key]["ascent_rate"];
+                            }
+                            if (json[key].hasOwnProperty('descent_rate')) {
+                                descent_rate = json[key]["descent_rate"];
+                            }
+                            if (json[key].hasOwnProperty('burst_altitude')) {
+                                burst_altitude = json[key]["burst_altitude"];
+                            }
+                            if (json[key].hasOwnProperty('burst_samples')) {
+                                burst_samples = json[key]["burst_samples"];
+                            }
+                            if (json[key].hasOwnProperty('descent_samples')) {
+                                descent_samples = json[key]["descent_samples"];
+                            }
+                            popupContent += "<br><b>Launch schedule:</b>";
+                            for (var x = 0; x < json[key]['times'].length; x++) {
+                                popupContent += "<br>- ";
+                                var day = json[key]['times'][x].split(":")[0];
+                                if (day == 0) {
+                                    popupContent += "Everyday at ";
+                                } else if (day == 1) {
+                                    popupContent += "Monday at ";
+                                } else if (day == 2) {
+                                    popupContent += "Tuesday at ";
+                                } else if (day == 3) {
+                                    popupContent += "Wednesday at ";
+                                } else if (day == 4) {
+                                    popupContent += "Thursday at ";
+                                } else if (day == 5) {
+                                    popupContent += "Friday at ";
+                                } else if (day == 6) {
+                                    popupContent += "Saturday at ";
+                                } else if (day == 7) {
+                                    popupContent += "Sunday at ";
+                                }
+                                popupContent += json[key]['times'][x].split(":")[1] + ":" + json[key]['times'][x].split(":")[2] + " UTC";
+                            }
+                            if (json[key].hasOwnProperty('notes')) {
+                                popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
+                            }
+                            popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
+                            popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
                         } else {
-                            sondesList += sondes[y][0] + " (unknown WMO code)";
+                            popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
+                            popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
                         }
-                        if (y < sondes.length-1) {
-                            sondesList += ", ";
-                        }
+                        popup.setContent(popupContent);
                     }
-                    var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
-                    var popup = new L.popup({ autoClose: false, closeOnClick: false });
-                    marker.bindPopup(popup);
-                    launches.addLayer(marker);
-                    if (json[key].hasOwnProperty('times')) {
-                        var popupContent = null;
-                        popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
-                        var ascent_rate = 5;
-                        var descent_rate = 6;
-                        var burst_altitude = 26000;
-                        var burst_samples = "";
-                        var descent_samples = "";
-                        if (json[key].rs_types.includes("11") || json[key].rs_types.includes("82")) { //LMS6
-                            ascent_rate = 5;
-                            descent_rate = 2.5;
-                            burst_altitude = 33500;
-                        }
-                        if (json[key].hasOwnProperty('ascent_rate')) {
-                            ascent_rate = json[key]["ascent_rate"];
-                        }
-                        if (json[key].hasOwnProperty('descent_rate')) {
-                            descent_rate = json[key]["descent_rate"];
-                        }
-                        if (json[key].hasOwnProperty('burst_altitude')) {
-                            burst_altitude = json[key]["burst_altitude"];
-                        }
-                        if (json[key].hasOwnProperty('burst_samples')) {
-                            burst_samples = json[key]["burst_samples"];
-                        }
-                        if (json[key].hasOwnProperty('descent_samples')) {
-                            descent_samples = json[key]["descent_samples"];
-                        }
-                        popupContent += "<br><b>Launch schedule:</b>";
-                        for (var x = 0; x < json[key]['times'].length; x++) {
-                            popupContent += "<br>- ";
-                            var day = json[key]['times'][x].split(":")[0];
-                            if (day == 0) {
-                                popupContent += "Everyday at ";
-                            } else if (day == 1) {
-                                popupContent += "Monday at ";
-                            } else if (day == 2) {
-                                popupContent += "Tuesday at ";
-                            } else if (day == 3) {
-                                popupContent += "Wednesday at ";
-                            } else if (day == 4) {
-                                popupContent += "Thursday at ";
-                            } else if (day == 5) {
-                                popupContent += "Friday at ";
-                            } else if (day == 6) {
-                                popupContent += "Saturday at ";
-                            } else if (day == 7) {
-                                popupContent += "Sunday at ";
-                            }
-                            popupContent += json[key]['times'][x].split(":")[1] + ":" + json[key]['times'][x].split(":")[2] + " UTC";
-                        }
-                        if (json[key].hasOwnProperty('notes')) {
-                            popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
-                        }
-                        popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
-                        popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
-                    } else {
-                        popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
-                        popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
-                    }
-                    popup.setContent(popupContent);
                 }
             }
         });
