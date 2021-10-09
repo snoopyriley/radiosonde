@@ -4113,13 +4113,11 @@ function updateLeaderboardPane(r){
 function updateLaunchPredictions(r) {
     for (serial in r) {
         prediction = r[serial];
-        if(prediction.hasOwnProperty("launch_site")) {
-            if(vehicles.hasOwnProperty(serial)) {
-                vehicle = vehicles[serial];
-                if (vehicle.prediction_launch == null) {
-                    vehicle.prediction_launch = prediction;
-                    drawLaunchPrediction(serial);
-                }
+        if(vehicles.hasOwnProperty(serial)) {
+            vehicle = vehicles[serial];
+            if (vehicle.prediction_launch == null) {
+                vehicle.prediction_launch = prediction;
+                drawLaunchPrediction(serial);
             }
         }
     }
