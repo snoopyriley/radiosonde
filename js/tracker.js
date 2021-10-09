@@ -4,7 +4,7 @@ var newdata_url = "https://api.v2.sondehub.org/sondes/telemetry";
 var olddata_url = "https://api.v2.sondehub.org/sondes";
 var receivers_url = "https://api.v2.sondehub.org/listeners/telemetry";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
-var launch_predictions_url = "http://api.v2.sondehub.org/predictions/reverse";
+var launch_predictions_url = "https://api.v2.sondehub.org/predictions/reverse";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 
 var livedata = "wss://ws-reader.v2.sondehub.org/";
