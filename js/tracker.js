@@ -4,6 +4,7 @@ var newdata_url = "https://api.v2.sondehub.org/sondes/telemetry";
 var olddata_url = "https://api.v2.sondehub.org/sondes";
 var receivers_url = "https://api.v2.sondehub.org/listeners/telemetry";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
+var launch_predictions_url = "http://api.v2.sondehub.org/predictions/reverse";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 
 var livedata = "wss://ws-reader.v2.sondehub.org/";
@@ -1677,6 +1678,35 @@ function removePrediction(vcallsign) {
   }
 }
 
+function drawLaunchPrediction(vcallsign) {
+    var vehicle = vehicles[vcallsign];
+	var data = vehicle.prediction_launch.data;
+
+    var line = [];
+    var latlng = null;
+    var path_length = 0;
+
+    for(var i = 0, ii = data.length; i < ii; i++) {
+        latlng = new L.LatLng(data[i].lat, data[i].lon);
+        line.push(latlng);
+        if(i > 1) path_length += line[i-1].distanceTo(line[i]);
+    }
+
+    vehicle.prediction_launch_path = line;
+
+    vehicle.prediction_launch_polyline = new L.Polyline(line, {
+            color: balloon_colors[vehicle.color_index],
+            opacity: 0.4,
+            weight: 3,
+    }).addTo(map);
+
+    vehicle.prediction_launch_polyline.on('click', function (e) {
+        mapInfoBox_handle_prediction_path(e);
+    });
+
+    vehicle.prediction_launch_polyline.path_length = path_length;
+}
+
 function redrawPrediction(vcallsign) {
     var vehicle = vehicles[vcallsign];
 	var data = vehicle.prediction.data;
@@ -2467,6 +2497,8 @@ function addPosition(position) {
                             prediction_polyline: null,
                             prediction_target: null,
                             prediction_burst: null,
+                            prediction_launch: null,
+                            prediction_launch_polyline: null,
                             ascent_rate: 0.0,
                             horizontal_rate: 0.0,
                             max_alt: parseFloat(position.gps_alt),
@@ -2524,6 +2556,9 @@ function addPosition(position) {
             potentialobjects = [marker, marker_shadow, landing_marker, horizon_circle, horizon_circle_title, subhorizon_circle, subhorizon_circle_title, polyline];
             if (map.hasLayer(vehicle_info["prediction_polyline"])) { 
                 map.removeLayer(vehicle_info["prediction_polyline"]);
+            }
+            if (map.hasLayer(vehicle_info["prediction_launch_polyline"])) { 
+                map.removeLayer(vehicle_info["prediction_launch_polyline"]);
             }
             if (map.hasLayer(vehicle_info["prediction_target"])) { 
                 map.removeLayer(vehicle_info["prediction_target"]);
@@ -3627,6 +3662,22 @@ function refreshPredictions() {
             periodical_predictions = setTimeout(refreshPredictions, 60 * 1000);
         }
     });
+
+    var data_str = "duration=" + wvar.mode;
+
+    ajax_predictions = $.ajax({
+        type: "GET",
+        url: launch_predictions_url,
+        data: data_str,
+        dataType: "json",
+        success: function(response, textStatus) {
+            updateLaunchPredictions(response);
+        },
+        error: function() {
+        },
+        complete: function(request, textStatus) {
+        }
+    });
 }
 
 var periodical, periodical_focus, periodical_focus_new, periodical_receivers, periodical_recoveries, periodical_listeners;
@@ -4057,6 +4108,21 @@ function updateLeaderboardPane(r){
 
     $("#leaderboard-list").html(html);
 
+}
+
+function updateLaunchPredictions(r) {
+    for (serial in r) {
+        prediction = r[serial];
+        if(prediction.hasOwnProperty("launch_site")) {
+            if(vehicles.hasOwnProperty(serial)) {
+                vehicle = vehicles[serial];
+                if (vehicle.prediction_launch == null) {
+                    vehicle.prediction_launch = prediction;
+                    drawLaunchPrediction(serial);
+                }
+            }
+        }
+    }
 }
 
 function updatePredictions(r) {
