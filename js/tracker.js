@@ -4344,9 +4344,6 @@ function update(response) {
              vehicles.hasOwnProperty(follow_vehicle) &&
              vehicles[follow_vehicle].graph_data_updated) updateGraph(follow_vehicle, false);
 
-          // store in localStorage
-          offline.set('positions', ctx.lastPositions);
-
           if (got_positions && !zoomed_in && Object.keys(vehicles).length) {
             if (vehicles.hasOwnProperty(wvar.query) && wvar.query !== "") {
                 zoom_on_payload();
