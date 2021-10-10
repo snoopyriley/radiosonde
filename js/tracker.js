@@ -513,7 +513,8 @@ function load() {
         map.addLayer(nite);
     }
 
-    if (offline.get("opt_layers_launches")) {
+
+    if (!offline.get("opt_layers_launches")) {
         showLaunchSites();
         map.addLayer(launches);
     }
@@ -2095,7 +2096,7 @@ function mapInfoBox_handle_prediction(event) {
                         formatDate(new Date(parseInt(data.time) * 1000), true) + "\n\n" +
                         "<b>Altitude:</b> " + altitude + "\n" +
                         "<b>Latitude:</b> " + data.lat + "\n" +
-                        "<b>Longtitude:</b> " + data.lon + "\n" +
+                        "<b>Longitude:</b> " + data.lon + "\n" +
                         "</pre>"
                         );
     mapInfoBox.setLatLng(event.latlng);

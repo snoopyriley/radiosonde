@@ -844,9 +844,9 @@ $(window).ready(function() {
             case "opt_layers_launches":
                 showLaunchSites();
                 if(on) {
-                    map.addLayer(launches);
-                } else {
                     map.removeLayer(launches);
+                } else {
+                    map.addLayer(launches);
                 }
                 break;
             case "opt_interpolate":
