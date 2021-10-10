@@ -96,6 +96,7 @@ function load_hash(no_refresh) {
         switch(k) {
             case "mt":
                 if( baseMaps.hasOwnProperty(v) ) {
+                    map.removeLayer(baseMaps[selectedLayer]);
                     selectedLayer = v;
                     map.addLayer(baseMaps[v]);
                 }
