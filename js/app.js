@@ -746,6 +746,7 @@ $(window).ready(function() {
         "#sw_daylight",
         "#sw_hide_receivers",
         "#sw_hide_recoveries",
+        "#sw_hide_chase",
         "#sw_hide_timebox",
         "#sw_hilight_vehicle",
         '#sw_hide_horizon',
@@ -811,6 +812,14 @@ $(window).ready(function() {
                         refreshRecoveries();
                     }
                     break;
+            case "opt_hide_chase":
+                if(on) {
+                    clearTimeout(periodical_listeners);
+                    deleteChase();
+                } else {
+                    refreshNewReceivers(true);
+                }
+                break;
             case "opt_hide_timebox":
                 var elm = $("#timebox");
                 if(on) {
@@ -844,9 +853,9 @@ $(window).ready(function() {
             case "opt_layers_launches":
                 showLaunchSites();
                 if(on) {
-                    map.addLayer(launches);
-                } else {
                     map.removeLayer(launches);
+                } else {
+                    map.addLayer(launches);
                 }
                 break;
             case "opt_interpolate":
