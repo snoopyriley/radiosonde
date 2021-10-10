@@ -423,7 +423,9 @@ function clean_refresh(text, force, history_step) {
     clearTimeout(periodical_listeners);
 
     refresh();
-    refreshNewReceivers(true);
+    if (!offline.get("opt_hide_chase")) {
+        refreshNewReceivers(true);
+    }
 
     return true;
 }
@@ -512,7 +514,6 @@ function load() {
     if (offline.get("opt_daylight")) {
         map.addLayer(nite);
     }
-
 
     if (!offline.get("opt_layers_launches")) {
         showLaunchSites();
@@ -3513,7 +3514,9 @@ function refreshSingleNew(serial) {
     }
 
     if (serial.includes("_chase")) {
-        refreshNewReceivers(false, serial.replace("_chase", ""));
+        if (!offline.get("opt_hide_chase")) {
+            refreshNewReceivers(false, serial.replace("_chase", ""));
+        }
         return;
     }
   
@@ -3563,7 +3566,9 @@ function refreshPatreons() {
 
 function refreshReceivers() {
     if(offline.get('opt_hide_receivers')) {
-        refreshNewReceivers(true);
+        if (!offline.get("opt_hide_chase")) {
+            refreshNewReceivers(true);
+        }
     } else {
         data_str = "duration=1d";
 
@@ -3576,7 +3581,9 @@ function refreshReceivers() {
                 updateReceivers(response);
             },
             complete: function(request, textStatus) {
-                refreshNewReceivers(true);
+                if (!offline.get("opt_hide_chase")) {
+                    refreshNewReceivers(true);
+                }
             }
         });
     }
@@ -3601,7 +3608,9 @@ function refreshNewReceivers(initial, serial) {
         data: data_str,
         dataType: "json",
         success: function(response, textStatus) {
-            updateChase(response);
+            if (!offline.get("opt_hide_chase")) {
+                updateChase(response);
+            }
         },
         complete: function(request, textStatus) {
             if (typeof serial === 'undefined') {
@@ -3798,6 +3807,16 @@ function updateReceiverMarker(receiver) {
     receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false }).setContent(receiver.description);
     receiver.marker.bindPopup(receiver.infobox);
   }
+}
+
+function deleteChase(r) {
+    var callsign;
+    for(callsign in vehicles) {
+        if (vehicles[callsign].vehicle_type == "car") {
+            vehicles[callsign].kill();
+        }
+    }
+    car_index = 0;
 }
 
 function updateChase(r) {
