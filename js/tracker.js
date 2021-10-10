@@ -323,6 +323,16 @@ var baseMaps = {
 
 var selectedLayer = "Mapnik";
 
+// set map if in memory
+var maplayer = offline.get("map")
+if (maplayer !== null) {
+    if( baseMaps.hasOwnProperty(maplayer) ) {
+        selectedLayer = maplayer;
+    }
+}
+
+console.log(selectedLayer);
+
 // mousemove event throttle hack for smoother maps pan on firefox and IE
 // taken from: http://stackoverflow.com/questions/22306130/how-to-limit-google-maps-api-lag-when-panning-the-map-with-lots-of-markers-and-p
 
@@ -437,7 +447,7 @@ function load() {
         zoomControl: false,
         zoomAnimationThreshold: 0,
         center: [53.467511,-2.233894],
-        layers: baseMaps["Mapnik"],
+        layers: baseMaps[selectedLayer],
         preferCanvas: true,
     });
 
@@ -526,6 +536,7 @@ function load() {
 
     map.on('baselayerchange', function (e) {
         selectedLayer = e.layer.id;
+        offline.set('map', selectedLayer);
     });
 
     map.on('zoomend', function() {
@@ -563,6 +574,7 @@ function load() {
 
     // only start population the map, once its completely loaded
     var callBack = function() {
+
         load_hash(null);
         map.options.zoomAnimationThreshold = 4;
 
@@ -3663,7 +3675,6 @@ function refreshPredictions() {
         data: "",
         dataType: "json",
         success: function(response, textStatus) {
-            offline.set('predictions', "");
             updatePredictions(response);
         },
         error: function() {
@@ -4332,9 +4343,6 @@ function update(response) {
           if(follow_vehicle !== null &&
              vehicles.hasOwnProperty(follow_vehicle) &&
              vehicles[follow_vehicle].graph_data_updated) updateGraph(follow_vehicle, false);
-
-          // store in localStorage
-          offline.set('positions', ctx.lastPositions);
 
           if (got_positions && !zoomed_in && Object.keys(vehicles).length) {
             if (vehicles.hasOwnProperty(wvar.query) && wvar.query !== "") {
