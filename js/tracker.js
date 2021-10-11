@@ -331,8 +331,6 @@ if (maplayer !== null) {
     }
 }
 
-console.log(selectedLayer);
-
 // mousemove event throttle hack for smoother maps pan on firefox and IE
 // taken from: http://stackoverflow.com/questions/22306130/how-to-limit-google-maps-api-lag-when-panning-the-map-with-lots-of-markers-and-p
 
@@ -1671,6 +1669,35 @@ function set_polyline_visibility(vcallsign, val) {
             vehicle.polyline[k].bringToBack();
         } else {
             map.removeLayer(vehicle.polyline[k]);
+        }
+    }
+
+    if(vehicle.prediction_polyline) {
+        if (val) {
+            map.addLayer(vehicle.prediction_polyline);
+        } else {
+            map.removeLayer(vehicle.prediction_polyline);
+        }
+    }
+    if(vehicle.prediction_launch_polyline) {
+        if (val) {
+            map.addLayer(vehicle.prediction_launch_polyline);
+        } else {
+            map.removeLayer(vehicle.prediction_launch_polyline);
+        }
+    }
+    if(vehicle.prediction_target) {
+        if (val) {
+            map.addLayer(vehicle.prediction_target);
+        } else {
+            map.removeLayer(vehicle.prediction_target);
+        }
+    }
+    if(vehicle.prediction_burst) {
+        if (val) {
+            map.addLayer(vehicle.prediction_burst);
+        } else {
+            map.removeLayer(vehicle.prediction_burst);
         }
     }
 
