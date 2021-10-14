@@ -878,6 +878,29 @@ function showLaunchSites() {
                         var popup = new L.popup({ autoClose: false, closeOnClick: false });
                         marker.bindPopup(popup);
                         launches.addLayer(marker);
+                        var popupLink = "https://docs.google.com/forms/d/e/1FAIpQLSfIbBSQMZOXpNE4VpK4BqUbKDPCWCDgU9QxYgmhh-JD-JGSsQ/viewform?usp=pp_url&entry.796606853=Modify+Existing+Site";
+                        popupLink += "&entry.749833526=" + key;
+                        if (json[key].hasOwnProperty('station_name')) {
+                            popupLink += "&entry.675505431=" + json[key].station_name.replace(/\s/g, '+');
+                        }
+                        if (json[key].hasOwnProperty('position')) {
+                            popupLink += "&entry.1613779787=" + json[key].position.toString();
+                        }
+                        if (json[key].hasOwnProperty('alt')) {
+                            popupLink += "&entry.753148337=" + json[key].alt;
+                        }
+                        if (json[key].hasOwnProperty('ascent_rate')) {
+                            popupLink += "&entry.509146334=" + json[key]["ascent_rate"];
+                        }
+                        if (json[key].hasOwnProperty('burst_altitude')) {
+                            popupLink += "&entry.1897602989=" + json[key]["burst_altitude"];
+                        }
+                        if (json[key].hasOwnProperty('descent_rate')) {
+                            popupLink += "&entry.267462486=" + json[key]["descent_rate"];
+                        }
+                        if (json[key].hasOwnProperty('notes')) {
+                            popupLink += "&entry.197384117=" + json[key]["notes"].replace(/\s/g, '+');
+                        }
                         if (json[key].hasOwnProperty('times')) {
                             var popupContent = null;
                             popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
@@ -932,14 +955,14 @@ function showLaunchSites() {
                             if (json[key].hasOwnProperty('notes')) {
                                 popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
                             }
-                            popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
+                            popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='" + popupLink + "' target='_blank'>here</a>";
                             popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
                         } else {
                             popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
                             if (json[key].hasOwnProperty('notes')) {
                                 popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
                             }
-                            popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='https://github.com/projecthorus/sondehub-tracker/issues/114' target='_blank'>here</a>";
+                            popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='" + popupLink + "' target='_blank'>here</a>";
                         }
                         popup.setContent(popupContent);
                     }
