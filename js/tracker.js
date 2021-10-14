@@ -884,7 +884,7 @@ function showLaunchSites() {
                             popupLink += "&entry.675505431=" + json[key].station_name.replace(/\s/g, '+');
                         }
                         if (json[key].hasOwnProperty('position')) {
-                            popupLink += "&entry.1613779787=" + json[key].position.toString();
+                            popupLink += "&entry.1613779787=" + json[key].position.reverse().toString();
                         }
                         if (json[key].hasOwnProperty('alt')) {
                             popupLink += "&entry.753148337=" + json[key].alt;
