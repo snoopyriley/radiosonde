@@ -4025,7 +4025,7 @@ function updateRecoveryMarker(recovery) {
       html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(recovery.datetime))+"</div>";
       html += "<div><b>Reported by:&nbsp;</b>"+recovery.recovered_by+"</div>";
       html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(recovery.description).html()+"</div>";
-      html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+recovery.serial+"' target='_blank' rel='noopener'>"+recovery.serial+"</a></div>";
+      html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/"+recovery.serial+"'>"+recovery.serial+"</a></div>";
 
       html += "</div>";
 
@@ -4137,7 +4137,7 @@ function updateRecoveryPane(r){
             html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(r[i].datetime))+"</div>";
             html += "<div><b>Reported by:&nbsp;</b>"+r[i].recovered_by+"</div>";
             html += "<div><b>Notes:&nbsp;</b>"+$('<div>').text(r[i].description).html()+"</div>";
-            html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/card/"+r[i].serial+"' target='_blank' rel='noopener'>"+r[i].serial+"</a></div>";
+            html += "<div><b>Flight Path:&nbsp;</b><a href='https://sondehub.org/"+r[i].serial+"'>"+r[i].serial+"</a></div>";
             html += "<hr style='margin:5px 0px'>";
             html += "</div>";
         }
