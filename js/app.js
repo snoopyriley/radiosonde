@@ -670,7 +670,7 @@ $(window).ready(function() {
             if(currentPosition && currentPosition.marker) map.addLayer(currentPosition.marker);
         // turning the switch on
         } else {
-            if(callsign.length == null || callsign.length < 5) { alert('Please enter a valid callsign, at least 5 characters'); return; }
+            if(callsign.length == null || callsign.length < 3) { alert('Please enter a valid callsign, at least 3 characters'); return; }
             if(!callsign.match(/^[a-zA-Z0-9\_\-]+$/)) { alert('Invalid characters in callsign (use only a-z,0-9,-,_)'); return; }
 
             field.attr('disabled','disabled');
