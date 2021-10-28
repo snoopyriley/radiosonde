@@ -814,11 +814,14 @@ function plotPrediction (data, dates, marker, properties) {
 }
 
 function showPrediction(url) {
+  var delayInMilliseconds = Math.random() * (50 - 20) + 20;
+  setTimeout(function() {
     return $.ajax({
         type: "GET",
         url: url,
         dataType: "json",
     });
+  }, delayInMilliseconds);
 }
 
 function deletePredictions(marker) {
