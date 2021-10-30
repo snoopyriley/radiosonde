@@ -720,7 +720,7 @@ function launchSitePredictions(times, station, properties, marker) {
         var lon = ((360 + (position[1] % 360)) % 360)
         var url = "https://predict.cusf.co.uk/api/v1/?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
         //var url = "https://api.v2.sondehub.org/tawhiri?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
-	showPrediction(url).done(handleData).fail(handleError);
+        showPrediction(url).done(handleData).fail(handleError);
     }
     function handleData(data) {
         completed += 1;
@@ -814,11 +814,11 @@ function plotPrediction (data, dates, marker, properties) {
 }
 
 function showPrediction(url) {
-  return $.ajax({
-      type: "GET",
-      url: url,
-      dataType: "json",
-  });
+    return $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "json",
+    });
 }
 
 function deletePredictions(marker) {
