@@ -1051,7 +1051,8 @@ function habitat_data(jsondata, alternative) {
     "sats": "GNSS SVs Used",
     "humidity": "Relative Humidity",
     "subtype": "Sonde Sub-type",
-    "frequency": "TX Frequency",
+    "frequency": "Frequency",
+    "frequency_tx": "TX Frequency",
     "manufacturer": "Manufacturer",
     "type": "Sonde Type",
     "burst_timer": "Burst Timer",
@@ -1092,6 +1093,7 @@ function habitat_data(jsondata, alternative) {
     "light_intensity": " lx",
     "humidity": " %",
     "frequency": " MHz",
+    "frequency_tx": " MHz",
     "spam": ""
   };
 
@@ -1102,11 +1104,18 @@ function habitat_data(jsondata, alternative) {
     var data = (typeof jsondata === "string") ? $.parseJSON(jsondata) : jsondata;
     var array = [];
     var output = "";
+    var txFreq = false
 
     if(Object.keys(data).length === 0) return "";
 
+    if ("frequency_tx" in data) {
+        txFreq = true
+    }
+
     for(var key in data) {
-        array.push([key, data[key]]);
+        if (key === "frequency" && txFreq) {} else {
+            array.push([key, data[key]]);
+        }
     }
 
     array.sort(function(a, b) {
@@ -1580,21 +1589,26 @@ function updateVehicleInfo(vcallsign, newPosition) {
     for(var rxcall in newPosition.callsign){
         if(newPosition.callsign.hasOwnProperty(rxcall)) {
             _new_call = rxcall;
+            tempFields = [];
             if(newPosition.callsign[rxcall].hasOwnProperty('snr')){
                 if(newPosition.callsign[rxcall].snr){
-                    _new_call += " (" + newPosition.callsign[rxcall].snr.toFixed(0) + " dB)";
-                    callsign_list.push(_new_call)
-                    continue;
+                    tempFields.push(newPosition.callsign[rxcall].snr.toFixed(0) + " dB");
                 }
             }
             if(newPosition.callsign[rxcall].hasOwnProperty('rssi')){
                 if(newPosition.callsign[rxcall].rssi){
-                    _new_call += " (" + newPosition.callsign[rxcall].rssi.toFixed(0) + " dBm)";
-                    callsign_list.push(_new_call)
-                    continue;
+                    tempFields.push(newPosition.callsign[rxcall].rssi.toFixed(0) + " dBm");
                 }
             }
-            callsign_list.push(_new_call); // catch cases where there is no SNR or RSSI
+            if(newPosition.callsign[rxcall].hasOwnProperty('frequency')){
+                if(newPosition.callsign[rxcall].frequency){
+                    tempFields.push(newPosition.callsign[rxcall].frequency + " MHz");
+                }
+            }
+            if(tempFields.length > 0) {
+                _new_call += " (" + tempFields.join(", ") + ")";
+            }
+            callsign_list.push(_new_call); // catch cases where there are no fields
         }
     }
     callsign_list = callsign_list.join(", ");
@@ -2087,8 +2101,10 @@ function mapInfoBox_handle_path_fetch(id,vehicle) {
         if (data.hasOwnProperty("batt")) {
             html += "<div><b>Battery Voltage:&nbsp;</b>" + data.batt + " V</div>";
         };
-        if (data.hasOwnProperty("frequency")) {
-            html += "<div><b>TX Frequency:&nbsp;</b>" + data.frequency + " MHz</div>";
+        if (data.hasOwnProperty("tx_frequency")) {
+            html += "<div><b>TX Frequency:&nbsp;</b>" + data.tx_frequency + " MHz</div>";
+        } else if (data.hasOwnProperty("frequency")) {
+            html += "<div><b>Frequency:&nbsp;</b>" + data.frequency + " MHz</div>";
         };
         if (data.hasOwnProperty("humidity")) {
             html += "<div><b>Relative Humidity:&nbsp;</b>" + data.humidity + " %</div>";
@@ -2121,15 +2137,20 @@ function mapInfoBox_handle_path_fetch(id,vehicle) {
 
         for (var i = 0; i < data.uploaders.length; i++) {
             _new_call = data.uploaders[i].uploader_callsign;
+            tempFields = [];
             if(data.uploaders[i].hasOwnProperty('snr')) {
-                _new_call += " (" + data.uploaders[i].snr.toFixed(0) + " dB)";
-                callsign_list.push(_new_call)
-            } else if(data.uploaders[i].hasOwnProperty('rssi')) {
-                _new_call += " (" + data.uploaders[i].rssi.toFixed(0) + " dBm)";
-                callsign_list.push(_new_call)
-            } else {
-                callsign_list.push(_new_call)
+                tempFields.push(data.uploaders[i].snr.toFixed(0) + " dB");
+            } 
+            if(data.uploaders[i].hasOwnProperty('rssi')) {
+                tempFields.push(data.uploaders[i].rssi.toFixed(0) + " dBm");
             }
+            if(data.uploaders[i].hasOwnProperty('frequency')) {
+                tempFields.push(data.uploaders[i].frequency + " MHz");
+            }
+            if(tempFields.length > 0) {
+                _new_call += " (" + tempFields.join(", ") + ")";
+            }
+            callsign_list.push(_new_call); // catch cases where there are no fields
         }
 
         callsign_list = callsign_list.join("<br /> ");
@@ -3093,6 +3114,9 @@ function formatData(data, live) {
                                     if (vehicles[data[entry].serial].curr_position.callsign[key].hasOwnProperty("rssi")) {
                                         dataTempEntry.callsign[key].rssi = vehicles[data[entry].serial].curr_position.callsign[key].rssi;
                                     }
+                                    if (vehicles[data[entry].serial].curr_position.callsign[key].hasOwnProperty("frequency")) {
+                                        dataTempEntry.callsign[key].frequency = vehicles[data[entry].serial].curr_position.callsign[key].frequency;
+                                    }
                                 }
                             }
                         }
@@ -3104,6 +3128,9 @@ function formatData(data, live) {
                 }
                 if (data[entry].rssi) {
                     dataTempEntry.callsign[station].rssi = data[entry].rssi;
+                }
+                if (data[entry].frequency) {
+                    dataTempEntry.callsign[station].frequency = data[entry].frequency;
                 }
                 dataTempEntry.gps_alt = data[entry].alt;
                 dataTempEntry.gps_lat = data[entry].lat;
@@ -3124,6 +3151,9 @@ function formatData(data, live) {
                 }
                 if (data[entry].frequency) {
                     dataTempEntry.data.frequency = data[entry].frequency;
+                }
+                if (data[entry].tx_frequency) {
+                    dataTempEntry.data.frequency_tx = data[entry].tx_frequency;
                 }
                 if (data[entry].humidity) {
                     dataTempEntry.data.humidity = data[entry].humidity;
@@ -3172,6 +3202,9 @@ function formatData(data, live) {
                                 if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("rssi")) {
                                     dataTempEntry.callsign[key].rssi = vehicles[data.serial].curr_position.callsign[key].rssi;
                                 }
+                                if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("frequency")) {
+                                    dataTempEntry.callsign[key].frequency = vehicles[data.serial].curr_position.callsign[key].frequency;
+                                }
                             }
                         }
                     }
@@ -3183,6 +3216,9 @@ function formatData(data, live) {
             }
             if (data.rssi) {
                 dataTempEntry.callsign[station].rssi = data.rssi;
+            }
+            if (data.frequency) {
+                dataTempEntry.callsign[station].frequency = data.frequency;
             }
             dataTempEntry.gps_alt = data.alt;
             dataTempEntry.gps_lat = data.lat;
@@ -3203,6 +3239,9 @@ function formatData(data, live) {
             }
             if (data.frequency) {
                 dataTempEntry.data.frequency = data.frequency;
+            }
+            if (data.tx_frequency) {
+                dataTempEntry.data.frequency_tx = data.tx_frequency;
             }
             if (data.humidity) {
                 dataTempEntry.data.humidity = data.humidity;
@@ -3249,6 +3288,9 @@ function formatData(data, live) {
                         if (data[key][i].rssi) {
                             dataTempEntry.callsign[station].rssi = data[key][i].rssi;
                         }
+                        if (data[key][i].frequency) {
+                            dataTempEntry.callsign[station].frequency = data[key][i].frequency;
+                        }
                         dataTempEntry.gps_alt = data[key][i].alt;
                         dataTempEntry.gps_lat = data[key][i].lat;
                         dataTempEntry.gps_lon = data[key][i].lon;
@@ -3268,6 +3310,9 @@ function formatData(data, live) {
                         }
                         if (data[key][i].frequency) {
                             dataTempEntry.data.frequency = data[key][i].frequency;
+                        }
+                        if (data[key][i].tx_frequency) {
+                            dataTempEntry.data.frequency_tx = data[key][i].tx_frequency;
                         }
                         if (data[key][i].humidity) {
                             dataTempEntry.data.humidity = data[key][i].humidity;
@@ -3335,6 +3380,9 @@ function formatData(data, live) {
                 if (data[i].rssi) {
                     dataTempEntry.callsign[station].rssi = data[i].rssi;
                 }
+                if (data[i].frequency) {
+                    dataTempEntry.callsign[station].frequency = data[i].frequency;
+                }
                 dataTempEntry.gps_alt = data[i].alt;
                 dataTempEntry.gps_lat = data[i].lat;
                 dataTempEntry.gps_lon = data[i].lon;
@@ -3354,6 +3402,9 @@ function formatData(data, live) {
                 }
                 if (data[i].frequency) {
                     dataTempEntry.data.frequency = data[i].frequency;
+                }
+                if (data[i].tx_frequency) {
+                    dataTempEntry.data.frequency_tx = data[i].tx_frequency;
                 }
                 if (data[i].humidity) {
                     dataTempEntry.data.humidity = data[i].humidity;
