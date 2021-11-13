@@ -671,53 +671,60 @@ function launchSitePredictions(times, station, properties, marker) {
         deletePredictions(marker);
         popupContent = popupContent.split("<button onclick='deletePredictions(")[0];
     }
-    times = times.split(",");
     position = station.split(",");
     properties = properties.split(":");
     var now = new Date();
-    var maxCount = 7
-    var count = 0;
-    var day = 0;
-    var dates = [];
-    while (day < 8) {
-        for (var i = 0; i < times.length; i++) {
-            var date = new Date();
-            var time = times[i].split(":");
-            if (time[0] != 0) {
-                date.setDate(date.getDate() + (7 + time[0] - date.getDay()) % 7);
-            }
-            date.setUTCHours(time[1]);
-            date.setUTCMinutes(time[2]);
-            date.setSeconds(0);
-            date.setMilliseconds(0);
-            date.setMinutes( date.getMinutes() - 45 );
-            while (date < now) {
-                if (time[0] == 0) {
-                    date.setDate(date.getDate() + 1);
-                } else {
-                    date.setDate(date.getDate() + 7);
+    if (times.length > 0) {
+        times = times.split(",");
+        var maxCount = 7
+        var count = 0;
+        var day = 0;
+        var dates = [];
+        while (day < 8) {
+            for (var i = 0; i < times.length; i++) {
+                var date = new Date();
+                var time = times[i].split(":");
+                if (time[0] != 0) {
+                    date.setDate(date.getDate() + (7 + time[0] - date.getDay()) % 7);
+                }
+                date.setUTCHours(time[1]);
+                date.setUTCMinutes(time[2]);
+                date.setSeconds(0);
+                date.setMilliseconds(0);
+                // launch time 45 minutes before target time
+                date.setMinutes( date.getMinutes() - 45 );
+                while (date < now) {
+                    if (time[0] == 0) {
+                        date.setDate(date.getDate() + 1);
+                    } else {
+                        date.setDate(date.getDate() + 7);
+                    }
+                }
+                if (day > 0) {
+                    if (time[0] == 0) {
+                        date.setDate(date.getDate() + day);
+                    } else {
+                        date.setDate(date.getDate() + (7*day));
+                    }
+                }
+                if (count < maxCount) {
+                    if (((date - now) / 36e5) < 170) {
+                        dates.push(date.toISOString().split('.')[0]+"Z");
+                        count += 1;
+                    }
                 }
             }
-            if (day > 0) {
-                if (time[0] == 0) {
-                    date.setDate(date.getDate() + day);
-                } else {
-                    date.setDate(date.getDate() + (7*day));
-                }
-            }
-            if (count < maxCount) {
-                if (((date - now) / 36e5) < 170) {
-                    dates.push(date.toISOString().split('.')[0]+"Z");
-                    count += 1;
-                }
-            }
+            day += 1;
         }
-        day += 1;
+        dates.sort();
+    } else {
+        var date = new Date();
+        var dates = [];
+        dates.push(date.toISOString().split('.')[0]+"Z");
     }
-    dates.sort();
     var completed = 0;
     for (var i = 0; i < dates.length; i++) {
-        var lon = ((360 + (position[1] % 360)) % 360)
+        var lon = ((360 + (position[1] % 360)) % 360);
         //var url = "https://predict.cusf.co.uk/api/v1/?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
         var url = "https://api.v2.sondehub.org/tawhiri?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
         showPrediction(url).done(handleData).fail(handleError);
@@ -853,31 +860,49 @@ function showLaunchSites() {
                 for (var key in json) {
                     if (json.hasOwnProperty(key)) {
                         var latlon = [json[key].position[1], json[key].position[0]];
-                        var sondes = json[key].rs_types;
                         var sondesList = "";
-                        for (var y = 0; y < sondes.length; y++) {
-                            if (Array.isArray(sondes[y]) == false) {
-                                sondes[y] = [sondes[y]];
-                            }
-                            if (sondeCodes.hasOwnProperty(sondes[y][0])) {
-                                sondesList += sondeCodes[sondes[y][0]]
-                                if (sondes[y].length > 1) {
-                                    sondesList += " (" + sondes[y][1] + " MHz)";
-                                }
-                            } else if (unsupportedSondeCodes.hasOwnProperty(sondes[y][0])) {
-                                sondesList += unsupportedSondeCodes[sondes[y][0]];
-                                sondesList += " (cannot track)";
-                            } else {
-                                sondesList += sondes[y][0] + " (unknown WMO code)";
-                            }
-                            if (y < sondes.length-1) {
-                                sondesList += ", ";
-                            }
-                        }
+                        var popupContent = "";
+                        var ascent_rate = 5;
+                        var descent_rate = 6;
+                        var burst_altitude = 26000;
+                        var burst_samples = "";
+                        var descent_samples = "";
                         var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
                         var popup = new L.popup({ autoClose: false, closeOnClick: false });
                         marker.bindPopup(popup);
                         launches.addLayer(marker);
+
+                        // Match sonde codes
+                        if (json[key].hasOwnProperty('rs_types')) {
+                            var sondes = json[key].rs_types;
+                            for (var y = 0; y < sondes.length; y++) {
+                                if (Array.isArray(sondes[y]) == false) {
+                                    sondes[y] = [sondes[y]];
+                                }
+                                if (sondeCodes.hasOwnProperty(sondes[y][0])) {
+                                    sondesList += sondeCodes[sondes[y][0]]
+                                    if (sondes[y].length > 1) {
+                                        sondesList += " (" + sondes[y][1] + " MHz)";
+                                    }
+                                } else if (unsupportedSondeCodes.hasOwnProperty(sondes[y][0])) {
+                                    sondesList += unsupportedSondeCodes[sondes[y][0]];
+                                    sondesList += " (cannot track)";
+                                } else {
+                                    sondesList += sondes[y][0] + " (unknown WMO code)";
+                                }
+                                if (y < sondes.length-1) {
+                                    sondesList += ", ";
+                                }
+                            }
+                            if (sondes.includes("11") || sondes.includes("82")) { //LMS6
+                                ascent_rate = 5;
+                                descent_rate = 2.5;
+                                burst_altitude = 33500;
+                            }
+                            popupContent += "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
+                        }
+                    
+                        // Generate prefilled suggestion form
                         var popupLink = "https://docs.google.com/forms/d/e/1FAIpQLSfIbBSQMZOXpNE4VpK4BqUbKDPCWCDgU9QxYgmhh-JD-JGSsQ/viewform?usp=pp_url&entry.796606853=Modify+Existing+Site";
                         popupLink += "&entry.749833526=" + key;
                         if (json[key].hasOwnProperty('station_name')) {
@@ -901,34 +926,26 @@ function showLaunchSites() {
                         if (json[key].hasOwnProperty('notes')) {
                             popupLink += "&entry.197384117=" + json[key]["notes"].replace(/\s/g, '+');
                         }
+
+                        // Update prediction data if provided
+                        if (json[key].hasOwnProperty('ascent_rate')) {
+                            ascent_rate = json[key]["ascent_rate"];
+                        }
+                        if (json[key].hasOwnProperty('descent_rate')) {
+                            descent_rate = json[key]["descent_rate"];
+                        }
+                        if (json[key].hasOwnProperty('burst_altitude')) {
+                            burst_altitude = json[key]["burst_altitude"];
+                        }
+                        if (json[key].hasOwnProperty('burst_samples')) {
+                            burst_samples = json[key]["burst_samples"];
+                        }
+                        if (json[key].hasOwnProperty('descent_samples')) {
+                            descent_samples = json[key]["descent_samples"];
+                        }
+
+                        // Process launch schedule if provided
                         if (json[key].hasOwnProperty('times')) {
-                            var popupContent = null;
-                            popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
-                            var ascent_rate = 5;
-                            var descent_rate = 6;
-                            var burst_altitude = 26000;
-                            var burst_samples = "";
-                            var descent_samples = "";
-                            if (json[key].rs_types.includes("11") || json[key].rs_types.includes("82")) { //LMS6
-                                ascent_rate = 5;
-                                descent_rate = 2.5;
-                                burst_altitude = 33500;
-                            }
-                            if (json[key].hasOwnProperty('ascent_rate')) {
-                                ascent_rate = json[key]["ascent_rate"];
-                            }
-                            if (json[key].hasOwnProperty('descent_rate')) {
-                                descent_rate = json[key]["descent_rate"];
-                            }
-                            if (json[key].hasOwnProperty('burst_altitude')) {
-                                burst_altitude = json[key]["burst_altitude"];
-                            }
-                            if (json[key].hasOwnProperty('burst_samples')) {
-                                burst_samples = json[key]["burst_samples"];
-                            }
-                            if (json[key].hasOwnProperty('descent_samples')) {
-                                descent_samples = json[key]["descent_samples"];
-                            }
                             popupContent += "<br><b>Launch schedule:</b>";
                             for (var x = 0; x < json[key]['times'].length; x++) {
                                 popupContent += "<br>- ";
@@ -952,17 +969,20 @@ function showLaunchSites() {
                                 }
                                 popupContent += json[key]['times'][x].split(":")[1] + ":" + json[key]['times'][x].split(":")[2] + " UTC";
                             }
-                            if (json[key].hasOwnProperty('notes')) {
-                                popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
-                            }
-                            popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='" + popupLink + "' target='_blank'>here</a>";
+                        }
+                           
+                        // Show notes if provided
+                        if (json[key].hasOwnProperty('notes')) {
+                            popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
+                        }
+                            
+                        popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='" + popupLink + "' target='_blank'>here</a>";
+
+                        // Create prediction button
+                        if (json[key].hasOwnProperty('times')) {
                             popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
                         } else {
-                            popupContent = "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
-                            if (json[key].hasOwnProperty('notes')) {
-                                popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
-                            }
-                            popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='" + popupLink + "' target='_blank'>here</a>";
+                            popupContent += "<br><button onclick='launchSitePredictions(\"" + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Instant Prediction</button>";
                         }
                         popup.setContent(popupContent);
                     }
