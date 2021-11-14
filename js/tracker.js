@@ -676,7 +676,7 @@ function launchSitePredictions(times, station, properties, marker) {
     var now = new Date();
     if (times.length > 0) {
         times = times.split(",");
-        var maxCount = 7
+        var maxCount = 24
         var count = 0;
         var day = 0;
         var dates = [];
