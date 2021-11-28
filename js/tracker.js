@@ -2731,7 +2731,7 @@ function addPosition(position) {
                 }
             } else {
                 var rate = (position.gps_alt - vehicle.positions_alts[vehicle.positions_alts.length - 5]) / dtt;
-                if (!isNaN(rate)) {
+                if (!isNaN(rate) && isFinite(rate)) {
                     vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
                 }
             }
