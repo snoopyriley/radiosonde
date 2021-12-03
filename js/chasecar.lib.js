@@ -46,7 +46,7 @@ ChaseCar.updatePosition = function(callsign, position) {
 ChaseCar.markRecovered = function(){
 
     _run_checks = true;
-    _range_limit = 50000; // 50 km
+    _range_limit = 200000; // 200 km
 
     // Get the serial number to be marked recovered
     _serial = $("#pr_serial").val().trim();
