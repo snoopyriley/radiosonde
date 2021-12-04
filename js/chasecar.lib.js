@@ -45,8 +45,9 @@ ChaseCar.updatePosition = function(callsign, position) {
 
 ChaseCar.markRecovered = function(){
 
-    _run_checks = true;
-    _range_limit = 200000; // 200 km
+    // Distance limits removed 2021-12-04
+    //_run_checks = true;
+    //_range_limit = 200000; // 200 km
 
     // Get the serial number to be marked recovered
     _serial = $("#pr_serial").val().trim();
@@ -62,7 +63,7 @@ ChaseCar.markRecovered = function(){
     _callsign = $("#cc_callsign").val().trim();
     if (_callsign == "" || _callsign == undefined || _callsign.length == 0)
     {
-        $('#pr_last_report').text("Enter a Chase-Car callsign!");
+        $('#pr_last_report').text("Enter a callsign in the chase-car section above!");
         return;
     }
 
@@ -77,41 +78,43 @@ ChaseCar.markRecovered = function(){
             _recov_lon = parseFloat($('#cc_lon').text());
 
             if (_recov_lat == 0.0 && _recov_lon == 0.0){
-                $('#pr_last_report').text("Location Reporting must be enabled!");
+                $('#pr_last_report').text("Location Reporting must be enabled to use chase-car position!");
                 return;
             }
 
         } else {
-            $('#pr_last_report').text("Sonde not on map, select 'Use Car Position' and try again.");
+            $('#pr_last_report').text("Sonde not on map, either search for it in the search box (top left), or select 'Use Car Position' and try again.");
             return;
         }
 
     } else {
+        // NOTE - Distance checks now removed. 
+
         // Sonde is on the map, so run some additional checks.
         _recov_lat = vehicles[_serial].curr_position['gps_lat'];
         _recov_lon = vehicles[_serial].curr_position['gps_lon'];
 
-        // Now get the last position of the sonde.
-        _sonde = {
-            'lat':_recov_lat,
-            'lon':_recov_lon,
-            'alt':0.0
-        };
+        // // Now get the last position of the sonde.
+        // _sonde = {
+        //     'lat':_recov_lat,
+        //     'lon':_recov_lon,
+        //     'alt':0.0
+        // };
 
-        // Now get the chaser position.
-        _chaser = {
-            'lat': parseFloat($('#cc_lat').text()),
-            'lon': parseFloat($('#cc_lon').text()),
-            'alt': 0.0
-        };
+        // // Now get the chaser position.
+        // _chaser = {
+        //     'lat': parseFloat($('#cc_lat').text()),
+        //     'lon': parseFloat($('#cc_lon').text()),
+        //     'alt': 0.0
+        // };
 
-        // Calculate the distance from the sonde
-        _lookangles = calculate_lookangles(_chaser, _sonde);
+        // // Calculate the distance from the sonde
+        // _lookangles = calculate_lookangles(_chaser, _sonde);
 
-        if( (_lookangles.range > _range_limit ) && _run_checks){
-            $('#pr_last_report').text("Outside distance limit.");
-            return;
-        }
+        // if( (_lookangles.range > _range_limit ) && _run_checks){
+        //     $('#pr_last_report').text("Outside distance limit.");
+        //     return;
+        // }
 
         if($("#sw_use_car_pos").hasClass('on')){
             _recov_lat = parseFloat($('#cc_lat').text());
