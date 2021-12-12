@@ -181,27 +181,6 @@ for(var idx in params) {
     }
 }
 
-$.ajaxSetup({ cache: true });
-
-var force_check_cache = false;
-
-// handle cachin events and display a loading bar
-var loadComplete = function(e) {
-    clearTimeout(initTimer);
-
-    if(e.type == 'updateready') {
-        // swapCache may throw exception if the isn't a previous cache
-        try {
-            window.applicationCache.swapCache();
-        } catch(v) {}
-
-        window.location.reload();
-        return;
-    }
-
-    $('#loading .complete').stop(true,true).animate({width: 200}, {complete: trackerInit });
-};
-
 // loads the tracker interface
 function trackerInit() {
     $('#loading,#settingsbox,#aboutbox,#chasebox').hide(); // welcome screen
@@ -223,21 +202,6 @@ function trackerInit() {
 
 // if for some reason, applicationCache is not working, load the app after a 3s timeout
 var initTimer = setTimeout(trackerInit, 3000);
-
-var cache = window.applicationCache;
-// TEMPORARILY DISABLED - MJ 2020-08-29
-// Application Cache is broken in recent chrome versions/
-// Disabling these addEventListener calls at least makes the rest of the page load.
-// Unsure what the implications of disabling these are.
-
-//cache.addEventListener('noupdate', loadComplete, false);
-//cache.addEventListener('updateready', loadComplete, false);
-//cache.addEventListener('cached', loadComplete, false);
-//cache.addEventListener('error', loadComplete, false);
-
-// if the browser supports progress events, display a loading bar
-//cache.addEventListener('checking', function() { if(map && !force_check_cache) return; force_check_cache = false; clearTimeout(initTimer); $('#loading .bar,#loading').show(); $('#loading .complete').css({width: 0}); }, false);
-//cache.addEventListener('progress', function(e) { $('#loading .complete').stop(true,true).animate({width: (200/e.total)*e.loaded}); }, false);
 
 var listScroll;
 var GPS_ts = null;
@@ -874,22 +838,6 @@ $(window).ready(function() {
 
         if(offline.get(opt_name)) $(switch_id).removeClass('off').addClass('on');
     }
-
-    // force re-cache
-    $('#sw_cache').click(function() {
-        var e = $(this).removeClass('off').addClass('on');
-        if(confirm("The app will automatically reload, if new version is available.")) {
-            force_check_cache = true;
-
-            try {
-                applicationCache.update();
-            } catch (v) {
-                force_check_cache = false;
-                alert("There is no applicationCache available");
-            }
-        }
-        e.removeClass('on').addClass('off');
-    });
 
     // We are able to get GPS position on idevices, if the user allows
     // The position is displayed in top right corner of the screen
