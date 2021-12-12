@@ -1006,7 +1006,7 @@ function gotoSite() {
         if (sites.hasOwnProperty(focusID)) {
             var site = sites[focusID];
             var latlng = new L.LatLng(site["position"][0], site["position"][1]);
-            map.setView(latlng, 5);
+            map.setView(latlng, 9);
             for (var i in launches._layers) {
                 marker = launches._layers
                 if (marker[i].title == focusID) {
