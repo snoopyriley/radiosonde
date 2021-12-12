@@ -5,7 +5,7 @@
         <title>SondeHub Tracker</title>
         <meta name="description" content="Live tracking of radiosonde flights. Data via SondeHub v2. Includes weather overlay, predictions, and access to historic radiosonde flights on sondehub." />
         <meta name="author" content="Rossen Georgiev / Mark Jessop / Michaela Wheeler / Luke Prior" />
-        <link rel="search" type="application/opensearchdescription+xml" href="opensearchspec.xml" title="Search on Sondebhub Tracker">
+        <link rel="search" type="application/opensearchdescription+xml" href="opensearchspec.xml" title="Search on SondeHub Tracker">
         <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1"/>
         <meta name="apple-mobile-web-app-title" content="SondeHub Tracker">
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -205,6 +205,13 @@
                     <input type="checkbox" id="opt_hide_titles">
                 </div>
             </div>
+            <div class="row option">
+                <span><b>Hide Launch Sites</b></span>
+                <div class="switch off" id="sw_layers_launches">
+                    <span class="thumb"></span>
+                    <input type="checkbox" id="opt_layers_launches">
+                </div>
+            </div>
             <h4>Overlays</h4>
             <hr/>
             <div class="row option">
@@ -213,29 +220,6 @@
                     <span class="thumb"></span>
                     <input type="checkbox" id="opt_daylight">
                 </div>
-            </div>
-            <h4>Other</h4>
-            <hr/>
-            <div class="row option">
-                <span><b>Hide Launch Sites</b></span>
-                <div class="switch off" id="sw_layers_launches">
-                    <span class="thumb"></span>
-                    <input type="checkbox" id="opt_layers_launches">
-                </div>
-            </div>
-            <div class="row option">
-                <span><b>Force check for new version</b></span>
-                <div class="switch off" id="sw_cache">
-                    <span class="thumb"></span>
-                    <input type="checkbox" id="opt_cache">
-                </div>
-            </div>
-            <div class="row info">
-                <span>
-                Reloads appcache if necessary.
-                The size of cache files is 1.2 MB.
-                This does not include map tiles.
-                </span>
             </div>
         </div>
     </div>

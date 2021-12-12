@@ -2311,7 +2311,20 @@ function addPosition(position) {
             marker = new L.Marker(point, {
                 title: vcallsign,
                 zIndexOffset: Z_CAR,
-            }).addTo(map).on('click', onClick);
+            });
+
+            if(!!!window.HTMLCanvasElement) {
+                carIcon = L.icon({
+                    iconUrl: image_src,
+                    iconSize: image_src_size,
+                    iconAnchor: [27.22],
+                    tooltipAnchor: [0,-32],
+                });
+                marker.setIcon(new carIcon);
+            } else {
+                marker_rotate_setup(marker, image_src);
+            }
+            marker.addTo(map).on('click', onClick);
 
             // Scroll list stuff here.
             function onClick(e) {
@@ -2325,18 +2338,6 @@ function addPosition(position) {
                 refreshSingleNew(_vehicle_id);
             };
 
-            if(!!!window.HTMLCanvasElement) {
-                carIcon = L.icon({
-                    iconUrl: image_src,
-                    iconSize: image_src_size,
-                    iconAnchor: [27.22],
-                    tooltipAnchor: [0,-32],
-                });
-                marker.setIcon(new carIcon);
-            } else {
-                marker_rotate_setup(marker, image_src);
-            }
-            marker.addTo(map);
             polyline = [
                 new L.Polyline(point, {
                     color: car_colors[color_index],
@@ -2731,7 +2732,7 @@ function addPosition(position) {
                 }
             } else {
                 var rate = (position.gps_alt - vehicle.positions_alts[vehicle.positions_alts.length - 5]) / dtt;
-                if (!isNaN(rate)) {
+                if (!isNaN(rate) && isFinite(rate)) {
                     vehicle.ascent_rate = 0.7 * rate + 0.3 * vehicle.ascent_rate;
                 }
             }
