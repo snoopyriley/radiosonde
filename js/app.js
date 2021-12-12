@@ -64,6 +64,7 @@ var wvar = {
     zoom: true,
     query: "",
     nyan: false,
+    site: 0,
 };
 
 
@@ -126,6 +127,10 @@ function load_hash(no_refresh) {
                 break;
             case "nyan":
                 def[k] = !!parseInt(v);
+                break;
+            case "site":
+                focusID = v;
+                gotoSite(v);
                 break;
         }
     });
@@ -816,7 +821,6 @@ $(window).ready(function() {
                 else map.overlayMapTypes.setAt("1", null);
                 break;
             case "opt_layers_launches":
-                showLaunchSites();
                 if(on) {
                     map.removeLayer(launches);
                 } else {
