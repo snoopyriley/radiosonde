@@ -1,11 +1,11 @@
 var mission_id = 0;
 var position_id = 0;
 var newdata_url = "https://api.v2.sondehub.org/sondes/telemetry";
-var olddata_url = "https://api.v2.sondehub.org/sondes";
 var receivers_url = "https://api.v2.sondehub.org/listeners/telemetry";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var launch_predictions_url = "https://api.v2.sondehub.org/predictions/reverse";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
+var launches_url = "https://api.v2.sondehub.org/sites";
 
 var livedata = "wss://ws-reader.v2.sondehub.org/";
 var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000000000);
@@ -31,7 +31,11 @@ var recoveries = [];
 
 var launchPredictions = {};
 
-var launches = null;
+var sites = null;
+var launches = new L.LayerGroup();
+var showLaunches = false;
+var focusID = 0;
+
 var receiverCanvas = null;
 
 var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ", "chase"];
@@ -427,7 +431,6 @@ function clean_refresh(text, force, history_step) {
     clearTimeout(periodical_focus);
     clearTimeout(periodical_focus_new);
     clearTimeout(periodical_receivers);
-    clearTimeout(periodical_recoveries);
     clearTimeout(periodical_listeners);
 
     refresh();
@@ -523,8 +526,9 @@ function load() {
         map.addLayer(nite);
     }
 
+    getLaunchSites();
+
     if (!offline.get("opt_layers_launches")) {
-        showLaunchSites();
         map.addLayer(launches);
     }
 
@@ -848,147 +852,168 @@ function deletePredictions(marker) {
     }
 }
 
-function showLaunchSites() {
-    if (!launches) {
-        launches = new L.LayerGroup();
-        launches_url = "https://api.v2.sondehub.org/sites";
-        $.ajax({
-            type: "GET",
-            url: launches_url,
-            dataType: "json",
-            success: function(json, textStatus) {
-                for (var key in json) {
-                    if (json.hasOwnProperty(key)) {
-                        var latlon = [json[key].position[1], json[key].position[0]];
-                        var sondesList = "";
-                        var popupContent = "";
-                        var ascent_rate = 5;
-                        var descent_rate = 6;
-                        var burst_altitude = 26000;
-                        var burst_samples = "";
-                        var descent_samples = "";
-                        var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
-                        var popup = new L.popup({ autoClose: false, closeOnClick: false });
-                        marker.bindPopup(popup);
-                        launches.addLayer(marker);
+function getLaunchSites() {
+    $.ajax({
+        type: "GET",
+        url: launches_url,
+        dataType: "json",
+        success: function(json) {
+            sites = json;
+            generateLaunchSites();
+        }
+    });
+}
 
-                        // Match sonde codes
-                        if (json[key].hasOwnProperty('rs_types')) {
-                            var sondes = json[key].rs_types;
-                            for (var y = 0; y < sondes.length; y++) {
-                                if (Array.isArray(sondes[y]) == false) {
-                                    sondes[y] = [sondes[y]];
-                                }
-                                if (sondeCodes.hasOwnProperty(sondes[y][0])) {
-                                    sondesList += sondeCodes[sondes[y][0]]
-                                    if (sondes[y].length > 1) {
-                                        sondesList += " (" + sondes[y][1] + " MHz)";
-                                    }
-                                } else if (unsupportedSondeCodes.hasOwnProperty(sondes[y][0])) {
-                                    sondesList += unsupportedSondeCodes[sondes[y][0]];
-                                    sondesList += " (cannot track)";
-                                } else {
-                                    sondesList += sondes[y][0] + " (unknown WMO code)";
-                                }
-                                if (y < sondes.length-1) {
-                                    sondesList += ", ";
-                                }
-                            }
-                            if (sondes.includes("11") || sondes.includes("82")) { //LMS6
-                                ascent_rate = 5;
-                                descent_rate = 2.5;
-                                burst_altitude = 33500;
-                            }
-                            popupContent += "<font style='font-size: 13px'>" + json[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
-                        }
-                    
-                        // Generate prefilled suggestion form
-                        var popupLink = "https://docs.google.com/forms/d/e/1FAIpQLSfIbBSQMZOXpNE4VpK4BqUbKDPCWCDgU9QxYgmhh-JD-JGSsQ/viewform?usp=pp_url&entry.796606853=Modify+Existing+Site";
-                        popupLink += "&entry.749833526=" + key;
-                        if (json[key].hasOwnProperty('station_name')) {
-                            popupLink += "&entry.675505431=" + json[key].station_name.replace(/\s/g, '+');
-                        }
-                        if (json[key].hasOwnProperty('position')) {
-                            popupLink += "&entry.1613779787=" + json[key].position.reverse().toString();
-                        }
-                        if (json[key].hasOwnProperty('alt')) {
-                            popupLink += "&entry.753148337=" + json[key].alt;
-                        }
-                        if (json[key].hasOwnProperty('ascent_rate')) {
-                            popupLink += "&entry.509146334=" + json[key]["ascent_rate"];
-                        }
-                        if (json[key].hasOwnProperty('burst_altitude')) {
-                            popupLink += "&entry.1897602989=" + json[key]["burst_altitude"];
-                        }
-                        if (json[key].hasOwnProperty('descent_rate')) {
-                            popupLink += "&entry.267462486=" + json[key]["descent_rate"];
-                        }
-                        if (json[key].hasOwnProperty('notes')) {
-                            popupLink += "&entry.197384117=" + json[key]["notes"].replace(/\s/g, '+');
-                        }
+function generateLaunchSites() {
+    for (var key in sites) {
+        if (sites.hasOwnProperty(key)) {
+            var latlon = [sites[key].position[1], sites[key].position[0]];
+            var sondesList = "";
+            var popupContent = "";
+            var ascent_rate = 5;
+            var descent_rate = 6;
+            var burst_altitude = 26000;
+            var burst_samples = "";
+            var descent_samples = "";
+            var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
+            var popup = new L.popup({ autoClose: false, closeOnClick: false });
+            marker.title = key;
+            marker.bindPopup(popup);
+            launches.addLayer(marker);
 
-                        // Update prediction data if provided
-                        if (json[key].hasOwnProperty('ascent_rate')) {
-                            ascent_rate = json[key]["ascent_rate"];
+            // Match sonde codes
+            if (sites[key].hasOwnProperty('rs_types')) {
+                var sondes = sites[key].rs_types;
+                for (var y = 0; y < sondes.length; y++) {
+                    if (Array.isArray(sondes[y]) == false) {
+                        sondes[y] = [sondes[y]];
+                    }
+                    if (sondeCodes.hasOwnProperty(sondes[y][0])) {
+                        sondesList += sondeCodes[sondes[y][0]]
+                        if (sondes[y].length > 1) {
+                            sondesList += " (" + sondes[y][1] + " MHz)";
                         }
-                        if (json[key].hasOwnProperty('descent_rate')) {
-                            descent_rate = json[key]["descent_rate"];
-                        }
-                        if (json[key].hasOwnProperty('burst_altitude')) {
-                            burst_altitude = json[key]["burst_altitude"];
-                        }
-                        if (json[key].hasOwnProperty('burst_samples')) {
-                            burst_samples = json[key]["burst_samples"];
-                        }
-                        if (json[key].hasOwnProperty('descent_samples')) {
-                            descent_samples = json[key]["descent_samples"];
-                        }
-
-                        // Process launch schedule if provided
-                        if (json[key].hasOwnProperty('times')) {
-                            popupContent += "<br><b>Launch schedule:</b>";
-                            for (var x = 0; x < json[key]['times'].length; x++) {
-                                popupContent += "<br>- ";
-                                var day = json[key]['times'][x].split(":")[0];
-                                if (day == 0) {
-                                    popupContent += "Everyday at ";
-                                } else if (day == 1) {
-                                    popupContent += "Monday at ";
-                                } else if (day == 2) {
-                                    popupContent += "Tuesday at ";
-                                } else if (day == 3) {
-                                    popupContent += "Wednesday at ";
-                                } else if (day == 4) {
-                                    popupContent += "Thursday at ";
-                                } else if (day == 5) {
-                                    popupContent += "Friday at ";
-                                } else if (day == 6) {
-                                    popupContent += "Saturday at ";
-                                } else if (day == 7) {
-                                    popupContent += "Sunday at ";
-                                }
-                                popupContent += json[key]['times'][x].split(":")[1] + ":" + json[key]['times'][x].split(":")[2] + " UTC";
-                            }
-                        }
-                           
-                        // Show notes if provided
-                        if (json[key].hasOwnProperty('notes')) {
-                            popupContent += "<br><b>Notes:</b> " + json[key]["notes"];
-                        }
-                            
-                        popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='" + popupLink + "' target='_blank'>here</a>";
-
-                        // Create prediction button
-                        if (json[key].hasOwnProperty('times')) {
-                            popupContent += "<br><button onclick='launchSitePredictions(\"" + json[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
-                        } else {
-                            popupContent += "<br><button onclick='launchSitePredictions(\"" + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Instant Prediction</button>";
-                        }
-                        popup.setContent(popupContent);
+                    } else if (unsupportedSondeCodes.hasOwnProperty(sondes[y][0])) {
+                        sondesList += unsupportedSondeCodes[sondes[y][0]];
+                        sondesList += " (cannot track)";
+                    } else {
+                        sondesList += sondes[y][0] + " (unknown WMO code)";
+                    }
+                    if (y < sondes.length-1) {
+                        sondesList += ", ";
                     }
                 }
+                if (sondes.includes("11") || sondes.includes("82")) { //LMS6
+                    ascent_rate = 5;
+                    descent_rate = 2.5;
+                    burst_altitude = 33500;
+                }
+                popupContent += "<font style='font-size: 13px'>" + sites[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
             }
-        });
+        
+            // Generate prefilled suggestion form
+            var popupLink = "https://docs.google.com/forms/d/e/1FAIpQLSfIbBSQMZOXpNE4VpK4BqUbKDPCWCDgU9QxYgmhh-JD-JGSsQ/viewform?usp=pp_url&entry.796606853=Modify+Existing+Site";
+            popupLink += "&entry.749833526=" + key;
+            if (sites[key].hasOwnProperty('station_name')) {
+                popupLink += "&entry.675505431=" + sites[key].station_name.replace(/\s/g, '+');
+            }
+            if (sites[key].hasOwnProperty('position')) {
+                popupLink += "&entry.1613779787=" + sites[key].position.reverse().toString();
+            }
+            if (sites[key].hasOwnProperty('alt')) {
+                popupLink += "&entry.753148337=" + sites[key].alt;
+            }
+            if (sites[key].hasOwnProperty('ascent_rate')) {
+                popupLink += "&entry.509146334=" + sites[key]["ascent_rate"];
+            }
+            if (sites[key].hasOwnProperty('burst_altitude')) {
+                popupLink += "&entry.1897602989=" + sites[key]["burst_altitude"];
+            }
+            if (sites[key].hasOwnProperty('descent_rate')) {
+                popupLink += "&entry.267462486=" + sites[key]["descent_rate"];
+            }
+            if (sites[key].hasOwnProperty('notes')) {
+                popupLink += "&entry.197384117=" + sites[key]["notes"].replace(/\s/g, '+');
+            }
+
+            // Update prediction data if provided
+            if (sites[key].hasOwnProperty('ascent_rate')) {
+                ascent_rate = sites[key]["ascent_rate"];
+            }
+            if (sites[key].hasOwnProperty('descent_rate')) {
+                descent_rate = sites[key]["descent_rate"];
+            }
+            if (sites[key].hasOwnProperty('burst_altitude')) {
+                burst_altitude = sites[key]["burst_altitude"];
+            }
+            if (sites[key].hasOwnProperty('burst_samples')) {
+                burst_samples = sites[key]["burst_samples"];
+            }
+            if (sites[key].hasOwnProperty('descent_samples')) {
+                descent_samples = sites[key]["descent_samples"];
+            }
+
+            // Process launch schedule if provided
+            if (sites[key].hasOwnProperty('times')) {
+                popupContent += "<br><b>Launch schedule:</b>";
+                for (var x = 0; x < sites[key]['times'].length; x++) {
+                    popupContent += "<br>- ";
+                    var day = sites[key]['times'][x].split(":")[0];
+                    if (day == 0) {
+                        popupContent += "Everyday at ";
+                    } else if (day == 1) {
+                        popupContent += "Monday at ";
+                    } else if (day == 2) {
+                        popupContent += "Tuesday at ";
+                    } else if (day == 3) {
+                        popupContent += "Wednesday at ";
+                    } else if (day == 4) {
+                        popupContent += "Thursday at ";
+                    } else if (day == 5) {
+                        popupContent += "Friday at ";
+                    } else if (day == 6) {
+                        popupContent += "Saturday at ";
+                    } else if (day == 7) {
+                        popupContent += "Sunday at ";
+                    }
+                    popupContent += sites[key]['times'][x].split(":")[1] + ":" + sites[key]['times'][x].split(":")[2] + " UTC";
+                }
+            }
+                
+            // Show notes if provided
+            if (sites[key].hasOwnProperty('notes')) {
+                popupContent += "<br><b>Notes:</b> " + sites[key]["notes"];
+            }
+                
+            popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='" + popupLink + "' target='_blank'>here</a>";
+
+            // Create prediction button
+            if (sites[key].hasOwnProperty('times')) {
+                popupContent += "<br><button onclick='launchSitePredictions(\"" + sites[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
+            } else {
+                popupContent += "<br><button onclick='launchSitePredictions(\"" + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Instant Prediction</button>";
+            }
+            popup.setContent(popupContent);
+        }
+    }
+    if (focusID != 0) {
+        gotoSite();
+    }
+}
+
+function gotoSite() {
+    if (sites != null) {
+        if (sites.hasOwnProperty(focusID)) {
+            var site = sites[focusID];
+            var latlng = new L.LatLng(site["position"][0], site["position"][1]);
+            map.setView(latlng, 5);
+            for (var i in launches._layers) {
+                marker = launches._layers
+                if (marker[i].title == focusID) {
+                    marker[i].openPopup();
+                }
+            }
+        }
     }
 }
 
@@ -3762,7 +3787,7 @@ function refreshRecoveries() {
     $.ajax({
         type: "GET",
         url: recovered_sondes_url,
-        data: "last=0",
+        //data: "last=0",
         dataType: "json",
         success: function(response, textStatus) {
             if(offline.get('opt_hide_recoveries')) {
@@ -3777,9 +3802,6 @@ function refreshRecoveries() {
         error: function() {
             updateRecoveryPane([]);
             updateLeaderboardPane([]);
-        },
-        complete: function(request, textStatus) {
-            periodical_recoveries = setTimeout(refreshRecoveries, 600 * 1000);
         }
     });
 
@@ -3827,7 +3849,7 @@ function refreshPredictions() {
     });
 }
 
-var periodical, periodical_focus, periodical_focus_new, periodical_receivers, periodical_recoveries, periodical_listeners;
+var periodical, periodical_focus, periodical_focus_new, periodical_receivers, periodical_listeners;
 var periodical_predictions = null;
 var timer_seconds = 5;
 
@@ -3840,7 +3862,6 @@ function startAjax() {
     clearTimeout(periodical_focus);
     clearTimeout(periodical_focus_new);
     clearTimeout(periodical_receivers);
-    clearTimeout(periodical_recoveries);
     clearTimeout(periodical_predictions);
 
     //periodical = setInterval(refresh, timer_seconds * 1000);
