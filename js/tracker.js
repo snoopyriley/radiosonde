@@ -99,6 +99,63 @@ var Z_CAR = 1000001;
 var Z_PAYLOAD = 1000002;
 var Z_RECOVERY = 1000003;
 
+// SondeHub V1 types
+
+var v1types = {
+    "RS41": "RS41",
+    "RS41-Ozone": "RS41",
+    "RS41-SGP-Ozone": "RS41-SGP",
+    "RS41-SG": "RS41-SG",
+    "RS41-SG-Ozone": "RS41-SG",
+    "RS41-SGP": "RS41-SGP",
+    "RS41-SGM": "RS41-SGM",
+    "RS41-NG": "RS41-NG",
+    "RS92": "RS92",
+    "RS92-Ozone": "RS92",
+    "IMET": "iMet-4",
+    "iMet": "iMet-4",
+    "DFM": "DFM",
+    "DFM06": "DFM06",
+    "DFM09": "DFM09",
+    "DFMxB": "DFM",
+    "DFMxC": "DFM",
+    "DFMx7": "DFMx7",
+    "DFMx9": "DFMx9",
+    "DFM17": "DFM17",
+    "DFM09P": "DFM09P",
+    "MK2LMS": "LMS6-1680",
+    "LMS6": "LMS6-400",
+    "M10": "M10",
+    ",M10": "M10",
+    "M10-Ptu": "M10",
+    "M20": "M20",
+    "MEISEI": "IMS100",
+    "IMS100": "IMS100",
+    "IMET5": "iMet-5x"
+}
+
+var v1manufacturers = {
+    "RS92": "Vaisala", 
+    "RS41": "Vaisala",
+    "RS41-SG": "Vaisala",
+    "RS41-SGP": "Vaisala",
+    "RS41-SGM": "Vaisala",
+    "RS41-NG": "Vaisala",
+    "iMet-4": "Intermet Systems",
+    "iMet-5x": "Intermet Systems",
+    "DFM": "Graw",
+    "DFM06": "Graw",
+    "DFM09": "Graw",
+    "DFMx7": "Graw",
+    "DFMx9": "Graw",
+    "DFM17": "Graw",
+    "DFM09P": "Graw",
+    "LMS6-400": "Lockheed Martin",
+    "LMS6-1680": "Lockheed Martin",
+    "M10": "Meteomodem",
+    "M20": "Meteomodem"
+}
+
 // localStorage vars
 var ls_receivers = false;
 var ls_pred = false;
@@ -2105,114 +2162,204 @@ function mapInfoBox_handle_path_fetch(id,vehicle) {
     var date = new Date(parseInt(id)).toISOString()
     var url = newdata_url + "?duration=0&serial=" + vehicle.callsign + "&datetime=" + date;
 
-    $.getJSON(url, function(data) {
-        if (Object.keys(data).length === 0) {
+    $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data) {
+            mapInfoBox_handle_path_new(data, vehicle)
+        },
+        error: function() {
+            mapInfoBox_handle_path_old(vehicle, id)
+        }     
+    });
+};
+
+function mapInfoBox_handle_path_old(vehicle, id) {
+    var url = "https://api.v2.sondehub.org/sonde/" + vehicle.callsign;
+    var index = vehicle["positions_ids"][vehicle["positions_ts"].indexOf(id)].substring(vehicle.callsign.length + 1);
+    
+    $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "json",
+        success: function(data) {
+            for (var i = 0; i < data.length; i++) {
+                if (data[i]["datetime"] == index) {
+                    data = data[i];
+                    div = document.createElement('div');
+
+                    html = "<div style='line-height:16px;position:relative;'>";
+                    html += "<div>"+data.serial+"<span style=''>("+data.datetime+")</span></div>";
+                    html += "<hr style='margin:5px 0px'>";
+                    html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.lat, 5) + ',&nbsp;' + roundNumber(data.lon, 5)+"</div>";
+
+                    var imp = offline.get('opt_imperial');
+                    var text_alt = Number((imp) ? Math.floor(3.2808399 * parseInt(data.alt)) : parseInt(data.alt)).toLocaleString("us");
+                    text_alt += "&nbsp;" + ((imp) ? 'ft':'m');
+
+                    html += "<div><b>Altitude:&nbsp;</b>"+text_alt+"</div>";
+                    html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(data.datetime))+"</div>";
+
+                    var value = vehicle.path_length;
+
+                    html += "<div><b>Distance:&nbsp;</b>";
+
+                    if(offline.get('opt_imperial')) {
+                        html += Math.round(value*0.000621371192) + "&nbsp;mi";
+                    } else {
+                        html += Math.round(value/10)/100 + "&nbsp;km";
+                    }
+
+                    html += "</div>";
+                    html += "<div><b>Duration:&nbsp;</b>" + format_time_friendly(vehicle.start_time, convert_time(vehicle.curr_position.gps_time)) + "</div>";
+
+                    html += "<hr style='margin:5px 0px'>";
+
+                    if (data.hasOwnProperty("humidity")) {
+                        html += "<div><b>Relative Humidity:&nbsp;</b>" + data.humidity + " %</div>";
+                    };
+                    if (data.hasOwnProperty("temp")) {
+                        html += "<div><b>Temperature External:&nbsp;</b>" + data.temp + "°C</div>";
+                    };
+                    if (data.hasOwnProperty("comment")) {
+                        html += "<div><b>Comment:&nbsp;</b>" + data.comment + "</div>";
+                    };
+
+                    html += "<hr style='margin:0px;margin-top:5px'>";
+                    html += "<div style='font-size:11px;'>"
+
+                    if (data.hasOwnProperty("uploader_callsign")) {
+                        html += "<div>" + data.uploader_callsign + "</div>";
+                    };
+
+                    div.innerHTML = html;
+
+                    mapInfoBox.setContent(div);
+                    mapInfoBox.openOn(map);
+
+                    setTimeout(function() {
+                        div.parentElement.style.overflow = "";
+                        div.parentElement.style.overflowWrap = "break-word";
+                    }, 16);
+                }
+            }
+        },
+        error: function() {
             mapInfoBox.setContent("not&nbsp;found");
             mapInfoBox.openOn(map);
             return;
-        }
-
-        data = data[vehicle.callsign][date];
-
-        div = document.createElement('div');
-
-        html = "<div style='line-height:16px;position:relative;'>";
-        html += "<div>"+data.serial+"<span style=''>("+date+")</span></div>";
-        html += "<hr style='margin:5px 0px'>";
-        html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.lat, 5) + ',&nbsp;' + roundNumber(data.lon, 5)+"</div>";
-
-        var imp = offline.get('opt_imperial');
-        var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(data.alt)) : parseInt(data.alt)).toLocaleString("us");
-        text_alt     += "&nbsp;" + ((imp) ? 'ft':'m');
-
-        html += "<div><b>Altitude:&nbsp;</b>"+text_alt+"</div>";
-        html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(date))+"</div>";
-
-        var value = vehicle.path_length;
-
-        html += "<div><b>Distance:&nbsp;</b>";
-
-        if(offline.get('opt_imperial')) {
-            html += Math.round(value*0.000621371192) + "mi";
-        } else {
-            html += Math.round(value/10)/100 + "&nbsp;km";
-        }
-
-        html += "</div>";
-        html += "<div><b>Duration:&nbsp;</b>" + format_time_friendly(vehicle.start_time, convert_time(vehicle.curr_position.gps_time)) + "</div>";
-
-        html += "<hr style='margin:5px 0px'>";
-
-        if (data.hasOwnProperty("batt")) {
-            html += "<div><b>Battery Voltage:&nbsp;</b>" + data.batt + " V</div>";
-        };
-        if (data.hasOwnProperty("tx_frequency")) {
-            html += "<div><b>TX Frequency:&nbsp;</b>" + data.tx_frequency + " MHz</div>";
-        } else if (data.hasOwnProperty("frequency")) {
-            html += "<div><b>Frequency:&nbsp;</b>" + data.frequency + " MHz</div>";
-        };
-        if (data.hasOwnProperty("humidity")) {
-            html += "<div><b>Relative Humidity:&nbsp;</b>" + data.humidity + " %</div>";
-        };
-        if (data.hasOwnProperty("manufacturer")) {
-            html += "<div><b>Manufacturer:&nbsp;</b>" + data.manufacturer + "</div>";
-        };
-        if (data.hasOwnProperty("sats")) {
-            html += "<div><b>Satellites:&nbsp;</b>" + data.sats + "</div>";
-        };
-        if (data.hasOwnProperty("temp")) {
-            html += "<div><b>Temperature External:&nbsp;</b>" + data.temp + "°C</div>";
-        };
-        if (data.hasOwnProperty("subtype")) {
-            html += "<div><b>Sonde Type:&nbsp;</b>" + data.subtype + "</div>";
-        } else if (data.hasOwnProperty("type")) {
-            html += "<div><b>Sonde Type:&nbsp;</b>" + data.type + "</div>";
-        };
-        if (data.hasOwnProperty("pressure")) {
-            html += "<div><b>Pressure:&nbsp;</b>" + data.pressure + " Pa</div>";
-        };
-        if (data.hasOwnProperty("xdata")) {
-            html += "<div><b>XDATA:&nbsp;</b>" + data.xdata + "</div>";
-        };
-
-        html += "<hr style='margin:0px;margin-top:5px'>";
-        html += "<div style='font-size:11px;'>"
-
-        var callsign_list = [];
-
-        for (var i = 0; i < data.uploaders.length; i++) {
-            _new_call = data.uploaders[i].uploader_callsign;
-            tempFields = [];
-            if(data.uploaders[i].hasOwnProperty('snr')) {
-                tempFields.push(data.uploaders[i].snr.toFixed(0) + " dB");
-            } 
-            if(data.uploaders[i].hasOwnProperty('rssi')) {
-                tempFields.push(data.uploaders[i].rssi.toFixed(0) + " dBm");
-            }
-            if(data.uploaders[i].hasOwnProperty('frequency')) {
-                tempFields.push(data.uploaders[i].frequency + " MHz");
-            }
-            if(tempFields.length > 0) {
-                _new_call += " (" + tempFields.join(", ") + ")";
-            }
-            callsign_list.push(_new_call); // catch cases where there are no fields
-        }
-
-        callsign_list = callsign_list.join("<br /> ");
-
-        html += callsign_list + "</div>";
-
-        div.innerHTML = html;
-
-        mapInfoBox.setContent(div);
-        mapInfoBox.openOn(map);
-
-        setTimeout(function() {
-            div.parentElement.style.overflow = "";
-            div.parentElement.style.overflowWrap = "break-word";
-        }, 16);
+        }     
     });
-};
+}
+
+function mapInfoBox_handle_path_new(data, vehicle) {
+    if (Object.keys(data).length === 0) {
+        mapInfoBox.setContent("not&nbsp;found");
+        mapInfoBox.openOn(map);
+        return;
+    }
+
+    data = data[vehicle.callsign][date];
+
+    div = document.createElement('div');
+
+    html = "<div style='line-height:16px;position:relative;'>";
+    html += "<div>"+data.serial+"<span style=''>("+date+")</span></div>";
+    html += "<hr style='margin:5px 0px'>";
+    html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.lat, 5) + ',&nbsp;' + roundNumber(data.lon, 5)+"</div>";
+
+    var imp = offline.get('opt_imperial');
+    var text_alt = Number((imp) ? Math.floor(3.2808399 * parseInt(data.alt)) : parseInt(data.alt)).toLocaleString("us");
+    text_alt += "&nbsp;" + ((imp) ? 'ft':'m');
+
+    html += "<div><b>Altitude:&nbsp;</b>"+text_alt+"</div>";
+    html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(date))+"</div>";
+
+    var value = vehicle.path_length;
+
+    html += "<div><b>Distance:&nbsp;</b>";
+
+    if(offline.get('opt_imperial')) {
+        html += Math.round(value*0.000621371192) + "&nbsp;mi";
+    } else {
+        html += Math.round(value/10)/100 + "&nbsp;km";
+    }
+
+    html += "</div>";
+    html += "<div><b>Duration:&nbsp;</b>" + format_time_friendly(vehicle.start_time, convert_time(vehicle.curr_position.gps_time)) + "</div>";
+
+    html += "<hr style='margin:5px 0px'>";
+
+    if (data.hasOwnProperty("batt")) {
+        html += "<div><b>Battery Voltage:&nbsp;</b>" + data.batt + " V</div>";
+    };
+    if (data.hasOwnProperty("tx_frequency")) {
+        html += "<div><b>TX Frequency:&nbsp;</b>" + data.tx_frequency + " MHz</div>";
+    } else if (data.hasOwnProperty("frequency")) {
+        html += "<div><b>Frequency:&nbsp;</b>" + data.frequency + " MHz</div>";
+    };
+    if (data.hasOwnProperty("humidity")) {
+        html += "<div><b>Relative Humidity:&nbsp;</b>" + data.humidity + " %</div>";
+    };
+    if (data.hasOwnProperty("manufacturer")) {
+        html += "<div><b>Manufacturer:&nbsp;</b>" + data.manufacturer + "</div>";
+    };
+    if (data.hasOwnProperty("sats")) {
+        html += "<div><b>Satellites:&nbsp;</b>" + data.sats + "</div>";
+    };
+    if (data.hasOwnProperty("temp")) {
+        html += "<div><b>Temperature External:&nbsp;</b>" + data.temp + "°C</div>";
+    };
+    if (data.hasOwnProperty("subtype")) {
+        html += "<div><b>Sonde Type:&nbsp;</b>" + data.subtype + "</div>";
+    } else if (data.hasOwnProperty("type")) {
+        html += "<div><b>Sonde Type:&nbsp;</b>" + data.type + "</div>";
+    };
+    if (data.hasOwnProperty("pressure")) {
+        html += "<div><b>Pressure:&nbsp;</b>" + data.pressure + " Pa</div>";
+    };
+    if (data.hasOwnProperty("xdata")) {
+        html += "<div><b>XDATA:&nbsp;</b>" + data.xdata + "</div>";
+    };
+
+    html += "<hr style='margin:0px;margin-top:5px'>";
+    html += "<div style='font-size:11px;'>"
+
+    var callsign_list = [];
+
+    for (var i = 0; i < data.uploaders.length; i++) {
+        _new_call = data.uploaders[i].uploader_callsign;
+        tempFields = [];
+        if(data.uploaders[i].hasOwnProperty('snr')) {
+            tempFields.push(data.uploaders[i].snr.toFixed(0) + " dB");
+        } 
+        if(data.uploaders[i].hasOwnProperty('rssi')) {
+            tempFields.push(data.uploaders[i].rssi.toFixed(0) + " dBm");
+        }
+        if(data.uploaders[i].hasOwnProperty('frequency')) {
+            tempFields.push(data.uploaders[i].frequency + " MHz");
+        }
+        if(tempFields.length > 0) {
+            _new_call += " (" + tempFields.join(", ") + ")";
+        }
+        callsign_list.push(_new_call); // catch cases where there are no fields
+    }
+
+    callsign_list = callsign_list.join("<br /> ");
+
+    html += callsign_list + "</div>";
+
+    div.innerHTML = html;
+
+    mapInfoBox.setContent(div);
+    mapInfoBox.openOn(map);
+
+    setTimeout(function() {
+        div.parentElement.style.overflow = "";
+        div.parentElement.style.overflowWrap = "break-word";
+    }, 16);
+}
 
 function mapInfoBox_handle_prediction(event) {
     var data = event.target.pdata;
@@ -3464,7 +3611,17 @@ function formatData(data, live) {
                 if (data[i].temp) {
                     dataTempEntry.data.temperature_external = data[i].temp;
                 }
-                if (data[i].type) {
+                if (data[i].type && data[i].type == "payload_telemetry") { // SondeHub V1 data
+                    var comment = data[i].comment.split(" ");
+                    if (v1types.hasOwnProperty(comment[0])) {
+                        dataTempEntry.data.type = v1types[comment[0]];
+                        dataTempEntry.type = v1types[comment[0]];
+                        if (v1manufacturers.hasOwnProperty(dataTempEntry.type)) {
+                            dataTempEntry.data.manufacturer = v1manufacturers[dataTempEntry.type];
+                        }
+                    }
+                    dataTempEntry.data.frequency = comment[2];
+                } else if (data[i].type) {
                     dataTempEntry.data.type = data[i].type;
                     dataTempEntry.type = data[i].type;
                 }
