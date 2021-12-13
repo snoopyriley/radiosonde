@@ -770,8 +770,10 @@ function launchSitePredictions(times, station, properties, marker) {
                 }
                 if (count < maxCount) {
                     if (((date - now) / 36e5) < 170) {
-                        dates.push(date.toISOString().split('.')[0]+"Z");
-                        count += 1;
+                        if (!dates.includes(date.toISOString().split('.')[0]+"Z")) {
+                            dates.push(date.toISOString().split('.')[0]+"Z");
+                            count += 1;
+                        }
                     }
                 }
             }
