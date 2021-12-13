@@ -4458,15 +4458,15 @@ function update(response) {
             ctx.idx = max;
 
             if(ctx.idx < ctx.max) {
-              ctx.step(ctx); 
+              setTimeout(function() { ctx.step(ctx); }, 4);
             } else {
               ctx.list = Object.keys(vehicles);
-              ctx.draw(ctx);
+              setTimeout(function() { ctx.draw(ctx); }, 16);
             }
         },
         draw: function(ctx) {
             if(ctx.list.length < 1) {
-                ctx.end(ctx); 
+              setTimeout(function() { ctx.end(ctx); }, 16);
               return;
             }
 
@@ -4493,7 +4493,7 @@ function update(response) {
             }
 
             // step to the next callsign
-            ctx.draw(ctx);
+            setTimeout(function() { ctx.draw(ctx); }, 16);
         },
         end: function(ctx) {
 
