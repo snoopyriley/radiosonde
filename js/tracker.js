@@ -882,6 +882,7 @@ function drawHistorical (data, station) {
         marker.bindPopup(popup);
 
         marker.addTo(map);
+        marker.bringToBack();
         historicalPlots[station].sondes[serial].marker = marker;
     }
 }
@@ -3710,7 +3711,7 @@ function formatData(data, live) {
                 if (data[entry].tx_frequency) {
                     dataTempEntry.data.frequency_tx = data[entry].tx_frequency;
                 }
-                if (data[entry].humidity) {
+                if (data[entry].hasOwnProperty("humidity")) {
                     dataTempEntry.data.humidity = data[entry].humidity;
                 }
                 if (data[entry].manufacturer) {
@@ -3719,7 +3720,7 @@ function formatData(data, live) {
                 if (data[entry].sats) {
                     dataTempEntry.data.sats = data[entry].sats;
                 }
-                if (data[entry].temp) {
+                if (data[entry].hasOwnProperty("temp")) {
                     dataTempEntry.data.temperature_external = data[entry].temp;
                 }
                 if (data[entry].type) {
@@ -3730,7 +3731,7 @@ function formatData(data, live) {
                     dataTempEntry.data.type = data[entry].subtype;
                     dataTempEntry.type = data[entry].subtype;
                 }
-                if (data[entry].pressure) {
+                if (data[entry].hasOwnProperty("pressure")) {
                     dataTempEntry.data.pressure = data[entry].pressure;
                 }
                 if (data[entry].xdata) {
@@ -3798,7 +3799,7 @@ function formatData(data, live) {
             if (data.tx_frequency) {
                 dataTempEntry.data.frequency_tx = data.tx_frequency;
             }
-            if (data.humidity) {
+            if (data.hasOwnProperty("humidity")) {
                 dataTempEntry.data.humidity = data.humidity;
             }
             if (data.manufacturer) {
@@ -3807,7 +3808,7 @@ function formatData(data, live) {
             if (data.sats) {
                 dataTempEntry.data.sats = data.sats;
             }
-            if (data.temp) {
+            if (data.hasOwnProperty("temp")) {
                 dataTempEntry.data.temperature_external = data.temp;
             }
             if (data.type) {
@@ -3818,7 +3819,7 @@ function formatData(data, live) {
                 dataTempEntry.data.type = data.subtype;
                 dataTempEntry.type = data.subtype;
             }
-            if (data.pressure) {
+            if (data.hasOwnProperty("pressure")) {
                 dataTempEntry.data.pressure = data.pressure;
             }
             if (data.xdata) {
@@ -3869,7 +3870,7 @@ function formatData(data, live) {
                         if (data[key][i].tx_frequency) {
                             dataTempEntry.data.frequency_tx = data[key][i].tx_frequency;
                         }
-                        if (data[key][i].humidity) {
+                        if (data[key][i].hasOwnProperty("humidity")) {
                             dataTempEntry.data.humidity = data[key][i].humidity;
                         }
                         if (data[key][i].manufacturer) {
@@ -3878,7 +3879,7 @@ function formatData(data, live) {
                         if (data[key][i].sats) {
                             dataTempEntry.data.sats = data[key][i].sats;
                         }
-                        if (data[key][i].temp) {
+                        if (data[key][i].hasOwnProperty("temp")) {
                             dataTempEntry.data.temperature_external = data[key][i].temp;
                         }
                         if (data[key][i].type) {
@@ -3889,7 +3890,7 @@ function formatData(data, live) {
                             dataTempEntry.data.type = data[key][i].subtype;
                             dataTempEntry.type = data[key][i].subtype;
                         }
-                        if (data[key][i].pressure) {
+                        if (data[key][i].hasOwnProperty("pressure")) {
                             dataTempEntry.data.pressure = data[key][i].pressure;
                         }
                         if (data[key][i].xdata) {
@@ -3961,7 +3962,7 @@ function formatData(data, live) {
                 if (data[i].tx_frequency) {
                     dataTempEntry.data.frequency_tx = data[i].tx_frequency;
                 }
-                if (data[i].humidity) {
+                if (data[i].hasOwnProperty("humidity")) {
                     dataTempEntry.data.humidity = data[i].humidity;
                 }
                 if (data[i].manufacturer) {
@@ -3970,7 +3971,7 @@ function formatData(data, live) {
                 if (data[i].sats) {
                     dataTempEntry.data.sats = data[i].sats;
                 }
-                if (data[i].temp) {
+                if (data[i].hasOwnProperty("temp")) {
                     dataTempEntry.data.temperature_external = data[i].temp;
                 }
                 if (data[i].type && data[i].type == "payload_telemetry") { // SondeHub V1 data
@@ -3991,7 +3992,7 @@ function formatData(data, live) {
                     dataTempEntry.data.type = data[i].subtype;
                     dataTempEntry.type = data[i].subtype;
                 }
-                if (data[i].pressure) {
+                if (data[i].hasOwnProperty("pressure")) {
                     dataTempEntry.data.pressure = data[i].pressure;
                 }
                 if (data[i].xdata) {
