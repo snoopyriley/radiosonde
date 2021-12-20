@@ -832,6 +832,8 @@ function drawHistorical (data, station) {
     var time = landing.datetime;
 
     if (!historicalPlots[station].sondes.hasOwnProperty(serial)) {
+        // Using age to detmine colour
+        /*
         const date = new Date(time);
         var minTime = historicalPlots[station].data.minTime;
         var actualTime = date.getTime();
@@ -841,9 +843,23 @@ function drawHistorical (data, station) {
 
         historicalPlots[station].sondes[serial].time = actualTime
 
-        // Calculate normalised time between 0 and 1
         var normalisedTime = ((actualTime-minTime)/(maxTime-minTime));
         var iconColour = ConvertRGBtoHex(evaluate_cmap(normalisedTime, 'turbo'));
+        */
+
+        // Using last known alt to detmine colour
+        var minAlt = 0;
+        var actualAlt = landing.alt;
+        var maxAlt = 10000;
+
+        if (actualAlt > maxAlt) {
+            actualAlt = maxAlt;
+        } else if (actualAlt < minAlt) {
+            actualAlt = minAlt;
+        }
+
+        var normalisedAlt = ((actualAlt-minAlt)/(maxAlt-minAlt));
+        var iconColour = ConvertRGBtoHex(evaluate_cmap(normalisedAlt, 'turbo'));
 
         // Check if we have recovery data for it
         var recovered = false;
