@@ -5,6 +5,7 @@ var receivers_url = "https://api.v2.sondehub.org/listeners/telemetry";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var launch_predictions_url = "https://api.v2.sondehub.org/predictions/reverse";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
+var recovered_sondes_stats_url = "https://api.v2.sondehub.org/recovered/stats";
 var launches_url = "https://api.v2.sondehub.org/sites";
 
 var livedata = "wss://ws-reader.v2.sondehub.org/";
@@ -4307,20 +4308,30 @@ function refreshRecoveries() {
     $.ajax({
         type: "GET",
         url: recovered_sondes_url,
-        //data: "last=0",
         dataType: "json",
         success: function(response, textStatus) {
-            if(offline.get('opt_hide_recoveries')) {
-                updateRecoveryPane(response);
-                updateLeaderboardPane(response);
-            } else {
-                updateRecoveryPane(response);
-                updateLeaderboardPane(response);
+            updateRecoveryPane(response);
+            if(!offline.get('opt_hide_recoveries')) {
                 updateRecoveries(response);
             }
         },
         error: function() {
             updateRecoveryPane([]);
+        }
+    });
+
+}
+
+function refreshRecoveryStats() {
+
+    $.ajax({
+        type: "GET",
+        url: recovered_sondes_stats_url,
+        dataType: "json",
+        success: function(response, textStatus) {
+            updateLeaderboardPane(response);
+        },
+        error: function() {
             updateLeaderboardPane([]);
         }
     });
@@ -4352,7 +4363,7 @@ function refreshPredictions() {
         }
     });
 
-    var data_str = "duration=" + wvar.mode;
+    var data_str = "duration=" + wvar.mode + "&vehicles=" + encodeURIComponent(wvar.query);
 
     ajax_predictions = $.ajax({
         type: "GET",
@@ -4443,6 +4454,7 @@ function startAjax() {
 
     refreshPatreons();
     refreshRecoveries();
+    refreshRecoveryStats();
 }
 
 function stopAjax() {
@@ -4834,42 +4846,26 @@ function updateLeaderboardPane(r){
     if(!r) return;
 
     html = "";
-    var leaderboard = {};
-    var recovered = 0;
+    var recovered = r.recovered;
+    var total = r.total;
+    var hunters = r.chaser_count;
+    var top = r.top_chasers;
 
-    var i = 0, ii = r.length;
-    for(; i < ii; i++) {
-        if (r[i].recovered) {
-            recovered+=1;
-            if (leaderboard.hasOwnProperty(r[i].recovered_by)) {
-                leaderboard[r[i].recovered_by] = leaderboard[r[i].recovered_by] + 1;
-            } else {
-                leaderboard[r[i].recovered_by] = 1
-            }
-        }
-    }
 
-    var sortable = [];
-    for (var score in leaderboard) {
-        sortable.push([score, leaderboard[score]]);
-    }
-
-    sortable.sort(function(a, b) {
-        return b[1] - a[1];
-    });
-
-    var list = sortable.slice(0,5);
-
-    html += "<div><b>Total sondes recovered: " + recovered + "/" + r.length + "</b></div>";
-    html += "<div><b>Total hunters: " + sortable.length + "</b></div><br>";
+    html += "<div><b>Total sondes recovered: " + recovered + "/" + total + "</b></div>";
+    html += "<div><b>Total hunters: " + hunters + "</b></div><br>";
     html += "<div><b>Leaderboard: </b></div>";
 
-    for (var i = 0; i < list.length; i++) {
-        html += "<div><b>" + (parseInt(i)+1) + ". </b>" + list[i][0] + " - " + list[i][1] + "</div>";
+    var i = 1;
+    for (let chaser in top) {
+        if (top.hasOwnProperty(chaser)) {
+            html += "<div><b>" + parseInt(i) + ". </b>" + chaser + " - " + top[chaser] + "</div>";
+            i+=1;
+         }
     }
 
     if (r.length == 0) {
-        html = "<div>No recent recoveries :-(</div>"
+        html = "<div>Error :-(</div>"
     }
 
     $("#leaderboard-list").html(html);
