@@ -845,6 +845,15 @@ function drawHistorical (data, station) {
         var normalisedTime = ((actualTime-minTime)/(maxTime-minTime));
         var iconColour = ConvertRGBtoHex(evaluate_cmap(normalisedTime, 'turbo'));
 
+        // Check if we have recovery data for it
+        var recovered = false;
+        if (historicalPlots[station].data.hasOwnProperty("recovered")) {
+            if (historicalPlots[station].data.recovered.hasOwnProperty(serial)) {
+                var recovery_info = historicalPlots[station].data.recovered[serial];
+                recovered = true;
+            }
+        }
+
         var popup = L.popup();
 
         html = "<div style='line-height:16px;position:relative;'>";
@@ -864,7 +873,16 @@ function drawHistorical (data, station) {
         };
 
         html += "<hr style='margin:0px;margin-top:5px'>";
-        html += "<div style='font-size:11px;'>"
+
+        if (recovered) {
+            html += "<div><b>Recovered:&nbsp;</b>"+recovery_info.recovered+"</div>";
+            html += "<div><b>Recovered by:&nbsp;</b>"+recovery_info.recovered_by+"</div>";
+            html += "<div><b>Recovery time:&nbsp;</b>"+recovery_info.datetime+"</div>";
+            html += "<div><b>Recovery location:&nbsp;</b>"+recovery_info.position[1]+","+recovery_info.position[0] + "</div>";
+            html += "<div><b>Recovery notes:&nbsp;</b>"+recovery_info.description+"</div>";
+
+            html += "<hr style='margin:0px;margin-top:5px'>";
+        }
 
         html += "<div><b>Flight Path: <b><a href=\"javascript:showRecoveredMap('" + serial + "')\">" + serial + "</a></div>";
         html += "<div><b>Card: <b><a href='https://www.sondehub.org/card/" + serial + "' target='_blank'>" + serial + "</a></div>";
@@ -878,7 +896,11 @@ function drawHistorical (data, station) {
 
         popup.setContent(html);
 
-        var marker = L.circleMarker([landing.lat, landing.lon], {color: iconColour, radius: 5, fillOpacity:0.9});
+        if (!recovered) {
+            var marker = L.circleMarker([landing.lat, landing.lon], {fillColor: "white", color: iconColour, weight: 2, radius: 5, fillOpacity:1});
+        } else {
+            var marker = L.circleMarker([landing.lat, landing.lon], {fillColor: "grey", color: iconColour, weight: 2, radius: 5, fillOpacity:1});
+        }
 
         marker.bindPopup(popup);
 
@@ -949,36 +971,62 @@ function showHistorical (station, marker) {
         historicalPlots[station].data.maxTime = dateNow.getTime();
     }
 
-    for (let i = 0; i < sondes.length; i++) {
-        downloadHistorical(sondes[i]).done(handleData).fail(handleError);;
+    // Get station location to fetch recoveries
+    if (!historicalPlots[station].data.hasOwnProperty("recovered")) {
+        historicalPlots[station].data.recovered = {};
+
+        var station_position = sites[station].position;
+        var data_str = "lat=" + station_position[0] + "&lon=" + station_position[1] + "&distance=400000&last=0";
+
+        $.ajax({
+            type: "GET",
+            url: recovered_sondes_url,
+            data: data_str,
+            dataType: "json",
+            success: function(json) {
+                for (var i = 0; i < json.length; i++) {
+                    historicalPlots[station].data.recovered[json[i].serial] = json[i];
+                }
+                processHistorical()
+            },
+            error: function() {
+                processHistorical();
+            }
+        });
     }
 
-    var completed = 0;
-
-    function handleData(data) {
-        completed += 1;
-        drawHistorical(data, station);
-        if (completed == sondes.length) {
-            submit.show();
-            submitLoading.hide();
-            deleteHistorical.show();
+    function processHistorical() {
+        for (let i = 0; i < sondes.length; i++) {
+            downloadHistorical(sondes[i]).done(handleData).fail(handleError);;
+        }
+    
+        var completed = 0;
+    
+        function handleData(data) {
+            completed += 1;
+            drawHistorical(data, station);
+            if (completed == sondes.length) {
+                submit.show();
+                submitLoading.hide();
+                deleteHistorical.show();
+                // If modal is closed the contents needs to be forced updated
+                if (!realpopup.isOpen()) {
+                    realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
+                }
+            }
+        }
+    
+        function handleError(error) {
+            completed += 1;
+            if (completed == sondes.length) {
+                submit.show();
+                submitLoading.hide();
+                deleteHistorical.show();
+            }
             // If modal is closed the contents needs to be forced updated
             if (!realpopup.isOpen()) {
                 realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
             }
-        }
-    }
-
-    function handleError(error) {
-        completed += 1;
-        if (completed == sondes.length) {
-            submit.show();
-            submitLoading.hide();
-            deleteHistorical.show();
-        }
-        // If modal is closed the contents needs to be forced updated
-        if (!realpopup.isOpen()) {
-            realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
         }
     }
 }
