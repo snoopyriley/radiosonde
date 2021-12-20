@@ -875,23 +875,22 @@ function drawHistorical (data, station) {
         html += "<hr style='margin:0px;margin-top:5px'>";
 
         if (recovered) {
-            html += "<div><b>Recovered:&nbsp;</b>"+recovery_info.recovered+"</div>";
-            html += "<div><b>Recovered by:&nbsp;</b>"+recovery_info.recovered_by+"</div>";
-            html += "<div><b>Recovery time:&nbsp;</b>"+recovery_info.datetime+"</div>";
-            html += "<div><b>Recovery location:&nbsp;</b>"+recovery_info.position[1]+","+recovery_info.position[0] + "</div>";
+            html += "<div><b>"+(recovery_info.recovered ? "Recovered by " : "Not Recovered by ")+recovery_info.recovered_by+"</u></b></div>";
+            html += "<div><b>Recovery time:&nbsp;</b>"+formatDate(stringToDateUTC(recovery_info.datetime))+"</div>";
+            html += "<div><b>Recovery location:&nbsp;</b>"+recovery_info.position[1]+", "+recovery_info.position[0] + "</div>";
             html += "<div><b>Recovery notes:&nbsp;</b>"+recovery_info.description+"</div>";
 
             html += "<hr style='margin:0px;margin-top:5px'>";
         }
 
-        html += "<div><b>Flight Path: <b><a href=\"javascript:showRecoveredMap('" + serial + "')\">" + serial + "</a></div>";
-        html += "<div><b>Card: <b><a href='https://www.sondehub.org/card/" + serial + "' target='_blank'>" + serial + "</a></div>";
+        html += "<div><b>Show Full Flight Path: <b><a href=\"javascript:showRecoveredMap('" + serial + "')\">" + serial + "</a></div>";
+        html += "<div><b>Flight SkewT Plot: <b><a href='https://www.sondehub.org/card/" + serial + "' target='_blank'>" + serial + "</a></div>";
 
         html += "<hr style='margin:0px;margin-top:5px'>";
         html += "<div style='font-size:11px;'>"
 
         if (landing.hasOwnProperty("uploader_callsign")) {
-            html += "<div>" + landing.uploader_callsign + "</div>";
+            html += "<div>Last received by: " + landing.uploader_callsign.toLowerCase() + "</div>";
         };
 
         popup.setContent(html);
@@ -1053,6 +1052,15 @@ function historicalLaunchViewer(station, marker) {
             return;
         }
 
+        // Find latest year
+        var latestYear = "0";
+        var latestYears = Object.keys(data);
+        for (var i=0; i < latestYears.length; i++) {
+            if (parseInt(latestYears[i]) > parseInt(latestYear)) {
+                latestYear = latestYears[i];
+            }
+        }
+
         // Generate year drop down
         var yearList = document.createElement("select");
         yearList.name = "year"
@@ -1066,9 +1074,42 @@ function historicalLaunchViewer(station, marker) {
                 var option = document.createElement("option");
                 option.value = year;
                 option.text = year;
+                if (year == latestYear) {
+                    option.setAttribute("selected", "selected");
+                }
                 yearList.appendChild(option);
             }
         }
+
+        // Find latest month
+        var latestMonth = "0";
+        var latestMonths = Object.keys(data[latestYear]);
+        for (var i=0; i < latestMonths.length; i++) {
+            if (parseInt(latestMonths[i]) > parseInt(latestMonth)) {
+                latestMonth = latestMonths[i];
+            }
+        }
+
+        // Generate month drop down
+        var monthList = document.createElement("select");
+        monthList.name = "month"
+        monthList.id = "monthList";
+        var option = document.createElement("option");
+        option.value = "all";
+        option.text = "All";
+        monthList.appendChild(option);
+        var months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+        var monthsText = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+        for (var i=0; i < months.length; i++) {
+            var option = document.createElement("option");
+            option.value = months[i];
+            option.text = monthsText[i];
+            if (months[i] == latestMonth) {
+                option.setAttribute("selected", "selected");
+            }
+            monthList.appendChild(option);
+        }
+        
 
         // Calculate total launches
         var totalLaunches = 0;
@@ -1085,7 +1126,7 @@ function historicalLaunchViewer(station, marker) {
         // Generate HTML
         var popupContent = "<br><hr style='margin-bottom:0;'><br>Launches Selected: <span id='launchCount'>" + totalLaunches + "</span><br>";
         popupContent += "<form onchange='getSelectedNumber(\"" + station + "\")'><label for='year'>Year:</label>" + yearList.outerHTML;
-        popupContent += "<label for='month'>Month:</label><select name='month' id='monthList'><option value='all'>All</option><option value='01'>1</option><option value='02'>2</option><option value='03'>3</option><option value='04'>4</option><option value='05'>5</option><option value='06'>6</option><option value='07'>7</option><option value='08'>8</option><option value='09'>9</option><option value='10'>10</option><option value='11'>11</option><option value='12'>12</option></select></form>";
+        popupContent += "<label for='month'>Month:</label>" + monthList.outerHTML + "</form>";
         popupContent += "<br><button id='submit' onclick='return showHistorical(\"" + station + "\", \"" + marker + "\")'>Fetch</button><img id='submitLoading' style='width:60px;height:20px;display:none;' src='img/hab-spinner.gif' /><button id='deleteHistorical' style='display:none;' onclick='return deleteHistorical(\"" + station + "\")'>Delete</button>";
         historical.html(popupContent);
         historical.show();
@@ -1095,6 +1136,7 @@ function historicalLaunchViewer(station, marker) {
         if (!realpopup.isOpen()) {
             realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
         }
+        getSelectedNumber(station);
     }
     if (historical.is(":visible")) {
         // Don't regenerate if already in memory
@@ -2976,9 +3018,14 @@ function addPosition(position) {
                 iconAnchor: [23,90],
             });
 
+            var tempTitle = vcallsign;
+            if (typeof position.type !== 'undefined') {
+                var tempTitle = position.type + ' ' + vcallsign;
+            }
+
             marker = new L.Marker(point, {
                 icon: balloonIcon,
-                title: position.type + ' ' + vcallsign,
+                title: tempTitle,
                 zIndexOffset: Z_PAYLOAD,
             }).addTo(map).on('click', onClick);
 
@@ -3149,7 +3196,7 @@ function addPosition(position) {
             if (vehicle_type == "car") {
                 title = marker.bindTooltip(vcallsign, {direction: 'center', permanent: 'true', className: 'serialtooltip'});
             } else {
-                title = marker.bindTooltip((position.type + ' ' + vcallsign), {direction: 'center', permanent: 'true', className: 'serialtooltip'});
+                title = marker.bindTooltip((tempTitle), {direction: 'center', permanent: 'true', className: 'serialtooltip'});
             }
         } else {
             title = null;
