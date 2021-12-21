@@ -5,6 +5,7 @@ var receivers_url = "https://api.v2.sondehub.org/listeners/telemetry";
 var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var launch_predictions_url = "https://api.v2.sondehub.org/predictions/reverse";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
+var recovered_sondes_stats_url = "https://api.v2.sondehub.org/recovered/stats";
 var launches_url = "https://api.v2.sondehub.org/sites";
 
 var livedata = "wss://ws-reader.v2.sondehub.org/";
@@ -30,6 +31,10 @@ var recovery_names = [];
 var recoveries = [];
 
 var launchPredictions = {};
+
+var stationHistoricalData = {};
+var historicalPlots = {};
+var historicalAjax = [];
 
 var sites = null;
 var launches = new L.LayerGroup();
@@ -159,6 +164,15 @@ var v1manufacturers = {
 // localStorage vars
 var ls_receivers = false;
 var ls_pred = false;
+
+// AWS S3
+AWS.config.region = 'us-east-1';
+  
+var s3 = new AWS.S3({
+    params: {Bucket: 'sondehub-history'}
+});
+
+var tempLaunchData = {};
 
 var plot = null;
 var plot_open = false;
@@ -566,6 +580,28 @@ function load() {
     
     L.control.periodcontrol({ position: 'topleft' }).addTo(map);
 
+    L.Control.HistoricalControl = L.Control.extend({
+        onAdd: function(map) {
+            var div = L.DomUtil.create('div');
+    
+            div.innerHTML = '<button onclick="deleteHistoricalButton()">Delete Historical</button>';
+            div.id = "historicalControlButton";
+            div.style.display = "none";
+
+            return div;
+        },
+    
+        onRemove: function(map) {
+            // Nothing to do here
+        }
+    });
+
+    L.control.historicalontrol = function(opts) {
+        return new L.Control.HistoricalControl(opts);
+    }
+    
+    L.control.historicalontrol({ position: 'topleft' }).addTo(map);
+
     // update current position if we geolocation is available
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
@@ -588,6 +624,19 @@ function load() {
     if (!offline.get("opt_layers_launches")) {
         map.addLayer(launches);
     }
+
+    // Save popup content on close for stations
+    map.on('popupclose', function(e) {
+        try {
+            var station = e["popup"]["_source"]["title"];
+            var popup = $("#popup" + station);
+            if (popup.length) {
+                e.popup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
+            }
+        } catch(err) {
+            return;
+        }
+    });
 
     map.on('moveend', function (e) {
         lhash_update();
@@ -722,15 +771,481 @@ function setTimeValue() {
       }, 100);
 }
 
-function launchSitePredictions(times, station, properties, marker) {
-    var popup = launches.getLayer(marker).getPopup();
-    var popupContent = popup.getContent();
-    var popupContentSplit = popupContent.split("<button onclick='launchSitePredictions(")[0];
-    popupContentSplit += "<img style='width:60px;height:20px' src='img/hab-spinner.gif' />";
-    popup.setContent(popupContentSplit);
-    if (popupContent.includes("Delete</button>")) {
-        deletePredictions(marker);
-        popupContent = popupContent.split("<button onclick='deletePredictions(")[0];
+function getSelectedNumber (station) {
+    var popup = $("#popup" + station);
+    var targetyear = popup.find("#yearList option:selected").val();
+    var targetmonth = popup.find("#monthList option:selected").val();
+    var count = 0;
+    var data = stationHistoricalData[station];
+
+    // Calculate count
+    for (let year in data) {
+        if (data.hasOwnProperty(year)) {
+            if (year == targetyear || targetyear == "all") {
+                for (let month in data[year]) {
+                    if (data[year].hasOwnProperty(month)) {
+                        if (month == targetmonth || targetmonth == "all" || targetyear == "all") {
+                            count += data[year][month].length;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Update selected field & hide months if no data
+    var months = ["all", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+    popup.find('#yearList option').each(function() {
+        if ($(this).is(':selected')) {
+            $(this).attr("selected", "selected");
+            var selectedYear = $(this).val();
+            if (selectedYear != "all") {
+                months = Object.keys(data[selectedYear]);
+                months.push("all");
+            }
+        } else {
+            $(this).attr("selected", false);
+        }
+    });
+
+    popup.find('#monthList option').each(function() {
+        if (!months.includes($(this).val())) {
+            $(this).hide();
+        } else {
+            $(this).show();
+        }
+        if ($(this).is(':selected')) {
+            $(this).attr("selected", "selected");
+        } else {
+            $(this).attr("selected", false);
+        }
+    });
+
+    // Update popup
+    popup.find("#launchCount").text(count);
+}
+
+// Download summary data from AWS S3
+function downloadHistorical (suffix) {
+    var url = "https://sondehub-history.s3.amazonaws.com/" + suffix;
+    var ajaxReq = $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "json",
+        tryCount : 0,
+        retryLimit : 3, // Retry max of 3 times
+        error : function(xhr, textStatus, errorThrown ) {
+            if (textStatus == 'timeout') {
+                this.tryCount++;
+                if (this.tryCount <= this.retryLimit) {
+                    //try again
+                    $.ajax(this);
+                    return;
+                }
+                return;
+            }
+        }
+    });
+    historicalAjax.push(ajaxReq);
+    return ajaxReq;
+}
+
+// Draw historic summaries to map
+function drawHistorical (data, station) {
+    var landing = data[2];
+    var serial = landing.serial;
+    var time = landing.datetime;
+
+    if (!historicalPlots[station].sondes.hasOwnProperty(serial)) {
+
+        historicalPlots[station].sondes[serial] = {};
+
+        // Using last known alt to detmine colour
+        var minAlt = 0;
+        var actualAlt = landing.alt;
+        var maxAlt = 10000;
+
+        if (actualAlt > maxAlt) {
+            actualAlt = maxAlt;
+        } else if (actualAlt < minAlt) {
+            actualAlt = minAlt;
+        }
+
+        var normalisedAlt = ((actualAlt-minAlt)/(maxAlt-minAlt));
+        var iconColour = ConvertRGBtoHex(evaluate_cmap(normalisedAlt, 'turbo'));
+
+        // Check if we have recovery data for it
+        var recovered = false;
+        if (historicalPlots[station].data.hasOwnProperty("recovered")) {
+            if (historicalPlots[station].data.recovered.hasOwnProperty(serial)) {
+                var recovery_info = historicalPlots[station].data.recovered[serial];
+                recovered = true;
+            }
+        }
+
+        var popup = L.popup();
+
+        html = "<div style='line-height:16px;position:relative;'>";
+        html += "<div>"+serial+" <span style=''>("+time+")</span></div>";
+        html += "<hr style='margin:5px 0px'>";
+        html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(landing.lat, 5) + ',&nbsp;' + roundNumber(landing.lon, 5)+"</div>";
+
+        var imp = offline.get('opt_imperial');
+        var text_alt = Number((imp) ? Math.floor(3.2808399 * parseInt(landing.alt)) : parseInt(landing.alt)).toLocaleString("us");
+        text_alt += "&nbsp;" + ((imp) ? 'ft':'m');
+
+        html += "<div><b>Altitude:&nbsp;</b>"+text_alt+"</div>";
+        html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(time))+"</div>";
+
+        if (landing.hasOwnProperty("type")) {
+            html += "<div><b>Sonde Type:&nbsp;</b>" + landing.type + "</div>";
+        };
+
+        html += "<hr style='margin:0px;margin-top:5px'>";
+
+        if (recovered) {
+            html += "<div><b>"+(recovery_info.recovered ? "Recovered by " : "Not Recovered by ")+recovery_info.recovered_by+"</u></b></div>";
+            html += "<div><b>Recovery time:&nbsp;</b>"+formatDate(stringToDateUTC(recovery_info.datetime))+"</div>";
+            html += "<div><b>Recovery location:&nbsp;</b>"+recovery_info.position[1]+", "+recovery_info.position[0] + "</div>";
+            html += "<div><b>Recovery notes:&nbsp;</b>"+recovery_info.description+"</div>";
+
+            html += "<hr style='margin:0px;margin-top:5px'>";
+        }
+
+        html += "<div><b>Show Full Flight Path: <b><a href=\"javascript:showRecoveredMap('" + serial + "')\">" + serial + "</a></div>";
+        html += "<div><b>Flight SkewT Plot: <b><a href='https://www.sondehub.org/card/" + serial + "' target='_blank'>" + serial + "</a></div>";
+
+        html += "<hr style='margin:0px;margin-top:5px'>";
+        html += "<div style='font-size:11px;'>"
+
+        if (landing.hasOwnProperty("uploader_callsign")) {
+            html += "<div>Last received by: " + landing.uploader_callsign.toLowerCase() + "</div>";
+        };
+
+        popup.setContent(html);
+
+        if (!recovered) {
+            var marker = L.circleMarker([landing.lat, landing.lon], {fillColor: "white", color: iconColour, weight: 3, radius: 5, fillOpacity:1});
+        } else {
+            var marker = L.circleMarker([landing.lat, landing.lon], {fillColor: "grey", color: iconColour, weight: 3, radius: 5, fillOpacity:1});
+        }
+
+        marker.bindPopup(popup);
+
+        marker.addTo(map);
+        marker.bringToBack();
+        historicalPlots[station].sondes[serial].marker = marker;
+    }
+}
+
+// Delete historic summaries from map
+function deleteHistorical (station) {
+    var popup = $("#popup" + station);
+    var deleteHistorical = popup.find("#deleteHistorical");
+    var historicalDelete = $("#historicalControlButton");
+
+    deleteHistorical.hide();
+
+    if (historicalPlots.hasOwnProperty(station)) {
+        for (let serial in historicalPlots[station].sondes) {
+            map.removeLayer(historicalPlots[station].sondes[serial].marker);
+        }
+    }
+
+    delete historicalPlots[station];
+
+    var otherSondes = false;
+
+    for (station in historicalPlots) {
+        if (historicalPlots.hasOwnProperty(station)) {
+            if (Object.keys(historicalPlots[station].sondes).length > 1) {
+                otherSondes = true;
+            }
+        }
+    }
+
+    if (!otherSondes) historicalDelete.hide();
+}
+
+function deleteHistoricalButton() {
+    var historicalDelete = $("#historicalControlButton");
+
+    for (station in historicalPlots) {
+        if (historicalPlots.hasOwnProperty(station)) {
+            historicalPlots[station].data.drawing = false;
+            for (let serial in historicalPlots[station].sondes) {
+                map.removeLayer(historicalPlots[station].sondes[serial].marker);
+            }
+            var popup = $("#popup" + station);
+            var deleteHistorical = popup.find("#deleteHistorical");
+            deleteHistorical.hide();
+        }
+    }
+
+    for (i=0; i < historicalAjax.length; i++) {
+        historicalAjax[i].abort();
+    }
+
+    historicalAjax = [];
+
+    historicalPlots = {};
+
+    historicalDelete.hide();
+
+}
+
+// Master function to display historic summaries
+function showHistorical (station, marker) {
+    var popup = $("#popup" + station);
+    var realpopup = launches.getLayer(marker).getPopup();
+    var submit = popup.find("#submit");
+    var submitLoading = popup.find("#submitLoading");
+    var deleteHistorical = popup.find("#deleteHistorical");
+    var targetyear = popup.find("#yearList option:selected").val();
+    var targetmonth = popup.find("#monthList option:selected").val();
+
+    submit.hide();
+    submitLoading.show();
+    deleteHistorical.hide();
+
+    var sondes = [];
+    var data = stationHistoricalData[station];
+
+    // Generate list of serial URLs
+    for (let year in data) {
+        if (data.hasOwnProperty(year)) {
+            if (year == targetyear || targetyear == "all") {
+                for (let month in data[year]) {
+                    if (data[year].hasOwnProperty(month)) {
+                        if (month == targetmonth || targetmonth == "all" || targetyear == "all") {
+                            sondes = sondes.concat(data[year][month]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Generate date range for station
+    // TODO make this reactive?
+    dateNow = new Date();
+    dateNow.setDate(dateNow.getDate() + 2);
+
+    if (!historicalPlots.hasOwnProperty(station)) {
+        historicalPlots[station] = {};
+        historicalPlots[station].sondes = {};
+        historicalPlots[station].data = {};
+    }
+
+    // Get station location to fetch recoveries
+    if (!historicalPlots[station].data.hasOwnProperty("recovered")) {
+        historicalPlots[station].data.recovered = {};
+
+        var station_position = sites[station].position;
+        var data_str = "lat=" + station_position[0] + "&lon=" + station_position[1] + "&distance=400000&last=0";
+
+        $.ajax({
+            type: "GET",
+            url: recovered_sondes_url,
+            data: data_str,
+            dataType: "json",
+            success: function(json) {
+                for (var i = 0; i < json.length; i++) {
+                    historicalPlots[station].data.recovered[json[i].serial] = json[i];
+                }
+                processHistorical()
+            },
+            error: function() {
+                processHistorical();
+            }
+        });
+    } else {
+        processHistorical();
+    }
+
+    function processHistorical() {
+        var historicalDelete = $("#historicalControlButton");
+        historicalDelete.show();
+
+        historicalPlots[station].data.drawing = true;
+
+        for (let i = 0; i < sondes.length; i++) {
+            downloadHistorical(sondes[i]).done(handleData).fail(handleError);
+        }
+    
+        var completed = 0;
+    
+        function handleData(data) {
+            completed += 1;
+            try {
+                drawHistorical(data, station);
+            } catch(e) {};
+            if (completed == sondes.length) {
+                submit.show();
+                submitLoading.hide();
+                if (historicalPlots[station].data.drawing) deleteHistorical.show();
+                // If modal is closed the contents needs to be forced updated
+                if (!realpopup.isOpen()) {
+                    realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
+                }
+                historicalPlots[station].data.drawing = false;
+            }
+        }
+    
+        function handleError(error) {
+            completed += 1;
+            if (completed == sondes.length) {
+                submit.show();
+                submitLoading.hide();
+                if (historicalPlots[station].data.drawing) deleteHistorical.show();
+                // If modal is closed the contents needs to be forced updated
+                if (!realpopup.isOpen()) {
+                    realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
+                }
+                historicalPlots[station].data.drawing = false;
+            }
+        }
+    }
+}
+
+// Used to generate the content for station modal
+function historicalLaunchViewer(station, marker) {
+    var realpopup = launches.getLayer(marker).getPopup();
+    var popup = $("#popup" + station);
+    var historical = popup.find("#historical");
+    function populateDropDown(data) {
+        // Save data
+        stationHistoricalData[station] = data;
+
+        // Check if data exists
+        if (Object.keys(data).length == 0) {
+            historical.html("<br><hr style='margin-bottom:0;'><br>No historical data<br>");
+            historical.show();
+            historicalButton.show();
+            historicalButtonLoading.hide();
+            // If modal is closed the contents needs to be forced updated
+            if (!realpopup.isOpen()) {
+                realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
+            }
+            return;
+        }
+
+        // Find latest year
+        var latestYear = "0";
+        var latestYears = Object.keys(data);
+        for (var i=0; i < latestYears.length; i++) {
+            if (parseInt(latestYears[i]) > parseInt(latestYear)) {
+                latestYear = latestYears[i];
+            }
+        }
+
+        // Generate year drop down
+        var yearList = document.createElement("select");
+        yearList.name = "year"
+        yearList.id = "yearList";
+        var option = document.createElement("option");
+        option.value = "all";
+        option.text = "All";
+        yearList.appendChild(option);
+        for (let year in data) {
+            if (data.hasOwnProperty(year)) {
+                var option = document.createElement("option");
+                option.value = year;
+                option.text = year;
+                if (year == latestYear) {
+                    option.setAttribute("selected", "selected");
+                }
+                yearList.appendChild(option);
+            }
+        }
+
+        // Find latest month
+        var latestMonth = "0";
+        var latestMonths = Object.keys(data[latestYear]);
+        for (var i=0; i < latestMonths.length; i++) {
+            if (parseInt(latestMonths[i]) > parseInt(latestMonth)) {
+                latestMonth = latestMonths[i];
+            }
+        }
+
+        // Generate month drop down
+        var monthList = document.createElement("select");
+        monthList.name = "month"
+        monthList.id = "monthList";
+        var option = document.createElement("option");
+        option.value = "all";
+        option.text = "All";
+        monthList.appendChild(option);
+        var months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+        var monthsText = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+        for (var i=0; i < months.length; i++) {
+            var option = document.createElement("option");
+            option.value = months[i];
+            option.text = monthsText[i];
+            if (months[i] == latestMonth) {
+                option.setAttribute("selected", "selected");
+            }
+            monthList.appendChild(option);
+        }
+        
+
+        // Calculate total launches
+        var totalLaunches = 0;
+        for (let year in data) {
+            if (data.hasOwnProperty(year)) {
+                for (let month in data[year]) {
+                    if (data[year].hasOwnProperty(month)) {
+                        totalLaunches += data[year][month].length;
+                    }
+                }
+            }
+        }
+        
+        // Generate HTML
+        var popupContent = "<br><hr style='margin-bottom:0;'><br>Launches Selected: <span id='launchCount'>" + totalLaunches + "</span><br>";
+        popupContent += "<form onchange='getSelectedNumber(\"" + station + "\")'><label for='year'>Year:</label>" + yearList.outerHTML;
+        popupContent += "<label for='month'>Month:</label>" + monthList.outerHTML + "</form>";
+        popupContent += "<br><button id='submit' onclick='return showHistorical(\"" + station + "\", \"" + marker + "\")'>Fetch</button><img id='submitLoading' style='width:60px;height:20px;display:none;' src='img/hab-spinner.gif' /><button id='deleteHistorical' style='display:none;' onclick='return deleteHistorical(\"" + station + "\")'>Delete</button>";
+        historical.html(popupContent);
+        historical.show();
+        historicalButton.show();
+        historicalButtonLoading.hide();
+        // If modal is closed the contents needs to be forced updated
+        if (!realpopup.isOpen()) {
+            realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
+        }
+        getSelectedNumber(station);
+    }
+    if (historical.is(":visible")) {
+        // Don't regenerate if already in memory
+        historical.hide();
+    } else {
+        if (stationHistoricalData.hasOwnProperty(station) && popup.find("#launchCount").length) {
+            // Don't regenerate if already in memory
+            historical.show();
+        } else {
+            var historicalButton = popup.find("#historicalButton");
+            var historicalButtonLoading = popup.find("#historicalButtonLoading");
+            historicalButton.hide();
+            historicalButtonLoading.show();
+            getHistorical(station, populateDropDown);
+        }
+    }
+}
+
+function launchSitePredictions(times, station, properties, marker, id) {
+    var realpopup = launches.getLayer(marker).getPopup();
+    var popup = $("#popup" + id);
+    var predictionButton = popup.find("#predictionButton");
+    var predictionButtonLoading = popup.find("#predictionButtonLoading");
+    var predictionDeleteButton = popup.find("#predictionDeleteButton");
+
+    predictionButton.hide();
+    predictionButtonLoading.show();
+
+    if (predictionDeleteButton.is(':visible')) {
+        deletePredictions(marker, id);
+        predictionDeleteButton.hide();
     }
     position = station.split(",");
     properties = properties.split(":");
@@ -796,15 +1311,23 @@ function launchSitePredictions(times, station, properties, marker) {
         completed += 1;
         plotPrediction(data, dates, marker, properties);
         if (completed == dates.length) {
-            popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
-            popup.setContent(popupContent);
+            predictionDeleteButton.show();
+            predictionButton.show();
+            predictionButtonLoading.hide();
+            if (!realpopup.isOpen()) {
+                realpopup.setContent("<div id='popup" + id + "'>" + popup.html() + "</div>");
+            }
         }
     }
     function handleError(error) {
         completed += 1;
         if (completed == dates.length) {
-            popupContent += "<button onclick='deletePredictions(" + marker + ")' style='margin-bottom:0;'>Delete</button>";
-            popup.setContent(popupContent);
+            predictionDeleteButton.show();
+            predictionButton.show();
+            predictionButtonLoading.hide();
+            if (!realpopup.isOpen()) {
+                realpopup.setContent("<div id='popup" + id + "'>" + popup.html() + "</div>");
+            }
         }
     }
 }
@@ -891,7 +1414,7 @@ function showPrediction(url) {
     });
 }
 
-function deletePredictions(marker) {
+function deletePredictions(marker, station) {
     if (launchPredictions.hasOwnProperty(marker)) {
         for (var prediction in launchPredictions[marker]) {
             if (launchPredictions[marker].hasOwnProperty(prediction)) {
@@ -903,11 +1426,10 @@ function deletePredictions(marker) {
             }
         }
     }
-    var popup = launches.getLayer(marker).getPopup();
-    var popupContent = popup.getContent();
-    if (popupContent.includes("Delete</button>")) {
-        popupContent = popupContent.split("<button onclick='deletePredictions(")[0];
-        popup.setContent(popupContent);
+    var popup = $("#popup" + station);
+    var predictionDeleteButton = popup.find("#predictionDeleteButton");
+    if (predictionDeleteButton.is(':visible')) {
+        predictionDeleteButton.hide();
     }
 }
 
@@ -928,7 +1450,9 @@ function generateLaunchSites() {
         if (sites.hasOwnProperty(key)) {
             var latlon = [sites[key].position[1], sites[key].position[0]];
             var sondesList = "";
-            var popupContent = "";
+            var popupContent = "<div id='popup" + key + "'>";
+            var div = document.createElement('div');
+            div.id = "popup" + key;
             var ascent_rate = 5;
             var descent_rate = 6;
             var burst_altitude = 26000;
@@ -1046,13 +1570,21 @@ function generateLaunchSites() {
                 
             popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='" + popupLink + "' target='_blank'>here</a>";
 
+            // Generate view historical button
+            popupContent += "<br><button id='historicalButton' onclick='historicalLaunchViewer(\"" + key + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Historical</button><img id='historicalButtonLoading' style='width:60px;height:20px;display:none;' src='img/hab-spinner.gif' />";
+
             // Create prediction button
             if (sites[key].hasOwnProperty('times')) {
-                popupContent += "<br><button onclick='launchSitePredictions(\"" + sites[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Generate Predictions</button>";
+                popupContent += "<button id='predictionButton' onclick='launchSitePredictions(\"" + sites[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\", \"" + key + "\")' style='margin-bottom:0;'>Generate Predictions</button><img id='predictionButtonLoading' style='width:60px;height:20px;display:none;' src='img/hab-spinner.gif' /><button id='predictionDeleteButton' onclick='deletePredictions(\"" + launches.getLayerId(marker) + "\", \"" + key + "\")' style='margin-bottom:0;display:none;'>Delete</button>";
             } else {
-                popupContent += "<br><button onclick='launchSitePredictions(\"" + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Instant Prediction</button>";
+                popupContent += "<button id='predictionButton' onclick='launchSitePredictions(\"" + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\", \"" + key + "\")' style='margin-bottom:0;'>Instant Prediction</button><img id='predictionButtonLoading' style='width:60px;height:20px;display:none;' src='img/hab-spinner.gif' /><button id='predictionDeleteButton' onclick='deletePredictions(\"" + launches.getLayerId(marker) + "\", \"" + key + "\")' style='margin-bottom:0;display:none;'>Delete</button>";
             }
-            popup.setContent(popupContent);
+
+            popupContent += "<div id='historical' style='display:none;'></div>";
+
+            div.innerHTML = popupContent;
+
+            popup.setContent(div.innerHTML);
         }
     }
     if (focusID != 0) {
@@ -2104,9 +2636,7 @@ function drawAltitudeProfile(c1, c2, series, alt_max, chase) {
 }
 
 // infobox
-var mapInfoBox = new L.popup({
-    maxWidth: 260
-});
+var mapInfoBox = new L.popup();
 
 function mapInfoBox_handle_prediction_path(event) {
     var value = event.target.path_length;
@@ -2169,10 +2699,10 @@ function mapInfoBox_handle_path_fetch(id,vehicle) {
         url: url,
         dataType: "json",
         success: function(data) {
-            mapInfoBox_handle_path_new(data, vehicle)
+            mapInfoBox_handle_path_new(data, vehicle, date);
         },
         error: function() {
-            mapInfoBox_handle_path_old(vehicle, id)
+            mapInfoBox_handle_path_old(vehicle, id);
         }     
     });
 };
@@ -2192,7 +2722,7 @@ function mapInfoBox_handle_path_old(vehicle, id) {
                     div = document.createElement('div');
 
                     html = "<div style='line-height:16px;position:relative;'>";
-                    html += "<div>"+data.serial+"<span style=''>("+data.datetime+")</span></div>";
+                    html += "<div>"+data.serial+" <span style=''>("+data.datetime+")</span></div>";
                     html += "<hr style='margin:5px 0px'>";
                     html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.lat, 5) + ',&nbsp;' + roundNumber(data.lon, 5)+"</div>";
 
@@ -2255,7 +2785,7 @@ function mapInfoBox_handle_path_old(vehicle, id) {
     });
 }
 
-function mapInfoBox_handle_path_new(data, vehicle) {
+function mapInfoBox_handle_path_new(data, vehicle, date) {
     if (Object.keys(data).length === 0) {
         mapInfoBox.setContent("not&nbsp;found");
         mapInfoBox.openOn(map);
@@ -2267,7 +2797,7 @@ function mapInfoBox_handle_path_new(data, vehicle) {
     div = document.createElement('div');
 
     html = "<div style='line-height:16px;position:relative;'>";
-    html += "<div>"+data.serial+"<span style=''>("+date+")</span></div>";
+    html += "<div>"+data.serial+" <span style=''>("+date+")</span></div>";
     html += "<hr style='margin:5px 0px'>";
     html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.lat, 5) + ',&nbsp;' + roundNumber(data.lon, 5)+"</div>";
 
@@ -2566,9 +3096,14 @@ function addPosition(position) {
                 iconAnchor: [23,90],
             });
 
+            var tempTitle = vcallsign;
+            if (typeof position.type !== 'undefined') {
+                var tempTitle = position.type + ' ' + vcallsign;
+            }
+
             marker = new L.Marker(point, {
                 icon: balloonIcon,
-                title: position.type + ' ' + vcallsign,
+                title: tempTitle,
                 zIndexOffset: Z_PAYLOAD,
             }).addTo(map).on('click', onClick);
 
@@ -2739,7 +3274,7 @@ function addPosition(position) {
             if (vehicle_type == "car") {
                 title = marker.bindTooltip(vcallsign, {direction: 'center', permanent: 'true', className: 'serialtooltip'});
             } else {
-                title = marker.bindTooltip((position.type + ' ' + vcallsign), {direction: 'center', permanent: 'true', className: 'serialtooltip'});
+                title = marker.bindTooltip((tempTitle), {direction: 'center', permanent: 'true', className: 'serialtooltip'});
             }
         } else {
             title = null;
@@ -3350,7 +3885,7 @@ function formatData(data, live) {
                 if (data[entry].tx_frequency) {
                     dataTempEntry.data.frequency_tx = data[entry].tx_frequency;
                 }
-                if (data[entry].humidity) {
+                if (data[entry].hasOwnProperty("humidity")) {
                     dataTempEntry.data.humidity = data[entry].humidity;
                 }
                 if (data[entry].manufacturer) {
@@ -3359,7 +3894,7 @@ function formatData(data, live) {
                 if (data[entry].sats) {
                     dataTempEntry.data.sats = data[entry].sats;
                 }
-                if (data[entry].temp) {
+                if (data[entry].hasOwnProperty("temp")) {
                     dataTempEntry.data.temperature_external = data[entry].temp;
                 }
                 if (data[entry].type) {
@@ -3370,7 +3905,7 @@ function formatData(data, live) {
                     dataTempEntry.data.type = data[entry].subtype;
                     dataTempEntry.type = data[entry].subtype;
                 }
-                if (data[entry].pressure) {
+                if (data[entry].hasOwnProperty("pressure")) {
                     dataTempEntry.data.pressure = data[entry].pressure;
                 }
                 if (data[entry].xdata) {
@@ -3438,7 +3973,7 @@ function formatData(data, live) {
             if (data.tx_frequency) {
                 dataTempEntry.data.frequency_tx = data.tx_frequency;
             }
-            if (data.humidity) {
+            if (data.hasOwnProperty("humidity")) {
                 dataTempEntry.data.humidity = data.humidity;
             }
             if (data.manufacturer) {
@@ -3447,7 +3982,7 @@ function formatData(data, live) {
             if (data.sats) {
                 dataTempEntry.data.sats = data.sats;
             }
-            if (data.temp) {
+            if (data.hasOwnProperty("temp")) {
                 dataTempEntry.data.temperature_external = data.temp;
             }
             if (data.type) {
@@ -3458,7 +3993,7 @@ function formatData(data, live) {
                 dataTempEntry.data.type = data.subtype;
                 dataTempEntry.type = data.subtype;
             }
-            if (data.pressure) {
+            if (data.hasOwnProperty("pressure")) {
                 dataTempEntry.data.pressure = data.pressure;
             }
             if (data.xdata) {
@@ -3509,7 +4044,7 @@ function formatData(data, live) {
                         if (data[key][i].tx_frequency) {
                             dataTempEntry.data.frequency_tx = data[key][i].tx_frequency;
                         }
-                        if (data[key][i].humidity) {
+                        if (data[key][i].hasOwnProperty("humidity")) {
                             dataTempEntry.data.humidity = data[key][i].humidity;
                         }
                         if (data[key][i].manufacturer) {
@@ -3518,7 +4053,7 @@ function formatData(data, live) {
                         if (data[key][i].sats) {
                             dataTempEntry.data.sats = data[key][i].sats;
                         }
-                        if (data[key][i].temp) {
+                        if (data[key][i].hasOwnProperty("temp")) {
                             dataTempEntry.data.temperature_external = data[key][i].temp;
                         }
                         if (data[key][i].type) {
@@ -3529,7 +4064,7 @@ function formatData(data, live) {
                             dataTempEntry.data.type = data[key][i].subtype;
                             dataTempEntry.type = data[key][i].subtype;
                         }
-                        if (data[key][i].pressure) {
+                        if (data[key][i].hasOwnProperty("pressure")) {
                             dataTempEntry.data.pressure = data[key][i].pressure;
                         }
                         if (data[key][i].xdata) {
@@ -3601,7 +4136,7 @@ function formatData(data, live) {
                 if (data[i].tx_frequency) {
                     dataTempEntry.data.frequency_tx = data[i].tx_frequency;
                 }
-                if (data[i].humidity) {
+                if (data[i].hasOwnProperty("humidity")) {
                     dataTempEntry.data.humidity = data[i].humidity;
                 }
                 if (data[i].manufacturer) {
@@ -3610,7 +4145,7 @@ function formatData(data, live) {
                 if (data[i].sats) {
                     dataTempEntry.data.sats = data[i].sats;
                 }
-                if (data[i].temp) {
+                if (data[i].hasOwnProperty("temp")) {
                     dataTempEntry.data.temperature_external = data[i].temp;
                 }
                 if (data[i].type && data[i].type == "payload_telemetry") { // SondeHub V1 data
@@ -3631,7 +4166,7 @@ function formatData(data, live) {
                     dataTempEntry.data.type = data[i].subtype;
                     dataTempEntry.type = data[i].subtype;
                 }
-                if (data[i].pressure) {
+                if (data[i].hasOwnProperty("pressure")) {
                     dataTempEntry.data.pressure = data[i].pressure;
                 }
                 if (data[i].xdata) {
@@ -3946,20 +4481,30 @@ function refreshRecoveries() {
     $.ajax({
         type: "GET",
         url: recovered_sondes_url,
-        //data: "last=0",
         dataType: "json",
         success: function(response, textStatus) {
-            if(offline.get('opt_hide_recoveries')) {
-                updateRecoveryPane(response);
-                updateLeaderboardPane(response);
-            } else {
-                updateRecoveryPane(response);
-                updateLeaderboardPane(response);
+            updateRecoveryPane(response);
+            if(!offline.get('opt_hide_recoveries')) {
                 updateRecoveries(response);
             }
         },
         error: function() {
             updateRecoveryPane([]);
+        }
+    });
+
+}
+
+function refreshRecoveryStats() {
+
+    $.ajax({
+        type: "GET",
+        url: recovered_sondes_stats_url,
+        dataType: "json",
+        success: function(response, textStatus) {
+            updateLeaderboardPane(response);
+        },
+        error: function() {
             updateLeaderboardPane([]);
         }
     });
@@ -3991,7 +4536,7 @@ function refreshPredictions() {
         }
     });
 
-    var data_str = "duration=" + wvar.mode;
+    var data_str = "duration=" + wvar.mode + "&vehicles=" + encodeURIComponent(wvar.query);
 
     ajax_predictions = $.ajax({
         type: "GET",
@@ -4006,6 +4551,60 @@ function refreshPredictions() {
         complete: function(request, textStatus) {
         }
     });
+}
+
+// Get initial summary data for station, courtesy of TimMcMahon
+function getHistorical (id, callback, continuation) {
+    var prefix = 'launchsites/' + id + '/';
+    var params = {
+        Prefix: prefix,
+    }; 
+
+    if (typeof continuation !== 'undefined') {
+        params.ContinuationToken = continuation;
+    } else {
+        tempLaunchData = {};
+    }
+
+    s3.makeUnauthenticatedRequest('listObjectsV2', params, function(err, data) {
+        if (err) {
+            console.log(err, err.stack);
+        } else {
+            var tempSerials = [];
+            for (var i = 0; i < data.Contents.length; i++) {
+                // Sort data into year and month groups
+                var date = data.Contents[i].Key.substring(prefix.length).substring(0,10);
+                var year = date.substring(0,4);
+                var month = date.substring(5,7);
+                var serial = data.Contents[i].Key.substring(prefix.length+11).slice(0, -5);
+                if (tempLaunchData.hasOwnProperty(year)) {
+                    if (tempLaunchData[year].hasOwnProperty(month)) {
+                        if (!tempSerials.includes(serial)) {
+                            tempSerials.push(serial)
+                            tempLaunchData[year][month].push(data.Contents[i].Key);
+                        }
+                    } else {
+                        tempLaunchData[year][month] = [];
+                        tempSerials = [];
+                        tempSerials.push(serial)
+                        tempLaunchData[year][month].push(data.Contents[i].Key);
+                    }
+                } else {
+                    tempLaunchData[year] = {};
+                    tempLaunchData[year][month] = [];
+                    tempSerials = [];
+                    tempSerials.push(serial)
+                    tempLaunchData[year][month].push(data.Contents[i].Key);
+                }
+            }
+            if (data.IsTruncated == true) {
+                // Requests are limited to 1000 entries so multiple may be required
+                getHistorical(id, callback, data.NextContinuationToken);
+            } else {
+                callback(tempLaunchData);
+            }
+        }
+    });   
 }
 
 var periodical, periodical_focus, periodical_focus_new, periodical_receivers, periodical_listeners;
@@ -4028,6 +4627,7 @@ function startAjax() {
 
     refreshPatreons();
     refreshRecoveries();
+    refreshRecoveryStats();
 }
 
 function stopAjax() {
@@ -4419,42 +5019,26 @@ function updateLeaderboardPane(r){
     if(!r) return;
 
     html = "";
-    var leaderboard = {};
-    var recovered = 0;
+    var recovered = r.recovered;
+    var total = r.total;
+    var hunters = r.chaser_count;
+    var top = r.top_chasers;
 
-    var i = 0, ii = r.length;
-    for(; i < ii; i++) {
-        if (r[i].recovered) {
-            recovered+=1;
-            if (leaderboard.hasOwnProperty(r[i].recovered_by)) {
-                leaderboard[r[i].recovered_by] = leaderboard[r[i].recovered_by] + 1;
-            } else {
-                leaderboard[r[i].recovered_by] = 1
-            }
-        }
-    }
 
-    var sortable = [];
-    for (var score in leaderboard) {
-        sortable.push([score, leaderboard[score]]);
-    }
-
-    sortable.sort(function(a, b) {
-        return b[1] - a[1];
-    });
-
-    var list = sortable.slice(0,5);
-
-    html += "<div><b>Total sondes recovered: " + recovered + "/" + r.length + "</b></div>";
-    html += "<div><b>Total hunters: " + sortable.length + "</b></div><br>";
+    html += "<div><b>Total sondes recovered: " + recovered + "/" + total + "</b></div>";
+    html += "<div><b>Total hunters: " + hunters + "</b></div><br>";
     html += "<div><b>Leaderboard: </b></div>";
 
-    for (var i = 0; i < list.length; i++) {
-        html += "<div><b>" + (parseInt(i)+1) + ". </b>" + list[i][0] + " - " + list[i][1] + "</div>";
+    var i = 1;
+    for (let chaser in top) {
+        if (top.hasOwnProperty(chaser)) {
+            html += "<div><b>" + parseInt(i) + ". </b>" + chaser + " - " + top[chaser] + "</div>";
+            i+=1;
+         }
     }
 
     if (r.length == 0) {
-        html = "<div>No recent recoveries :-(</div>"
+        html = "<div>Error :-(</div>"
     }
 
     $("#leaderboard-list").html(html);
