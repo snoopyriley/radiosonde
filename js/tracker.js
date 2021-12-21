@@ -34,6 +34,7 @@ var launchPredictions = {};
 
 var stationHistoricalData = {};
 var historicalPlots = {};
+var historicalAjax = [];
 
 var sites = null;
 var launches = new L.LayerGroup();
@@ -579,6 +580,28 @@ function load() {
     
     L.control.periodcontrol({ position: 'topleft' }).addTo(map);
 
+    L.Control.HistoricalControl = L.Control.extend({
+        onAdd: function(map) {
+            var div = L.DomUtil.create('div');
+    
+            div.innerHTML = '<button onclick="deleteHistoricalButton()">Delete Historical</button>';
+            div.id = "historicalControlButton";
+            div.style.display = "none";
+
+            return div;
+        },
+    
+        onRemove: function(map) {
+            // Nothing to do here
+        }
+    });
+
+    L.control.historicalontrol = function(opts) {
+        return new L.Control.HistoricalControl(opts);
+    }
+    
+    L.control.historicalontrol({ position: 'topleft' }).addTo(map);
+
     // update current position if we geolocation is available
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
@@ -805,7 +828,7 @@ function getSelectedNumber (station) {
 // Download summary data from AWS S3
 function downloadHistorical (suffix) {
     var url = "https://sondehub-history.s3.amazonaws.com/" + suffix;
-    return $.ajax({
+    var ajaxReq = $.ajax({
         type: "GET",
         url: url,
         dataType: "json",
@@ -823,6 +846,8 @@ function downloadHistorical (suffix) {
             }
         }
     });
+    historicalAjax.push(ajaxReq);
+    return ajaxReq;
 }
 
 // Draw historic summaries to map
@@ -832,20 +857,8 @@ function drawHistorical (data, station) {
     var time = landing.datetime;
 
     if (!historicalPlots[station].sondes.hasOwnProperty(serial)) {
-        // Using age to detmine colour
-        /*
-        const date = new Date(time);
-        var minTime = historicalPlots[station].data.minTime;
-        var actualTime = date.getTime();
-        var maxTime = historicalPlots[station].data.maxTime;
 
         historicalPlots[station].sondes[serial] = {};
-
-        historicalPlots[station].sondes[serial].time = actualTime
-
-        var normalisedTime = ((actualTime-minTime)/(maxTime-minTime));
-        var iconColour = ConvertRGBtoHex(evaluate_cmap(normalisedTime, 'turbo'));
-        */
 
         // Using last known alt to detmine colour
         var minAlt = 0;
@@ -912,9 +925,9 @@ function drawHistorical (data, station) {
         popup.setContent(html);
 
         if (!recovered) {
-            var marker = L.circleMarker([landing.lat, landing.lon], {fillColor: "white", color: iconColour, weight: 2, radius: 5, fillOpacity:1});
+            var marker = L.circleMarker([landing.lat, landing.lon], {fillColor: "white", color: iconColour, weight: 3, radius: 5, fillOpacity:1});
         } else {
-            var marker = L.circleMarker([landing.lat, landing.lon], {fillColor: "grey", color: iconColour, weight: 2, radius: 5, fillOpacity:1});
+            var marker = L.circleMarker([landing.lat, landing.lon], {fillColor: "grey", color: iconColour, weight: 3, radius: 5, fillOpacity:1});
         }
 
         marker.bindPopup(popup);
@@ -929,6 +942,7 @@ function drawHistorical (data, station) {
 function deleteHistorical (station) {
     var popup = $("#popup" + station);
     var deleteHistorical = popup.find("#deleteHistorical");
+    var historicalDelete = $("#historicalControlButton");
 
     deleteHistorical.hide();
 
@@ -939,6 +953,45 @@ function deleteHistorical (station) {
     }
 
     delete historicalPlots[station];
+
+    var otherSondes = false;
+
+    for (station in historicalPlots) {
+        if (historicalPlots.hasOwnProperty(station)) {
+            if (Object.keys(historicalPlots[station].sondes).length > 1) {
+                otherSondes = true;
+            }
+        }
+    }
+
+    if (!otherSondes) historicalDelete.hide();
+}
+
+function deleteHistoricalButton() {
+    var historicalDelete = $("#historicalControlButton");
+
+    for (station in historicalPlots) {
+        if (historicalPlots.hasOwnProperty(station)) {
+            historicalPlots[station].data.drawing = false;
+            for (let serial in historicalPlots[station].sondes) {
+                map.removeLayer(historicalPlots[station].sondes[serial].marker);
+            }
+            var popup = $("#popup" + station);
+            var deleteHistorical = popup.find("#deleteHistorical");
+            deleteHistorical.hide();
+        }
+    }
+
+    for (i=0; i < historicalAjax.length; i++) {
+        historicalAjax[i].abort();
+    }
+
+    historicalAjax = [];
+
+    historicalPlots = {};
+
+    historicalDelete.hide();
+
 }
 
 // Master function to display historic summaries
@@ -982,8 +1035,6 @@ function showHistorical (station, marker) {
         historicalPlots[station] = {};
         historicalPlots[station].sondes = {};
         historicalPlots[station].data = {};
-        historicalPlots[station].data.minTime = 1511960400000;
-        historicalPlots[station].data.maxTime = dateNow.getTime();
     }
 
     // Get station location to fetch recoveries
@@ -1008,26 +1059,36 @@ function showHistorical (station, marker) {
                 processHistorical();
             }
         });
+    } else {
+        processHistorical();
     }
 
     function processHistorical() {
+        var historicalDelete = $("#historicalControlButton");
+        historicalDelete.show();
+
+        historicalPlots[station].data.drawing = true;
+
         for (let i = 0; i < sondes.length; i++) {
-            downloadHistorical(sondes[i]).done(handleData).fail(handleError);;
+            downloadHistorical(sondes[i]).done(handleData).fail(handleError);
         }
     
         var completed = 0;
     
         function handleData(data) {
             completed += 1;
-            drawHistorical(data, station);
+            try {
+                drawHistorical(data, station);
+            } catch(e) {};
             if (completed == sondes.length) {
                 submit.show();
                 submitLoading.hide();
-                deleteHistorical.show();
+                if (historicalPlots[station].data.drawing) deleteHistorical.show();
                 // If modal is closed the contents needs to be forced updated
                 if (!realpopup.isOpen()) {
                     realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
                 }
+                historicalPlots[station].data.drawing = false;
             }
         }
     
@@ -1036,11 +1097,12 @@ function showHistorical (station, marker) {
             if (completed == sondes.length) {
                 submit.show();
                 submitLoading.hide();
-                deleteHistorical.show();
-            }
-            // If modal is closed the contents needs to be forced updated
-            if (!realpopup.isOpen()) {
-                realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
+                if (historicalPlots[station].data.drawing) deleteHistorical.show();
+                // If modal is closed the contents needs to be forced updated
+                if (!realpopup.isOpen()) {
+                    realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
+                }
+                historicalPlots[station].data.drawing = false;
             }
         }
     }
