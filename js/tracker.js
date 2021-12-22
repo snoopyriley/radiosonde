@@ -520,7 +520,7 @@ function load() {
         zoomAnimationThreshold: 0,
         center: [53.467511,-2.233894],
         layers: baseMaps[selectedLayer],
-        worldcopyjump: true,
+        worldCopyJump: true,
         preferCanvas: true,
     });
 
