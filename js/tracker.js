@@ -3849,7 +3849,7 @@ function addPosition(position) {
 
 // Graph Stuff
 
-var graph_inhibited_fields = ['frequency', 'burst_timer'];
+var graph_inhibited_fields = ['frequency', 'frequency_tx', 'burst_timer'];
 
 function updateGraph(vcallsign, reset_selection) {
     if(!plot || !plot_open) return;
