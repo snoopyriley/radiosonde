@@ -2406,9 +2406,10 @@ function skewTdelete () {
     skewt.clear();
     $('#resetSkewt').hide();
     $('#deleteSkewt').hide();
-    $("#skewtSerial").hide();
+    $("#skewtSerial").text("Select a Radiosonde from the list and click 'SkewT' to plot. Note that not all radiosonde types are supported.");
     box.hide();
-    $('.skewt').hide();
+    //$('.skewt').hide();
+    $("#skewt-plot").empty();
     checkSize();
 }
 
@@ -2447,6 +2448,7 @@ function skewTdraw (callsign) {
     $('#resetSkewt').hide();
     $('#deleteSkewt').hide();
     $("#skewt-plot").empty();
+    $("#skewtErrors").text("");
 
     // Loading gif
     $("#skewtLoading").show();
@@ -2476,19 +2478,19 @@ function skewTdraw (callsign) {
             }
         }
         if(data.length < 50){
-            alert("Insufficient data for Skew-T plot.");
+            $("#skewtErrors").text("Insufficient data for Skew-T plot (<50 points).");
             return;
         }
     
         // Check that we have ascent data
         if (burst_idx <= 0){
-            alert("Insufficient data for Skew-T plot (Only descent data available).");
+            $("#skewtErrors").text("Insufficient data for Skew-T plot (Only descent data available).");
             return;
         }
     
         // Check that the first datapoint is at a reasonable altitude.
         if (data[0].alt > 15000){
-            alert("Insufficient data for Skew-T plot (Only data > 15km available)");
+            $("#skewtErrors").text("Insufficient data for Skew-T plot (Only data > 15km available)");
             return;
         }
 
@@ -2563,7 +2565,7 @@ function skewTdraw (callsign) {
                 _pressure = getPressure(_new_pos.alt);
             }
     
-            if(_pressure < 100.0){
+            if(_pressure < 50.0){
                 break;
             }
     
@@ -2597,7 +2599,8 @@ function skewTdraw (callsign) {
             catch(err) {}
     
         } else {
-            alert("Insufficient Data available, or no Temperature/Humidity data available to generate Skew-T plot.");
+            //alert("Insufficient Data available, or no Temperature/Humidity data available to generate Skew-T plot.");
+            $("#skewtErrors").text("Insufficient Data available, or no Temperature/Humidity data available to generate Skew-T plot.");
         };
     }
 };
