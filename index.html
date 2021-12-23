@@ -104,6 +104,9 @@
                 You can find the status of the SondeHub Database on the <a href="https://sondehub.org/go/status" target="_blank" rel="noopener">SondeHub Dashboard</a>.<br/>
                 You can view outages of the SondeHub Database at <a href="https://sondehub.statuspage.io/" target="_blank" rel="noopener">SondeHub Status</a>.
 
+                <h4>Info</h4>
+                This site uses data from the <a href="https://github.com/projecthorus/sondehub-infra/wiki" target="_blank" rel="noopener">SondeHub</a> database.
+
                 <h4>Chase Cars</h4>
                 Chase Cars can show up on the map using this tracker's chase-car features (look for the car icon at top-right) 
                 or upload their position from <a href="https://github.com/projecthorus/chasemapper" target="_blank" rel="noopener">Chasemapper</a> or <a href="https://github.com/dl9rdz/rdz_ttgo_sonde" target="_blank" rel="noopener">rdzTTGOsonde</a>.
@@ -221,29 +224,28 @@
             </div>
         </div>
     </div>
-    <div id="skewtbox" style="display: none" class="flatpage">
+    <div id="skewtbox" style="display:none;" class="flatpage">
         <div class="slimContainer" style="width:400px!important">
             <h2>SkewT Plot
-                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="35" height="40" viewBox="-0.5 -0.5 221 213" class="rfloat"><defs/><g><path d="M 172 206 L 212 166" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 52 206 L 212 46" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 132 206 L 212 126" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 12 206 L 212 6" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 12 166 L 172 6" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 12 126 L 132 6" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 12 86 L 92 6" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 92 206 L 212 86" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 12 206 L 12 6" fill="none" stroke="#000000" stroke-width="12" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 92 206 Q 132 186 103.5 169 Q 75 152 83.5 144 Q 92 136 77 96 Q 62 56 92 6" fill="none" stroke="#000000" stroke-width="10" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 142 206 Q 133 177 125.5 164.5 Q 118 152 118 139 Q 118 126 113.5 111 Q 109 96 130.5 76 Q 152 56 152 6" fill="none" stroke="#000000" stroke-width="10" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 6 206 L 214 206" fill="none" stroke="#000000" stroke-width="12" stroke-miterlimit="10" pointer-events="stroke"/></g></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="35" height="40" viewBox="-0.5 -0.5 221 213" class="rfloat"><defs/><g><path d="M 172 206 L 212 166" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 52 206 L 212 46" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 132 206 L 212 126" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 12 206 L 212 6" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 12 166 L 172 6" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 12 126 L 132 6" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 12 86 L 92 6" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 92 206 L 212 86" fill="none" stroke="#e6e6e6" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 12 206 L 12 6" fill="none" stroke="#666666" stroke-width="12" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 92 206 Q 132 186 103.5 169 Q 75 152 83.5 144 Q 92 136 77 96 Q 62 56 92 6" fill="none" stroke="#666666" stroke-width="10" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 142 206 Q 133 177 125.5 164.5 Q 118 152 118 139 Q 118 126 113.5 111 Q 109 96 130.5 76 Q 152 56 152 6" fill="none" stroke="#666666" stroke-width="10" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 6 206 L 214 206" fill="none" stroke="#666666" stroke-width="12" stroke-miterlimit="10" pointer-events="stroke"/></g></svg>
             </h2>
             <hr>
             <div style="display:flex;justify-content:center;">
-                <span id="skewtSerial">Select a Radiosonde from the list and click 'SkewT' to plot. Note that not all radiosonde types are supported.</span>
+                <span id="skewtSerial" style="text-align:center;">Select a Radiosonde from the list and click 'SkewT' to plot. Note that not all radiosonde types are supported.</span>
             </div>
             <div style="display:flex;justify-content:center;">
                 <img style="width:90px;height:30px;display:none;" src="img/hab-spinner.gif" id="skewtLoading" />
             </div>
             <div id="skewt-plot" class="skew-t"></div>
-            <br>
             <div style="display:flex;justify-content:center;">
-                <button style="display:none;margin:0px 5px;" id="resetSkewt" onclick="skewTrefresh()">Reset Plot</button>
-                <button style="display:none;margin:0px 5px;" id="deleteSkewt" onclick="skewTdelete()">Delete Plot</button>
+                <button style="display:none;margin:10px 5px;" id="resetSkewt" onclick="skewTrefresh()">Reset Plot</button>
+                <button style="display:none;margin:10px 5px;" id="deleteSkewt" onclick="skewTdelete()">Delete Plot</button>
             </div>
             <div style="display:flex;justify-content:center;">
-                <span id="skewtErrors"></span>
+                <span id="skewtErrors" style="display:none;text-align:center;font-weight:bold;margin:10px 0px;"></span>
             </div>
             <div style="display:flex;justify-content:center;">
-                <span id="skewtHelp">For assistance interpreting SkewT plots, try <a href="http://flsc.org/portals/12/PDF/Read_Skew_T.pdf" target="_blank" rel="noopener">this guide.</a></span>
+                <span id="skewtHelp" style="text-align:center;">For assistance interpreting SkewT plots, try <a href="http://flsc.org/portals/12/PDF/Read_Skew_T.pdf" target="_blank" rel="noopener">this guide.</a></span>
             </div>
             
 
