@@ -412,7 +412,7 @@ header .search form input[type='submit'] {
 #main .row .data .vbutton {
     position: absolute;
     background-color: #fff;
-    width: 25px !important;
+    width: 30px !important;
     right: 5px;
     top: 150px;
     padding-left: 3px;
@@ -428,7 +428,7 @@ header .search form input[type='submit'] {
 #main .row .data .sbutton {
     position: absolute;
     background-color: #fff;
-    width: 25px !important;
+    width: 30px !important;
     right: 5px;
     top: 170px;
     padding-left: 3px;
