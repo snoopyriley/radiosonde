@@ -2449,6 +2449,7 @@ function skewTdraw (callsign) {
     $('#deleteSkewt').hide();
     $("#skewt-plot").empty();
     $("#skewtErrors").text("");
+    $("#skewtErrors").hide();
 
     // Loading gif
     $("#skewtLoading").show();
@@ -2479,18 +2480,21 @@ function skewTdraw (callsign) {
         }
         if(data.length < 50){
             $("#skewtErrors").text("Insufficient data for Skew-T plot (<50 points).");
+            $("#skewtErrors").show();
             return;
         }
     
         // Check that we have ascent data
         if (burst_idx <= 0){
             $("#skewtErrors").text("Insufficient data for Skew-T plot (Only descent data available).");
+            $("#skewtErrors").show();
             return;
         }
     
         // Check that the first datapoint is at a reasonable altitude.
         if (data[0].alt > 15000){
             $("#skewtErrors").text("Insufficient data for Skew-T plot (Only data > 15km available)");
+            $("#skewtErrors").show();
             return;
         }
 
@@ -2599,7 +2603,7 @@ function skewTdraw (callsign) {
             catch(err) {}
     
         } else {
-            //alert("Insufficient Data available, or no Temperature/Humidity data available to generate Skew-T plot.");
+            $("#skewtErrors").show();
             $("#skewtErrors").text("Insufficient Data available, or no Temperature/Humidity data available to generate Skew-T plot.");
         };
     }
