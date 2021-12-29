@@ -2526,7 +2526,7 @@ function skewTdraw (callsign) {
             }
     
             _temp = null;
-            _dewp = -999.0;
+            _dewp = -1000.0;
             _pressure = null;
     
             // Extract temperature datapoint
@@ -2550,7 +2550,7 @@ function skewTdraw (callsign) {
                     // Calculate the dewpoint
                     _dewp = (243.04 * (Math.log(_rh / 100) + ((17.625 * _temp) / (243.04 + _temp))) / (17.625 - Math.log(_rh / 100) - ((17.625 * _temp) / (243.04 + _temp))));
                 } else {
-                    _dewp = -999.0;
+                    _dewp = -1000.0;
                 }
             }
     
