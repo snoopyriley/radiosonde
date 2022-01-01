@@ -722,7 +722,6 @@ $(window).ready(function() {
         '#sw_hide_horizon',
         '#sw_hide_titles',
         '#sw_layers_launches',
-        '#sw_small_icons',
         "#sw_nowelcome",
         "#sw_interpolate",
     ];
@@ -808,9 +807,6 @@ $(window).ready(function() {
                 else {
                     hideHorizonRings();
                 }
-                break;
-            case "opt_small_icons":
-                updateIconSize(on);
                 break;
             case "opt_hide_titles":
                 if(on) {

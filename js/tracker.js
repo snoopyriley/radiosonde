@@ -2699,10 +2699,6 @@ function drawLaunchPrediction(vcallsign) {
 }
 
 function redrawPrediction(vcallsign) {
-    var scale = 1;
-    if (offline.get("opt_small_icons")) {
-        scale = 0.5;
-    }
     var vehicle = vehicles[vcallsign];
 	var data = vehicle.prediction.data;
 	if(data.warnings || data.errors) return;
@@ -2764,8 +2760,8 @@ function redrawPrediction(vcallsign) {
             image_src = host_url + markers_url + "target-" + balloon_colors_name[vehicle.color_index] + ".png";
             predictionIcon = new L.icon({
                 iconUrl: image_src,
-                iconSize: [20*scale,20*scale],
-                iconAnchor: [10*scale, 10*scale],
+                iconSize: [20,20],
+                iconAnchor: [10, 10],
             });
             vehicle.prediction_target = new L.Marker(latlng, {
                 zIndexOffset: Z_SHADOW,
@@ -2787,8 +2783,8 @@ function redrawPrediction(vcallsign) {
             image_src = host_url + markers_url + "balloon-pop.png";
             burstIcon = new L.icon({
                 iconUrl: image_src,
-                iconSize: [20*scale,20*scale],
-                iconAnchor: [10*scale, 10*scale],
+                iconSize: [20,20],
+                iconAnchor: [10, 10],
             });
             vehicle.prediction_burst = new L.Marker(latlng_burst, {
                 zIndexOffset: Z_SHADOW,
@@ -3267,10 +3263,6 @@ var array_unique = function(inarr) {
 
 function addPosition(position) {
     var vcallsign = position.vehicle;
-    var scale = 1
-    if (offline.get("opt_small_icons")) {
-        scale = 0.5;
-    }
 
     // check if the vehicle is already in the list, if not create a new item
     if(!vehicles.hasOwnProperty(vcallsign)) {
@@ -3291,8 +3283,8 @@ function addPosition(position) {
             vehicle_type = "car";
             color_index = car_index++ % car_colors.length;
             image_src = host_url + markers_url + "car-" + car_colors[color_index] + ".png";
-            image_src_size = [55*scale,25*scale];
-            image_src_offset = [0*scale,-25*scale];
+            image_src_size = [55,25];
+            image_src_offset = [0,-25];
 
             marker = new L.Marker(point, {
                 title: vcallsign,
@@ -3357,13 +3349,13 @@ function addPosition(position) {
 
             image_src = host_url + markers_url + "balloon-" +
                         ((vcallsign == "PIE") ? "rpi" : balloon_colors_name[color_index]) + ".png";
-            image_src_size = [46*scale,84*scale];
-            image_src_offset = [-35*scale,-46*scale];
+            image_src_size = [46,84];
+            image_src_offset = [-35,-46];
 
             shadowIcon = new L.icon({
                 iconUrl: host_url + markers_url + "shadow.png",
-                iconSize: [24*scale,16*scale],
-                iconAnchor: [12*scale, 8*scale],
+                iconSize: [24,16],
+                iconAnchor: [12, 8],
             });
 
             marker_shadow = new L.Marker(point, {
@@ -3417,9 +3409,9 @@ function addPosition(position) {
 
                     img = new L.icon ({
                         iconUrl: host_url + markers_url + "payload-" + this.balloonColor + ".png",
-                        iconSize: [17*scale,18*scale],
-                        iconAnchor: [8*scale,14*scale],
-                        tooltipAnchor: [0*scale,-20*scale],
+                        iconSize: [17,18],
+                        iconAnchor: [8,14],
+                        tooltipAnchor: [0,-20],
                     });
                 } else {
                     map.addLayer(vehicle.marker.shadow);
@@ -3434,16 +3426,16 @@ function addPosition(position) {
                     if(mode == "parachute") {
                         img = new L.icon ({
                             iconUrl: host_url + markers_url + "parachute-" + this.balloonColor + ".png",
-                            iconSize: [46*scale,84*scale],
-                            tooltipAnchor: [0*scale,-98*scale],
-                            iconAnchor: [23*scale,90*scale],
+                            iconSize: [46,84],
+                            tooltipAnchor: [0,-98],
+                            iconAnchor: [23,90],
                         });
                     } else {
                         img = new L.icon ({
                             iconUrl: host_url + markers_url + "balloon-" + this.balloonColor + ".png",
-                            iconSize: [46*scale,84*scale],
-                            tooltipAnchor: [0*scale,-98*scale],
-                            iconAnchor: [23*scale,90*scale],
+                            iconSize: [46,84],
+                            tooltipAnchor: [0,-98],
+                            iconAnchor: [23,90],
                         });
                     }
                 }
@@ -3623,15 +3615,15 @@ function addPosition(position) {
 
             nyanIcon = new L.icon ({
                 iconUrl: host_url + markers_url + nyan,
-                iconSize: [nyanw*scale,39*scale],
-                iconAnchor: [26*scale,20*scale],
-                tooltipAnchor: [0*scale,-29*scale],
+                iconSize: [nyanw,39],
+                iconAnchor: [26,20],
+                tooltipAnchor: [0,-29],
             });
 
             vehicle_info.marker.setIcon(nyanIcon);
 
             vehicle_info.image_src = host_url + markers_url + "hab_nyan.gif";
-            vehicle_info.image_src_offset = [-34*scale,-70*scale];
+            vehicle_info.image_src_offset = [-34,-70];
 
             var k;
             for(k in vehicle_info.polyline) {
@@ -5398,39 +5390,6 @@ function showHorizonRings(){
             map.addLayer(vehicles[vcallsign].subhorizon_circle);
             map.addLayer(vehicles[vcallsign].horizon_circle_title);
             map.addLayer(vehicles[vcallsign].subhorizon_circle_title);
-        }
-    }
-}
-
-function updateIconSize(on) {
-    if (on) {
-        scale = 0.5;
-    } else {
-        scale = 2;
-    }
-    for(var vcallsign in vehicles) {
-        var icon = vehicles[vcallsign].marker.options.icon;
-        icon.options.iconSize = [icon.options.iconSize[0]*scale, icon.options.iconSize[1]*scale];
-        icon.options.iconAnchor = [icon.options.iconAnchor[0]*scale, icon.options.iconAnchor[1]*scale];
-        icon.options.tooltipAnchor = [icon.options.tooltipAnchor[0]*scale, icon.options.tooltipAnchor[1]*scale];
-        vehicles[vcallsign].marker.setIcon(icon);
-        if (vehicles[vcallsign].marker_shadow != null) {
-            var shadowIcon = vehicles[vcallsign].marker_shadow.options.icon;
-            shadowIcon.options.iconSize = [shadowIcon.options.iconSize[0]*scale, shadowIcon.options.iconSize[1]*scale];
-            shadowIcon.options.iconAnchor = [shadowIcon.options.iconAnchor[0]*scale, shadowIcon.options.iconAnchor[1]*scale];
-            vehicles[vcallsign].marker_shadow.setIcon(shadowIcon);
-        }
-        if (vehicles[vcallsign].prediction_burst != null) {
-            var burstIcon = vehicles[vcallsign].prediction_burst.options.icon;
-            burstIcon.options.iconSize = [burstIcon.options.iconSize[0]*scale, burstIcon.options.iconSize[1]*scale];
-            burstIcon.options.iconAnchor = [burstIcon.options.iconAnchor[0]*scale, burstIcon.options.iconAnchor[1]*scale];
-            vehicles[vcallsign].prediction_burst.setIcon(burstIcon);
-        }
-        if (vehicles[vcallsign].prediction_target != null) {
-            var targetIcon = vehicles[vcallsign].prediction_target.options.icon;
-            targetIcon.options.iconSize = [targetIcon.options.iconSize[0]*scale, targetIcon.options.iconSize[1]*scale];
-            targetIcon.options.iconAnchor = [targetIcon.options.iconAnchor[0]*scale, targetIcon.options.iconAnchor[1]*scale];
-            vehicles[vcallsign].prediction_target.setIcon(targetIcon);
         }
     }
 }
