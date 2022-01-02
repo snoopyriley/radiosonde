@@ -717,7 +717,7 @@ function load() {
 
     map.on('zoomend', function() {
         //do check for horizon labels
-        if (!offline.get("opt_hide_horizon")) {
+        if (offline.get("opt_hide_horizon")) {
             for (key in vehicles) {
                 if (vehicles[key]["vehicle_type"] == "balloon") {
                     if (vehicles[key]["horizon_circle"]["_map"]) 
@@ -3418,7 +3418,7 @@ function addPosition(position) {
                 } else {
                     map.addLayer(vehicle.marker.shadow);
 
-                    if(offline.get('opt_hide_horizon') == false){
+                    if(!offline.get('opt_hide_horizon') == false){
                         map.addLayer(vehicle.horizon_circle);
                         map.addLayer(vehicle.subhorizon_circle);
                         map.addLayer(vehicle.horizon_circle_title);
@@ -3492,7 +3492,7 @@ function addPosition(position) {
                 interactive: false,
             });
 
-            if (!offline.get("opt_hide_horizon")) {
+            if (offline.get("opt_hide_horizon")) {
                 horizon_circle.addTo(map);
                 horizon_circle_title.addTo(map);
             }
@@ -3524,7 +3524,7 @@ function addPosition(position) {
                 interactive: false,
             });
 
-            if (!offline.get("opt_hide_horizon")) {
+            if (offline.get("opt_hide_horizon")) {
                 subhorizon_circle.addTo(map);
                 subhorizon_circle_title.addTo(map);
             }
@@ -5374,7 +5374,6 @@ function refreshUI() {
     if(follow_vehicle !== null) update_lookangles(follow_vehicle);
 }
 
-
 function hideHorizonRings(){
     for(var vcallsign in vehicles) {
         if(vehicles[vcallsign].vehicle_type == "balloon"){
@@ -5385,6 +5384,7 @@ function hideHorizonRings(){
         }
     }
 }
+
 function showHorizonRings(){
     for(var vcallsign in vehicles) {
         if(vehicles[vcallsign].vehicle_type == "balloon"){
@@ -5403,6 +5403,7 @@ function hideTitles(){
         }
     }
 }
+
 function showTitles(){
     for(var vcallsign in vehicles) {
         if(vehicles[vcallsign].vehicle_type == "balloon" || vehicles[vcallsign].vehicle_type == "car"){

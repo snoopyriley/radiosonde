@@ -802,10 +802,10 @@ $(window).ready(function() {
                 break;
             case "opt_hide_horizon":
                 if(on) {
-                    hideHorizonRings();
+                    showHorizonRings();
                 }
                 else {
-                    showHorizonRings();
+                    hideHorizonRings();
                 }
                 break;
             case "opt_hide_titles":
