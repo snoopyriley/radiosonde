@@ -140,6 +140,8 @@ ChaseCar.markRecovered = function(){
         return;
     }
 
+    $('#pr_last_report').text("Submitting report...");
+
     $.ajax({
         type: "PUT",
         url: ChaseCar.recovery_uri,
