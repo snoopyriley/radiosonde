@@ -105,16 +105,57 @@ function parseXDATA(data){
         _current_xdata = data_split[xdata_i];
 
         // Get Instrument ID
+        // https://gml.noaa.gov/aftp/user/jordan/XDATA%20Instrument%20ID%20Allocation.pdf
+        // https://www.gruan.org/gruan/editor/documents/gruan/GRUAN-TN-11_GruanToolRs92_v1.0_2020-10-01.pdf
         _instrument = _current_xdata.substr(0,2);
 
-        if(_instrument === '05'){
+        if (_instrument === '01') {
+            // V7
+            _output = {'xdata_instrument': 'V7'};
+        } else if (_instrument === '05'){
             // OIF411
             _xdata_temp = parseOIF411(_current_xdata);
             _output = Object.assign(_output,_xdata_temp);
+        } else if (_instrument === '08'){
+            // CFH
+            _output = {'xdata_instrument': 'CFH'};
+        } else if (_instrument === '10'){
+            // FPH
+            _output = {'xdata_instrument': 'FPH'};
+        } else if (_instrument === '18'){
+            // COBALD
+            _output = {'xdata_instrument': 'COBALD'};
+        } else if (_instrument === '28'){
+            // SLW
+            _output = {'xdata_instrument': 'SLW'};
+        } else if (_instrument === '38'){
+            // POPS
+            _output = {'xdata_instrument': 'POPS'};
+        } else if (_instrument === '39'){
+            // OPC
+            _output = {'xdata_instrument': 'OPC'};
+        } else if (_instrument === '3C'){
+            // PCFH
+            _output = {'xdata_instrument': 'PCFH'};
+        } else if (_instrument === '3D'){
+            // FLASH-B
+            _output = {'xdata_instrument': 'FLASH-B'};
+        } else if (_instrument === '3E'){
+            // TRAPS
+            _output = {'xdata_instrument': 'TRAPS'};
+        } else if (_instrument === '3F'){
+            // SKYDEW
+            _output = {'xdata_instrument': 'SKYDEW'};
+        } else if (_instrument === '41'){
+            // CICANUM
+            _output = {'xdata_instrument': 'CICANUM'};
+        } else if (_instrument === '45'){
+            // POPS
+            _output = {'xdata_instrument': 'POPS'};
         } else if (_instrument === '80'){
             // Unknown!
             //console.log("Saw unknown XDATA instrument 0x80.")
-        } else {
+        }else {
             // Unknown!
 
         }
