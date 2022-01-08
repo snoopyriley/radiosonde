@@ -3895,7 +3895,7 @@ function addPosition(position) {
 
 // Graph Stuff
 
-var graph_inhibited_fields = ['frequency', 'frequency_tx', 'burst_timer', 'xdata', 'oif411_ozone_pump_temp', 'oif411_ozone_current_uA', 'oif411_ozone_battery_v', 'oif411_ozone_pump_curr_mA', 'oif411_serial', 'oif411_version'];
+var graph_inhibited_fields = ['frequency', 'frequency_tx', 'burst_timer', 'xdata', 'oif411_ozone_pump_temp', 'oif411_ozone_battery_v', 'oif411_ozone_pump_curr_mA', 'oif411_serial', 'oif411_version'];
 
 function updateGraph(vcallsign, reset_selection) {
     if(!plot || !plot_open) return;
