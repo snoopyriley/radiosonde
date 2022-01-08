@@ -4899,7 +4899,7 @@ function refreshNewReceivers(initial, serial) {
 
 function singleRecovery(serial) {
 
-    var datastr = "serials=" + serial;
+    var datastr = "serial=" + serial;
 
     $.ajax({
         type: "GET",
