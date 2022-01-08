@@ -4767,6 +4767,7 @@ function refreshSingle(serial) {
       success: function(data, textStatus) {
         response = formatData(data, false);
         update(response);
+        singleRecovery(serial);
         $("#stText").text("");
       },
       error: function() {
@@ -4894,6 +4895,22 @@ function refreshNewReceivers(initial, serial) {
             }
         }
     });
+}
+
+function singleRecovery(serial) {
+
+    var datastr = "serial=" + serial;
+
+    $.ajax({
+        type: "GET",
+        url: recovered_sondes_url,
+        data: datastr,
+        dataType: "json",
+        success: function(response, textStatus) {
+            updateRecoveries(response);
+        }
+    });
+
 }
 
 function refreshRecoveries() {
