@@ -80,7 +80,7 @@ function parseOIF411(xdata, pressure){
         if(_diagnostics_word == '0000'){
             _output['oif411_diagnostics'] = "All OK";
         }else if(_diagnostics_word == '0004'){
-            _output['oif411_diagnostics'] = 'Ozone pump temperature below −5 °C.';
+            _output['oif411_diagnostics'] = 'Ozone pump temperature below -5 °C.';
         }else if(_diagnostics_word == '0400'){
             _output['oif411_diagnostics'] = 'Ozone pump battery voltage (+VBatt) is not connected to OIF411';
         }else if (_diagnostics_word == '0404'){
@@ -100,19 +100,24 @@ function parseOIF411(xdata, pressure){
         if ((_ozone_pump_temp & 0x8000) > 0) {
             _ozone_pump_temp = _ozone_pump_temp - 0x10000;
         }
-        _output['oif411_ozone_pump_temp'] = _ozone_pump_temp*0.01; // Degrees C
+        _ozone_pump_temp = _ozone_pump_temp*0.01; // Degrees C
+        _output['oif411_ozone_pump_temp'] = Math.round(_ozone_pump_temp * 10) / 10; // 1 DP
 
-        // Ozone Pump Current
-        _output['oif411_ozone_current_uA'] = parseInt(xdata.substr(8,5),16)*0.0001; // micro-Amps
+        // Ozone Current
+        _ozone_current_uA = parseInt(xdata.substr(8,5),16)*0.0001; // micro-Amps
+        _output['oif411_ozone_current_uA'] = Math.round(_ozone_current_uA * 10000) / 10000; // 4 DP
 
         // Battery Voltage
-        _output['oif411_ozone_battery_v'] = parseInt(xdata.substr(13,2),16)*0.1; // Volts
+        _ozone_battery_v = parseInt(xdata.substr(13,2),16)*0.1; // Volts
+        _output['oif411_ozone_battery_v'] = Math.round(_ozone_battery_v * 10) / 10; // 1 DP
 
         // Ozone Pump Current
-        _output['oif411_ozone_pump_curr_mA'] = parseInt(xdata.substr(15,3),16); // mA
+        _ozone_pump_curr_mA = parseInt(xdata.substr(15,3),16); // mA
+        _output['oif411_ozone_pump_curr_mA'] = Math.round(_ozone_pump_curr_mA * 10) / 10; // 1 DP
 
         // External Voltage
-        _output['oif411_ext_voltage'] = parseInt(xdata.substr(18,2),16)*0.1; // Volts
+        _ext_voltage = parseInt(xdata.substr(18,2),16)*0.1; // Volts
+        _output['oif411_ext_voltage'] = Math.round(_ext_voltage * 10) / 10; // 1 DP
 
         // Now attempt to calculate the O3 partial pressure
 
@@ -121,7 +126,8 @@ function parseOIF411(xdata, pressure){
         Cef = get_oif411_Cef(pressure); // Calculate the pump efficiency correction.
         FlowRate = 28.5; // Use a 'nominal' value for Flow Rate (seconds per 100mL).
 
-        _output['oif411_O3_partial_pressure'] = (4.30851e-4)*(_output['oif411_ozone_current_uA'] - Ibg)*(_output['oif411_ozone_pump_temp']+273.15)*FlowRate*Cef;
+        _O3_partial_pressure = (4.30851e-4)*(_output['oif411_ozone_current_uA'] - Ibg)*(_output['oif411_ozone_pump_temp']+273.15)*FlowRate*Cef; // mPa
+        _output['oif411_O3_partial_pressure'] = Math.round(_O3_partial_pressure * 1000) / 1000; // 3 DP
 
         return _output
 

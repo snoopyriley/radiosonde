@@ -3161,19 +3161,19 @@ function mapInfoBox_handle_path_new(data, vehicle, date) {
             html += "<div><b>XDATA Instrument:&nbsp;</b>" + tempXDATA.xdata_instrument + "</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
-            html += "<div><b>OIF411 Battery:&nbsp;</b>" + tempXDATA.oif411_ozone_battery_v.toFixed(1) + " V</div>";
+            html += "<div><b>OIF411 Battery:&nbsp;</b>" + tempXDATA.oif411_ozone_battery_v + " V</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_ozone_current_uA')) {
-            html += "<div><b>Ozone Current:&nbsp;</b>" + tempXDATA.oif411_ozone_current_uA.toFixed(4) + " uA</div>";
+            html += "<div><b>Ozone Current:&nbsp;</b>" + tempXDATA.oif411_ozone_current_uA + " uA</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
-            html += "<div><b>Ozone Partial Presure:&nbsp;</b>" + tempXDATA.oif411_O3_partial_pressure.toFixed(3) + " mPa (+/- 1)</div>";
+            html += "<div><b>Ozone Partial Presure:&nbsp;</b>" + tempXDATA.oif411_O3_partial_pressure + " mPa (+/- 1)</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_ozone_pump_curr_mA')) {
-            html += "<div><b>Ozone Pump Current:&nbsp;</b>" + tempXDATA.oif411_ozone_pump_curr_mA.toFixed(1) + " mA</div>";
+            html += "<div><b>Ozone Pump Current:&nbsp;</b>" + tempXDATA.oif411_ozone_pump_curr_mA + " mA</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_ozone_pump_temp')) {
-            html += "<div><b>Ozone Pump Temperature:&nbsp;</b>" + tempXDATA.oif411_ozone_pump_temp.toFixed(1) + "°C</div>";
+            html += "<div><b>Ozone Pump Temperature:&nbsp;</b>" + tempXDATA.oif411_ozone_pump_temp + "°C</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_serial')) {
             html += "<div><b>OIF411 Serial Number:&nbsp;</b>" + tempXDATA.oif411_serial + "</div>";
@@ -4267,13 +4267,13 @@ function formatData(data, live) {
                         dataTempEntry.data.oif411_serial = tempXDATA.oif411_serial;
                     }
                     if (tempXDATA.hasOwnProperty('oif411_diagnostics')) {
-                        dataTempEntry.oif411_diagnostics = tempXDATA.oif411_diagnostics;
+                        dataTempEntry.data.oif411_diagnostics = tempXDATA.oif411_diagnostics;
                     }
                     if (tempXDATA.hasOwnProperty('oif411_version')) {
-                        dataTempEntry.oif411_version = tempXDATA.oif411_version;
+                        dataTempEntry.data.oif411_version = tempXDATA.oif411_version;
                     }
                     if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
-                        dataTempEntry.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
+                        dataTempEntry.data.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
                     }
                 }
                 if (data[entry].serial.toLowerCase() != "xxxxxxxx") {
@@ -4388,13 +4388,13 @@ function formatData(data, live) {
                     dataTempEntry.data.oif411_serial = tempXDATA.oif411_serial;
                 }
                 if (tempXDATA.hasOwnProperty('oif411_diagnostics')) {
-                    dataTempEntry.oif411_diagnostics = tempXDATA.oif411_diagnostics;
+                    dataTempEntry.data.oif411_diagnostics = tempXDATA.oif411_diagnostics;
                 }
                 if (tempXDATA.hasOwnProperty('oif411_version')) {
-                    dataTempEntry.oif411_version = tempXDATA.oif411_version;
+                    dataTempEntry.data.oif411_version = tempXDATA.oif411_version;
                 }
                 if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
-                    dataTempEntry.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
+                    dataTempEntry.data.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
                 }
             }
             if (data.serial.toLowerCase() != "xxxxxxxx") {
@@ -4492,13 +4492,13 @@ function formatData(data, live) {
                                 dataTempEntry.data.oif411_serial = tempXDATA.oif411_serial;
                             }
                             if (tempXDATA.hasOwnProperty('oif411_diagnostics')) {
-                                dataTempEntry.oif411_diagnostics = tempXDATA.oif411_diagnostics;
+                                dataTempEntry.data.oif411_diagnostics = tempXDATA.oif411_diagnostics;
                             }
                             if (tempXDATA.hasOwnProperty('oif411_version')) {
-                                dataTempEntry.oif411_version = tempXDATA.oif411_version;
+                                dataTempEntry.data.oif411_version = tempXDATA.oif411_version;
                             }
                             if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
-                                dataTempEntry.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
+                                dataTempEntry.data.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
                             }
                         }
                         if (data[key][i].serial.toLowerCase() != "xxxxxxxx") {
@@ -4627,13 +4627,13 @@ function formatData(data, live) {
                         dataTempEntry.data.oif411_serial = tempXDATA.oif411_serial;
                     }
                     if (tempXDATA.hasOwnProperty('oif411_diagnostics')) {
-                        dataTempEntry.oif411_diagnostics = tempXDATA.oif411_diagnostics;
+                        dataTempEntry.data.oif411_diagnostics = tempXDATA.oif411_diagnostics;
                     }
                     if (tempXDATA.hasOwnProperty('oif411_version')) {
-                        dataTempEntry.oif411_version = tempXDATA.oif411_version;
+                        dataTempEntry.data.oif411_version = tempXDATA.oif411_version;
                     }
                     if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
-                        dataTempEntry.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
+                        dataTempEntry.data.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
                     }
                 }
                 dataTemp.push(dataTempEntry);
