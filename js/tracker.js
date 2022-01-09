@@ -1768,11 +1768,13 @@ function habitat_data(jsondata, alternative) {
     "oif411_serial": "OIF411 Serial Number",
     "oif411_diagnostics": "OIF411 Diagnostics",
     "oif411_version": "OIF411 Version",
+    "oif411_O3_partial_pressure": "Ozone Partial Pressure"
   };
 
   var tooltips = {
     "burst_timer": "If active, this indicates the time (HH:MM:SS) until the radiosonde will automatically power-off.",
-    "xdata": "Raw auxiliary data (as hexadecimal) from an external sensor package (often an Ozone sensor)."
+    "xdata": "Raw auxiliary data (as hexadecimal) from an external sensor package (often an Ozone sensor).",
+    "oif411_O3_partial_pressure": "Estimated O3 partial pressure, using nominal calibration values. +/- 1 mPa."
   }
 
   var hide_keys = {
@@ -1810,6 +1812,7 @@ function habitat_data(jsondata, alternative) {
     "oif411_ozone_current_uA": " uA",
     "oif411_ozone_pump_curr_mA": " mA",
     "oif411_ozone_pump_temp": "&deg;C",
+    "oif411_O3_partial_pressure": " mPa (+/- 1)"
   };
 
   try
@@ -3148,21 +3151,29 @@ function mapInfoBox_handle_path_new(data, vehicle, date) {
         html += "<hr style='margin:0px;margin-top:5px'>";
         html += "<div style='font-size:11px;'>"
         html += "<div><b>XDATA:&nbsp;</b>" + data.xdata + "</div>";
-        var tempXDATA = parseXDATA(data.xdata);
+        if (data.hasOwnProperty("pressure")) {
+            xdata_pressure = data.pressure;
+        } else {
+            xdata_pressure = 1100.0;
+        }
+        var tempXDATA = parseXDATA(data.xdata, xdata_pressure);
         if (tempXDATA.hasOwnProperty('xdata_instrument')) {
             html += "<div><b>XDATA Instrument:&nbsp;</b>" + tempXDATA.xdata_instrument + "</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
-            html += "<div><b>OIF411 Battery:&nbsp;</b>" + tempXDATA.oif411_ozone_battery_v + " V</div>";
+            html += "<div><b>OIF411 Battery:&nbsp;</b>" + tempXDATA.oif411_ozone_battery_v.toFixed(1) + " V</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_ozone_current_uA')) {
-            html += "<div><b>Ozone Current:&nbsp;</b>" + tempXDATA.oif411_ozone_current_uA + " uA</div>";
+            html += "<div><b>Ozone Current:&nbsp;</b>" + tempXDATA.oif411_ozone_current_uA.toFixed(4) + " uA</div>";
+        }
+        if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
+            html += "<div><b>Ozone Partial Presure:&nbsp;</b>" + tempXDATA.oif411_O3_partial_pressure.toFixed(3) + " mPa (+/- 1)</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_ozone_pump_curr_mA')) {
-            html += "<div><b>Ozone Pump Current:&nbsp;</b>" + tempXDATA.oif411_ozone_pump_curr_mA + " mA</div>";
+            html += "<div><b>Ozone Pump Current:&nbsp;</b>" + tempXDATA.oif411_ozone_pump_curr_mA.toFixed(1) + " mA</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_ozone_pump_temp')) {
-            html += "<div><b>Ozone Pump Temperature:&nbsp;</b>" + tempXDATA.oif411_ozone_pump_temp + "°C</div>";
+            html += "<div><b>Ozone Pump Temperature:&nbsp;</b>" + tempXDATA.oif411_ozone_pump_temp.toFixed(1) + "°C</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_serial')) {
             html += "<div><b>OIF411 Serial Number:&nbsp;</b>" + tempXDATA.oif411_serial + "</div>";
@@ -3895,7 +3906,7 @@ function addPosition(position) {
 
 // Graph Stuff
 
-var graph_inhibited_fields = ['frequency', 'frequency_tx', 'burst_timer', 'xdata', 'oif411_ozone_pump_temp', 'oif411_ozone_battery_v', 'oif411_ozone_pump_curr_mA', 'oif411_serial', 'oif411_version'];
+var graph_inhibited_fields = ['frequency', 'frequency_tx', 'burst_timer', 'xdata', 'oif411_ozone_pump_temp', 'oif411_ozone_battery_v', 'oif411_ozone_pump_curr_mA', 'oif411_serial', 'oif411_version', 'oif411_ozone_current_uA'];
 
 function updateGraph(vcallsign, reset_selection) {
     if(!plot || !plot_open) return;
@@ -4230,7 +4241,13 @@ function formatData(data, live) {
                 }
                 if (data[entry].xdata) {
                     dataTempEntry.data.xdata = data[entry].xdata;
-                    var tempXDATA = parseXDATA(data[entry].xdata);
+
+                    if (data[entry].hasOwnProperty("pressure")) {
+                        xdata_pressure = data[entry].pressure;
+                    } else {
+                        xdata_pressure = 1100.0;
+                    }
+                    var tempXDATA = parseXDATA(data[entry].xdata, xdata_pressure);
                     if (tempXDATA.hasOwnProperty('xdata_instrument')) {
                         dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument;
                     }
@@ -4254,6 +4271,9 @@ function formatData(data, live) {
                     }
                     if (tempXDATA.hasOwnProperty('oif411_version')) {
                         dataTempEntry.oif411_version = tempXDATA.oif411_version;
+                    }
+                    if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
+                        dataTempEntry.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
                     }
                 }
                 if (data[entry].serial.toLowerCase() != "xxxxxxxx") {
@@ -4343,7 +4363,12 @@ function formatData(data, live) {
             }
             if (data.xdata) {
                 dataTempEntry.data.xdata = data.xdata;
-                var tempXDATA = parseXDATA(data.xdata);
+                if (data.hasOwnProperty("pressure")) {
+                    xdata_pressure = data.pressure;
+                } else {
+                    xdata_pressure = 1100.0;
+                }
+                var tempXDATA = parseXDATA(data.xdata, xdata_pressure);
                 if (tempXDATA.hasOwnProperty('xdata_instrument')) {
                     dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument;
                 }
@@ -4367,6 +4392,9 @@ function formatData(data, live) {
                 }
                 if (tempXDATA.hasOwnProperty('oif411_version')) {
                     dataTempEntry.oif411_version = tempXDATA.oif411_version;
+                }
+                if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
+                    dataTempEntry.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
                 }
             }
             if (data.serial.toLowerCase() != "xxxxxxxx") {
@@ -4439,7 +4467,12 @@ function formatData(data, live) {
                         }
                         if (data[key][i].xdata) {
                             dataTempEntry.data.xdata = data[key][i].xdata;
-                            var tempXDATA = parseXDATA(data[key][i].xdata);
+                            if (data[key][i].hasOwnProperty("pressure")) {
+                                xdata_pressure = data[key][i].pressure;
+                            } else {
+                                xdata_pressure = 1100.0;
+                            }
+                            var tempXDATA = parseXDATA(data[key][i].xdata, xdata_pressure);
                             if (tempXDATA.hasOwnProperty('xdata_instrument')) {
                                 dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument;
                             }
@@ -4463,6 +4496,9 @@ function formatData(data, live) {
                             }
                             if (tempXDATA.hasOwnProperty('oif411_version')) {
                                 dataTempEntry.oif411_version = tempXDATA.oif411_version;
+                            }
+                            if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
+                                dataTempEntry.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
                             }
                         }
                         if (data[key][i].serial.toLowerCase() != "xxxxxxxx") {
@@ -4566,7 +4602,12 @@ function formatData(data, live) {
                 }
                 if (data[i].xdata) {
                     dataTempEntry.data.xdata = data[i].xdata;
-                    var tempXDATA = parseXDATA(data[i].xdata);
+                    if (data[i].hasOwnProperty("pressure")) {
+                        xdata_pressure = data[i].pressure;
+                    } else {
+                        xdata_pressure = 1100.0;
+                    }
+                    var tempXDATA = parseXDATA(data[i].xdata, xdata_pressure);
                     if (tempXDATA.hasOwnProperty('xdata_instrument')) {
                         dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument;
                     }
@@ -4590,6 +4631,9 @@ function formatData(data, live) {
                     }
                     if (tempXDATA.hasOwnProperty('oif411_version')) {
                         dataTempEntry.oif411_version = tempXDATA.oif411_version;
+                    }
+                    if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
+                        dataTempEntry.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
                     }
                 }
                 dataTemp.push(dataTempEntry);

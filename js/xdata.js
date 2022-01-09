@@ -3,7 +3,45 @@
  * Author: Mark Jessop
  */
 
-function parseOIF411(xdata){
+// Pump Efficiency Correction Parameters for ECC-6A Ozone Sensor, with 3.0cm^3 volume.
+// We are using these as a nominal correction value for pump efficiency vs pressure
+// 
+OIF411_Cef_Pressure =    [    0,     2,     3,      5,    10,    20,    30,    50,   100,   200,   300,   500, 1000, 1100];
+OIF411_Cef = [ 1.171, 1.171, 1.131, 1.092, 1.055, 1.032, 1.022, 1.015, 1.011, 1.008, 1.006, 1.004,    1,    1];
+
+
+function lerp(x, y, a){
+    // Helper function for linear interpolation between two points
+    return x * (1 - a) + y * a
+}
+
+
+function get_oif411_Cef(pressure){
+    // Get the Pump efficiency correction value for a given pressure.
+
+    // Off-scale use bottom-end value
+    if (pressure <= OIF411_Cef_Pressure[0]){
+        return OIF411_Cef[0];
+    }
+    
+    // Off-scale top, use top-end value
+    if (pressure >= OIF411_Cef_Pressure[OIF411_Cef_Pressure.length-1]){
+        return OIF411_Cef[OIF411_Cef.length-1];
+    }
+    
+
+    // Within the correction range, perform linear interpolation.
+    for(i= 1; i<OIF411_Cef_Pressure.length; i++){
+        if (pressure < OIF411_Cef_Pressure[i]) {
+            return lerp(OIF411_Cef[i-1], OIF411_Cef[i],  ( (pressure-OIF411_Cef_Pressure[i-1]) / (OIF411_Cef_Pressure[i]-OIF411_Cef_Pressure[i-1])) );
+        }
+    }
+
+    // Otherwise, bomb out and return 1.0
+    return 1.0;
+}
+
+function parseOIF411(xdata, pressure){
     // Attempt to parse an XDATA string from an OIF411 Ozone Sounder
     // Returns an object with parameters to be added to the sondes telemetry.
     //
@@ -76,6 +114,14 @@ function parseOIF411(xdata){
         // External Voltage
         _output['oif411_ext_voltage'] = parseInt(xdata.substr(18,2),16)*0.1; // Volts
 
+        // Now attempt to calculate the O3 partial pressure
+
+        // Calibration values
+        Ibg = 0.0; // The BOM appear to use a Ozone background current value of 0 uA
+        Cef = get_oif411_Cef(pressure); // Calculate the pump efficiency correction.
+        FlowRate = 28.5; // Use a 'nominal' value for Flow Rate (seconds per 100mL).
+
+        _output['oif411_O3_partial_pressure'] = (4.30851e-4)*(_output['oif411_ozone_current_uA'] - Ibg)*(_output['oif411_ozone_pump_temp']+273.15)*FlowRate*Cef;
 
         return _output
 
@@ -84,7 +130,7 @@ function parseOIF411(xdata){
     }
 }
 
-function parseXDATA(data){
+function parseXDATA(data, pressure){
     // Accept an XDATA string, or multiple XDATA entries, delimited by '#'
     // Attempt to parse each one, and return an object
     // Test datasets:
@@ -114,7 +160,7 @@ function parseXDATA(data){
             _output = {'xdata_instrument': 'V7'};
         } else if (_instrument === '05'){
             // OIF411
-            _xdata_temp = parseOIF411(_current_xdata);
+            _xdata_temp = parseOIF411(_current_xdata, pressure);
             _output = Object.assign(_output,_xdata_temp);
         } else if (_instrument === '08'){
             // CFH
