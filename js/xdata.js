@@ -64,6 +64,7 @@ function parseOIF411(xdata, pressure){
         // Not an OIF411 (shouldn't get here)
         return {};
     }
+
     _output = {'xdata_instrument': 'OIF411'};
 
     // Instrument number is common to all XDATA types.
@@ -136,6 +137,60 @@ function parseOIF411(xdata, pressure){
     }
 }
 
+function parseCFH(xdata) {
+    // Attempt to parse an XDATA string from an CFH Cryogenic Frostpoint Hygrometer
+    // Returns an object with parameters to be added to the sondes telemetry.
+    //
+    // References: 
+    // https://eprints.lib.hokudai.ac.jp/dspace/bitstream/2115/72249/1/GRUAN-TD-5_MeiseiRadiosondes_v1_20180221.pdf
+    //
+    // Sample data:      0802E21FFD85C8CE078A0193   (length = 24 characters)
+
+    // Cast to string if not already
+    xdata = String(xdata);
+
+    // Run some checks over the input
+    if(xdata.length != 24){
+        // Invalid CFH dataset
+        return {};
+    }
+
+    if(xdata.substr(0,2) !== '08'){
+        // Not an CFH (shouldn't get here)
+        return {};
+    }
+
+    _output = {'xdata_instrument': 'CFH'};
+
+    // Instrument number is common to all XDATA types.
+    _output['cfh_instrument_number'] = parseInt(xdata.substr(2,2),16);
+
+    // Mirror temperature
+    _mirror_temperature = parseInt(xdata.substr(4,6),16);
+    if ((_mirror_temperature & 0x80000) > 0) {
+        _mirror_temperature = _mirror_temperature - 0x1000000;
+    }
+    _mirror_temperature = _mirror_temperature*0.00001; // Degrees C
+    _output['cfh_mirror_temperature'] = Math.round(_mirror_temperature*100000) / 100000; // 5 DP
+
+    // Optics voltage
+    _optics_voltage = parseInt(xdata.substr(10,6),16)*0.000001; // Volts
+    _output['cfh_optics_voltage'] =  Math.round(_optics_voltage*1000000) / 1000000; // 6 DP
+
+    // Optics temperature
+    _optics_temperature = parseInt(xdata.substr(16,4),16)*0.01; // Degrees C
+    if ((_optics_temperature & 0x8000) > 0) {
+        _optics_temperature = _optics_temperature - 0x10000;
+    }
+    _output['cfh_optics_temperature'] = Math.round(_optics_temperature*100) / 100; // 2 DP
+
+    // CFH battery
+    _battery = parseInt(xdata.substr(20,4),16)*0.01; // Volts
+    _output['cfh_battery'] = Math.round(_battery*100) / 100; // 2 DP
+
+    return _output
+}
+
 function parseXDATA(data, pressure){
     // Accept an XDATA string, or multiple XDATA entries, delimited by '#'
     // Attempt to parse each one, and return an object
@@ -144,6 +199,7 @@ function parseXDATA(data, pressure){
     // "0501R20234850000006EI"
     // "0501034F02CA08B06700#800261FCA6F80012F6F40A75"
     // "800262358C080012FE6C0A70#0501035902BA08908400"
+    // "0802AC83D88AB61107A30175"
 
     // Split apart any contatenated xdata.
     if(data.includes('#')){
@@ -163,6 +219,8 @@ function parseXDATA(data, pressure){
 
         if (_instrument === '01') {
             // V7
+            // 0102 time=1001 cnt=0 rpm=0
+            // 0102 time=1001 cnt=7 rpm=419
             _output = {'xdata_instrument': 'V7'};
         } else if (_instrument === '05'){
             // OIF411
@@ -170,7 +228,8 @@ function parseXDATA(data, pressure){
             _output = Object.assign(_output,_xdata_temp);
         } else if (_instrument === '08'){
             // CFH
-            _output = {'xdata_instrument': 'CFH'};
+            _xdata_temp = parseCFH(_current_xdata);
+            _output = Object.assign(_output,_xdata_temp);
         } else if (_instrument === '10'){
             // FPH
             _output = {'xdata_instrument': 'FPH'};
@@ -188,6 +247,10 @@ function parseXDATA(data, pressure){
             _output = {'xdata_instrument': 'OPC'};
         } else if (_instrument === '3C'){
             // PCFH
+            // 3c010000184b4b5754
+            // 3c0103ce7b58647a98748befff
+            // 3c010148719fff8e54b9af627e249fe0
+            // 3c01028d696fff8db4b7865980cdbbb3
             _output = {'xdata_instrument': 'PCFH'};
         } else if (_instrument === '3D'){
             // FLASH-B
