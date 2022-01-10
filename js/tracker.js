@@ -1021,6 +1021,11 @@ function habitat_data(jsondata, alternative) {
     "battery_millivolts": true,
     "temperature_internal_x10": true,
     "uplink_rssi_raw": true,
+    "oif411_instrument_number": true,
+    "oif411_ext_voltage": true,
+    "cfh_instrument_number": true,
+    "cobald_instrument_number": true,
+    "cobald_sonde_number": true
   };
 
   var suffixes = globalSuffixes;
@@ -3111,7 +3116,7 @@ function addPosition(position) {
 
 // Graph Stuff
 
-var graph_inhibited_fields = ['frequency', 'frequency_tx', 'burst_timer', 'xdata', 'oif411_ozone_pump_temp', 'oif411_ozone_battery_v', 'oif411_ozone_pump_curr_mA', 'oif411_serial', 'oif411_version', 'oif411_ozone_current_uA'];
+var graph_fields = ['altitude', 'pred.alt', 'batt', 'humidity', 'pressure', 'sats', 'temperature_external', 'oif411_O3_partial_pressure'];
 
 function updateGraph(vcallsign, reset_selection) {
     if(!plot || !plot_open) return;
@@ -3285,7 +3290,7 @@ function graphAddPosition(vcallsign, new_data) {
             i = (k in vehicle.graph_data_map) ? vehicle.graph_data_map[k] : data.length;
 
             // Disable plotting of a few fields.
-            if (graph_inhibited_fields.includes(k)){
+            if (!(graph_fields.includes(k))){
                 return;
             }
 
