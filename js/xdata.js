@@ -1,6 +1,6 @@
 /* SondeHub XDATA Parser Library
  *
- * Author: Mark Jessop
+ * Authors: Mark Jessop & Luke Prior
  */
 
 // Pump Efficiency Correction Parameters for ECC-6A Ozone Sensor, with 3.0cm^3 volume.
@@ -191,6 +191,76 @@ function parseCFH(xdata) {
     return _output
 }
 
+function parseCOBALD(xdata) {
+    // Attempt to parse an XDATA string from a Compact Optical Backscatter Aerosol Detector
+    // Returns an object with parameters to be added to the sondes telemetry.
+    //
+    // References: 
+    // https://hobbydocbox.com/Radio/83430839-Cobald-operating-instructions-imet-configuration.html
+    //
+    // Sample data:      190213fffe005fcf00359943912cca   (length = 30 characters)
+
+    // Cast to string if not already
+    xdata = String(xdata);
+
+    // Run some checks over the input
+    if(xdata.length != 30){
+        // Invalid COBALD dataset
+        return {};
+    }
+
+    if(xdata.substr(0,2) !== '19'){
+        // Not a COBALD (shouldn't get here)
+        return {};
+    }
+
+    _output = {'xdata_instrument': 'COBALD'};
+
+    // Instrument number is common to all XDATA types.
+    _output['cobald_instrument_number'] = parseInt(xdata.substr(2,2),16);
+
+    // Sonde number
+    _output['cobald_sonde_number'] = parseInt(xdata.substr(4,3),16);
+
+    // Internal temperature
+    _internal_temperature = parseInt(xdata.substr(7,3),16);
+    if ((_internal_temperature  & 0x800) > 0) {
+        _internal_temperature  = _internal_temperature  - 0x1000;
+    }
+    _internal_temperature = _internal_temperature/8; // Degrees C
+    _output['cobald_internal_temperature'] = Math.round(_internal_temperature * 10) / 10; // 1 DP
+
+    // Blue backskatter
+    _blue_backskatter = parseInt(xdata.substr(10,6),16);
+    if ((_blue_backskatter  & 0x800000) > 0) {
+        _blue_backskatter  = _blue_backskatter  - 0x1000000;
+    }
+    _output['cobald_blue_backskatter'] = _blue_backskatter;
+    
+    // Red backskatter
+    _red_backskatter = parseInt(xdata.substr(16,6),16);
+    if ((_red_backskatter  & 0x800000) > 0) {
+        _red_backskatter  = _red_backskatter  - 0x1000000;
+    }
+    _output['cobald_red_backskatter'] = _red_backskatter;
+
+    // Blue monitor
+    _blue_monitor = parseInt(xdata.substr(22,4),16);
+    if ((_blue_monitor  & 0x8000) > 0) {
+        _blue_monitor  = _blue_monitor  - 0x10000;
+    }
+    _output['cobald_blue_monitor'] = _blue_monitor;
+    
+    // Red monitor
+    _red_monitor = parseInt(xdata.substr(26,4),16);
+    if ((_red_monitor  & 0x8000) > 0) {
+        _red_monitor  = _red_monitor  - 0x10000;
+    }
+    _output['cobald_red_monitor'] = _red_monitor;
+
+    return _output
+}
+
 function parseXDATA(data, pressure){
     // Accept an XDATA string, or multiple XDATA entries, delimited by '#'
     // Attempt to parse each one, and return an object
@@ -233,9 +303,10 @@ function parseXDATA(data, pressure){
         } else if (_instrument === '10'){
             // FPH
             _output = {'xdata_instrument': 'FPH'};
-        } else if (_instrument === '18'){
+        } else if (_instrument === '19'){
             // COBALD
-            _output = {'xdata_instrument': 'COBALD'};
+            _xdata_temp = parseCOBALD(_current_xdata);
+            _output = Object.assign(_output,_xdata_temp);
         } else if (_instrument === '28'){
             // SLW
             _output = {'xdata_instrument': 'SLW'};
