@@ -31,6 +31,9 @@ var recovery_names = [];
 var recoveries = [];
 
 var launchPredictions = {};
+var stationMarkerLookup = {};
+var markerStationLookup = {};
+var predictionAjax = [];
 
 var stationHistoricalData = {};
 var historicalPlots = {};
@@ -670,6 +673,28 @@ function load() {
     
     L.control.historicalontrol({ position: 'topleft' }).addTo(map);
 
+    L.Control.PredictionControl = L.Control.extend({
+        onAdd: function(map) {
+            var div = L.DomUtil.create('div');
+    
+            div.innerHTML = '<button onclick="deletePredictionButton()">Delete Predictions</button>';
+            div.id = "predictionControlButton";
+            div.style.display = "none";
+
+            return div;
+        },
+    
+        onRemove: function(map) {
+            // Nothing to do here
+        }
+    });
+
+    L.control.predictionontrol = function(opts) {
+        return new L.Control.PredictionControl(opts);
+    }
+    
+    L.control.predictionontrol({ position: 'topleft' }).addTo(map);
+
     // update current position if we geolocation is available
     if(currentPosition) updateCurrentPosition(currentPosition.lat, currentPosition.lon);
 
@@ -1043,9 +1068,15 @@ function deleteHistoricalButton() {
             for (let serial in historicalPlots[station].sondes) {
                 map.removeLayer(historicalPlots[station].sondes[serial].marker);
             }
+            var realpopup = launches.getLayer(stationMarkerLookup[station]).getPopup();
             var popup = $("#popup" + station);
             var deleteHistorical = popup.find("#deleteHistorical");
             deleteHistorical.hide();
+            if (!realpopup.isOpen()) {
+                var tempContent = $(realpopup.getContent());
+                tempContent.find("#deleteHistorical").hide();
+                realpopup.setContent("<div id='popup" + station + "'>" + tempContent.html() + "</div>");
+            }
         }
     }
 
@@ -1058,6 +1089,44 @@ function deleteHistoricalButton() {
     historicalPlots = {};
 
     historicalDelete.hide();
+
+}
+
+function deletePredictionButton() {
+    var predictionDelete = $("#predictionControlButton");
+
+    for (var marker in launchPredictions) {
+        if (launchPredictions.hasOwnProperty(marker)) {
+            for (var prediction in launchPredictions[marker]) {
+                if (launchPredictions[marker].hasOwnProperty(prediction)) {
+                    for (var object in launchPredictions[marker][prediction]) {
+                        if (launchPredictions[marker][prediction].hasOwnProperty(object)) {
+                            map.removeLayer(launchPredictions[marker][prediction][object]);
+                        }
+                    }
+                }
+            }
+            var realpopup = launches.getLayer(marker).getPopup();
+            var popup = $("#popup" + markerStationLookup[marker]);
+            var deletePrediction = popup.find("#predictionDeleteButton");
+            deletePrediction.hide();
+            if (!realpopup.isOpen()) {
+                var tempContent = $(realpopup.getContent());
+                tempContent.find("#predictionDeleteButton").hide();
+                realpopup.setContent("<div id='popup" + markerStationLookup[marker] + "'>" + tempContent.html() + "</div>");
+            }
+        }
+    }
+
+    launchPredictions = {};
+
+    for (i=0; i < predictionAjax.length; i++) {
+        predictionAjax[i].abort();
+    }
+
+    predictionAjax = [];
+
+    predictionDelete.hide();
 
 }
 
@@ -1368,6 +1437,8 @@ function launchSitePredictions(times, station, properties, marker, id) {
         dates.push(date.toISOString().split('.')[0]+"Z");
     }
     var completed = 0;
+    var predictionDelete = $("#predictionControlButton");
+    predictionDelete.show();
     for (var i = 0; i < dates.length; i++) {
         var lon = ((360 + (position[1] % 360)) % 360);
         //var url = "https://predict.cusf.co.uk/api/v1/?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
@@ -1378,7 +1449,7 @@ function launchSitePredictions(times, station, properties, marker, id) {
         completed += 1;
         plotPrediction(data, dates, marker, properties);
         if (completed == dates.length) {
-            predictionDeleteButton.show();
+            if (Object.keys(launchPredictions).length != 0) predictionDeleteButton.show();
             predictionButton.show();
             predictionButtonLoading.hide();
             if (!realpopup.isOpen()) {
@@ -1389,7 +1460,7 @@ function launchSitePredictions(times, station, properties, marker, id) {
     function handleError(error) {
         completed += 1;
         if (completed == dates.length) {
-            predictionDeleteButton.show();
+            if (Object.keys(launchPredictions).length != 0) predictionDeleteButton.show();
             predictionButton.show();
             predictionButtonLoading.hide();
             if (!realpopup.isOpen()) {
@@ -1474,14 +1545,17 @@ function plotPrediction (data, dates, marker, properties) {
 }
 
 function showPrediction(url) {
-    return $.ajax({
+    var ajaxReq = $.ajax({
         type: "GET",
         url: url,
         dataType: "json",
     });
+    predictionAjax.push(ajaxReq);
+    return ajaxReq;
 }
 
 function deletePredictions(marker, station) {
+    var predictionDelete = $("#predictionControlButton");
     if (launchPredictions.hasOwnProperty(marker)) {
         for (var prediction in launchPredictions[marker]) {
             if (launchPredictions[marker].hasOwnProperty(prediction)) {
@@ -1492,12 +1566,14 @@ function deletePredictions(marker, station) {
                 }
             }
         }
+        delete launchPredictions[marker];
     }
     var popup = $("#popup" + station);
     var predictionDeleteButton = popup.find("#predictionDeleteButton");
     if (predictionDeleteButton.is(':visible')) {
         predictionDeleteButton.hide();
     }
+    if (Object.keys(launchPredictions).length == 0) predictionDelete.hide();
 }
 
 function getLaunchSites() {
@@ -1652,6 +1728,11 @@ function generateLaunchSites() {
             div.innerHTML = popupContent;
 
             popup.setContent(div.innerHTML);
+
+            var leafletID = launches.getLayerId(marker);
+
+            stationMarkerLookup[key] = leafletID;
+            markerStationLookup[leafletID] = key;
         }
     }
     if (focusID != 0) {
