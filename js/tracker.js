@@ -3158,7 +3158,7 @@ function mapInfoBox_handle_path_new(data, vehicle, date) {
         }
         var tempXDATA = parseXDATA(data.xdata, xdata_pressure);
         if (tempXDATA.hasOwnProperty('xdata_instrument')) {
-            html += "<div><b>XDATA Instrument:&nbsp;</b>" + tempXDATA.xdata_instrument + "</div>";
+            html += "<div><b>XDATA Instrument:&nbsp;</b>" + tempXDATA.xdata_instrument.join(', ') + "</div>";
         }
         if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
             html += "<div><b>OIF411 Battery:&nbsp;</b>" + tempXDATA.oif411_ozone_battery_v + " V</div>";
@@ -4249,7 +4249,7 @@ function formatData(data, live) {
                     }
                     var tempXDATA = parseXDATA(data[entry].xdata, xdata_pressure);
                     if (tempXDATA.hasOwnProperty('xdata_instrument')) {
-                        dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument;
+                        dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument.join(', ');
                     }
                     if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
                         dataTempEntry.data.oif411_ozone_battery_v = tempXDATA.oif411_ozone_battery_v;
@@ -4370,7 +4370,7 @@ function formatData(data, live) {
                 }
                 var tempXDATA = parseXDATA(data.xdata, xdata_pressure);
                 if (tempXDATA.hasOwnProperty('xdata_instrument')) {
-                    dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument;
+                    dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument.join(', ');
                 }
                 if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
                     dataTempEntry.data.oif411_ozone_battery_v = tempXDATA.oif411_ozone_battery_v;
@@ -4474,7 +4474,7 @@ function formatData(data, live) {
                             }
                             var tempXDATA = parseXDATA(data[key][i].xdata, xdata_pressure);
                             if (tempXDATA.hasOwnProperty('xdata_instrument')) {
-                                dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument;
+                                dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument.join(', ');
                             }
                             if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
                                 dataTempEntry.data.oif411_ozone_battery_v = tempXDATA.oif411_ozone_battery_v;
@@ -4609,7 +4609,7 @@ function formatData(data, live) {
                     }
                     var tempXDATA = parseXDATA(data[i].xdata, xdata_pressure);
                     if (tempXDATA.hasOwnProperty('xdata_instrument')) {
-                        dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument;
+                        dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument.join(', ');
                     }
                     if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
                         dataTempEntry.data.oif411_ozone_battery_v = tempXDATA.oif411_ozone_battery_v;
