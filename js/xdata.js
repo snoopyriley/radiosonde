@@ -9,20 +9,6 @@
 OIF411_Cef_Pressure =    [    0,     2,     3,      5,    10,    20,    30,    50,   100,   200,   300,   500, 1000, 1100];
 OIF411_Cef = [ 1.171, 1.171, 1.131, 1.092, 1.055, 1.032, 1.022, 1.015, 1.011, 1.008, 1.006, 1.004,    1,    1];
 
-// https://stackoverflow.com/a/34679269/9389353
-function hexToInt(hex) {
-    // Helper function to convert a signed hex value to an integer
-    if (hex.length % 2 != 0) {
-        hex = "0" + hex;
-    }
-    var num = parseInt(hex, 16);
-    var maxVal = Math.pow(2, hex.length / 2 * 8);
-    if (num > maxVal / 2 - 1) {
-        num = num - maxVal
-    }
-    return num;
-}
-
 function lerp(x, y, a){
     // Helper function for linear interpolation between two points
     return x * (1 - a) + y * a
@@ -110,7 +96,10 @@ function parseOIF411(xdata, pressure){
     } else if (xdata.length == 20){
         // Measurement Data (Table 18)
         // Ozone pump temperature - signed int16
-        _ozone_pump_temp = hexToInt(xdata.substr(4,4));
+        _ozone_pump_temp = parseInt(xdata.substr(4,4),16);
+        if ((_ozone_pump_temp & 0x8000) > 0) {
+            _ozone_pump_temp = _ozone_pump_temp - 0x10000;
+        }
         _ozone_pump_temp = _ozone_pump_temp*0.01; // Degrees C
         _output['oif411_ozone_pump_temp'] = Math.round(_ozone_pump_temp * 10) / 10; // 1 DP
 
@@ -176,7 +165,10 @@ function parseCFH(xdata) {
     _output['cfh_instrument_number'] = parseInt(xdata.substr(2,2),16);
 
     // Mirror temperature
-    _mirror_temperature = hexToInt(xdata.substr(4,6));
+    _mirror_temperature = parseInt(xdata.substr(4,6),16);
+    if ((_mirror_temperature & 0x80000) > 0) {
+        _mirror_temperature = _mirror_temperature - 0x1000000;
+    }
     _mirror_temperature = _mirror_temperature*0.00001; // Degrees C
     _output['cfh_mirror_temperature'] = Math.round(_mirror_temperature*100000) / 100000; // 5 DP
 
@@ -185,7 +177,11 @@ function parseCFH(xdata) {
     _output['cfh_optics_voltage'] =  Math.round(_optics_voltage*1000000) / 1000000; // 6 DP
 
     // Optics temperature
-    _optics_temperature = hexToInt(xdata.substr(16,4))*0.01; // Degrees C
+    _optics_temperature = parseInt(xdata.substr(16,4),16);
+    if ((_optics_temperature & 0x8000) > 0) {
+        _optics_temperature = _optics_temperature - 0x10000;
+    }
+    _optics_temperature = _optics_temperature*0.01; // Degrees C
     _output['cfh_optics_temperature'] = Math.round(_optics_temperature*100) / 100; // 2 DP
 
     // CFH battery
@@ -227,24 +223,39 @@ function parseCOBALD(xdata) {
     _output['cobald_sonde_number'] = parseInt(xdata.substr(4,3),16);
 
     // Internal temperature
-    _internal_temperature = hexToInt(xdata.substr(7,3));
+    _internal_temperature = parseInt(xdata.substr(7,3),16);
+    if ((_internal_temperature  & 0x800) > 0) {
+        _internal_temperature  = _internal_temperature  - 0x1000;
+    }
     _internal_temperature = _internal_temperature/8; // Degrees C
     _output['cobald_internal_temperature'] = Math.round(_internal_temperature * 10) / 10; // 1 DP
 
     // Blue backscatter
-    _blue_backscatter = hexToInt(xdata.substr(10,6));
+    _blue_backscatter = parseInt(xdata.substr(10,6),16);
+    if ((_blue_backscatter  & 0x800000) > 0) {
+        _blue_backscatter  = _blue_backscatter  - 0x1000000;
+    }
     _output['cobald_blue_backscatter'] = _blue_backscatter;
     
     // Red backckatter
-    _red_backscatter = hexToInt(xdata.substr(16,6));
+    _red_backscatter = parseInt(xdata.substr(16,6),16);
+    if ((_red_backscatter  & 0x800000) > 0) {
+        _red_backscatter  = _red_backscatter  - 0x1000000;
+    }
     _output['cobald_red_backscatter'] = _red_backscatter;
 
     // Blue monitor
-    _blue_monitor = hexToInt(xdata.substr(22,4));
+    _blue_monitor = parseInt(xdata.substr(22,4),16);
+    if ((_blue_monitor  & 0x8000) > 0) {
+        _blue_monitor  = _blue_monitor  - 0x10000;
+    }
     _output['cobald_blue_monitor'] = _blue_monitor;
     
     // Red monitor
-    _red_monitor = hexToInt(xdata.substr(26,4));
+    _red_monitor = parseInt(xdata.substr(26,4),16);
+    if ((_red_monitor  & 0x8000) > 0) {
+        _red_monitor  = _red_monitor  - 0x10000;
+    }
     _output['cobald_red_monitor'] = _red_monitor;
 
     return _output
@@ -267,7 +278,7 @@ function parseXDATA(data, pressure){
         data_split = [data];
     }
 
-    _output = {};
+    _output = {"xdata_instrument": []};
     _instruments = [];
     for(xdata_i = 0; xdata_i < data_split.length; xdata_i++){
         _current_xdata = data_split[xdata_i];

@@ -6,7 +6,6 @@ var predictions_url = "https://api.v2.sondehub.org/predictions?vehicles=";
 var launch_predictions_url = "https://api.v2.sondehub.org/predictions/reverse";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 var recovered_sondes_stats_url = "https://api.v2.sondehub.org/recovered/stats";
-var launches_url = "https://api.v2.sondehub.org/sites";
 
 var livedata = "wss://ws-reader.v2.sondehub.org/";
 var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000000000);
@@ -41,9 +40,7 @@ var historicalAjax = [];
 
 var skewtdata = [];
 
-var sites = null;
 var launches = new L.LayerGroup();
-var showLaunches = false;
 var focusID = 0;
 
 var receiverCanvas = null;
@@ -165,6 +162,98 @@ var v1manufacturers = {
     "M10": "Meteomodem",
     "M20": "Meteomodem"
 }
+
+var globalKeys = {
+    "ascentrate": "Ascent Rate",
+    "battery_percent": "Battery",
+    "temperature_external": "Temperature, External",
+    "pressure_internal": "Pressure, Internal",
+    "voltage_solar_1": "Voltage, Solar 1",
+    "voltage_solar_2": "Voltage, Solar 2",
+    "light_red": "Light (Red)",
+    "light_green": "Light (Green)",
+    "light_blue": "Light (Blue)",
+    "gas_a": "Gas (A)",
+    "gas_b": "Gas (B)",
+    "gas_co2": "Gas (CO)",
+    "gas_combustible": "Gas (Combustible)",
+    "radiation": "Radiation (CPM)",
+    "temperature_radio": "Temperature, Radio",
+    "uplink_rssi": "Uplink RSSI",
+    "light_intensity": "Light Intensity",
+    "pred_lat": "Onboard Prediction (Lat)",
+    "pred_lon": "Onboard Prediction (Lon)",
+    "batt": "Battery Voltage",
+    "sats": "GNSS SVs Used",
+    "humidity": "Relative Humidity",
+    "subtype": "Sonde Sub-type",
+    "frequency": "Frequency",
+    "frequency_tx": "TX Frequency",
+    "manufacturer": "Manufacturer",
+    "type": "Sonde Type",
+    "burst_timer": "Burst Timer",
+    "xdata": "XDATA",
+    "xdata_instrument": "XDATA Instrument",
+    "oif411_instrument_number": "OIF411 Instrument Number",
+    "oif411_ext_voltage": "OIF411 External Voltage",
+    "oif411_ozone_battery_v": "OIF411 Battery",
+    "oif411_ozone_current_uA": "Ozone Current",
+    "oif411_ozone_pump_curr_mA": "Ozone Pump Current",
+    "oif411_ozone_pump_temp": "Ozone Pump Temperature",
+    "oif411_O3_partial_pressure": "Ozone Partial Pressure",
+    "oif411_serial": "OIF411 Serial Number",
+    "oif411_diagnostics": "OIF411 Diagnostics",
+    "oif411_version": "OIF411 Version",
+    "cfh_instrument_number": "CFH Instrument Number",
+    "cfh_mirror_temperature": "CFH Mirror Temperature",
+    "cfh_optics_voltage": "CFH Optics Voltage",
+    "cfh_optics_temperature": "CFH Optics Temperature",
+    "cfh_battery": "CFH Battery",
+    "cobald_instrument_number": "COBALD Instrument Number",
+    "cobald_sonde_number": "COBALD Sonde Number",
+    "cobald_internal_temperature": "COBALD Internal Temperature",
+    "cobald_blue_backscatter": "COBALD Blue Backscatter",
+    "cobald_red_backscatter": "COBALD Red Backscatter",
+    "cobald_blue_monitor": "COBALD Blue Monitor",
+    "cobald_red_monitor": "COBALD Red Monitor"
+};
+
+var globalSuffixes = {
+    "current": " A",
+    "battery": " V",
+    "batt": " V",
+    "solar_panel": " V",
+    "temperature": "&deg;C",
+    "temperature_internal": "&deg;C",
+    "temperature_external": "&deg;C",
+    "temperature_radio": "&deg;C",
+    "pressure": " hPa",
+    "voltage_solar_1": " V",
+    "voltage_solar_2": " V",
+    "battery_percent": "%",
+    "uplink_rssi": " dBm",
+    "rssi_last_message": " dBm",
+    "rssi_floor": " dBm",
+    "bearing": "&deg;",
+    "iss_azimuth": "&deg;",
+    "iss_elevation": "&deg;",
+    "light_intensity": " lx",
+    "humidity": " %",
+    "frequency": " MHz",
+    "frequency_tx": " MHz",
+    "spam": "",
+    "oif411_ext_voltage": " V",
+    "oif411_ozone_battery_v": " V",
+    "oif411_ozone_current_uA": " uA",
+    "oif411_ozone_pump_curr_mA": " mA",
+    "oif411_ozone_pump_temp": "&deg;C",
+    "oif411_O3_partial_pressure": " mPa (+/- 1)",
+    "cfh_mirror_temperature": "&deg;C",
+    "cfh_optics_voltage": " V",
+    "cfh_optics_temperature": "&deg;C",
+    "cfh_battery": " V",
+    "cobald_internal_temperature": "&deg;C"
+};
 
 // localStorage vars
 var ls_receivers = false;
@@ -864,898 +953,6 @@ function setTimeValue() {
       }, 100);
 }
 
-function getSelectedNumber (station) {
-    var popup = $("#popup" + station);
-    var targetyear = popup.find("#yearList option:selected").val();
-    var targetmonth = popup.find("#monthList option:selected").val();
-    var count = 0;
-    var data = stationHistoricalData[station];
-
-    // Calculate count
-    for (let year in data) {
-        if (data.hasOwnProperty(year)) {
-            if (year == targetyear || targetyear == "all") {
-                for (let month in data[year]) {
-                    if (data[year].hasOwnProperty(month)) {
-                        if (month == targetmonth || targetmonth == "all" || targetyear == "all") {
-                            count += data[year][month].length;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Update selected field & hide months if no data
-    var months = ["all", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
-    popup.find('#yearList option').each(function() {
-        if ($(this).is(':selected')) {
-            $(this).attr("selected", "selected");
-            var selectedYear = $(this).val();
-            if (selectedYear != "all") {
-                months = Object.keys(data[selectedYear]);
-                months.push("all");
-            }
-        } else {
-            $(this).attr("selected", false);
-        }
-    });
-
-    popup.find('#monthList option').each(function() {
-        if (!months.includes($(this).val())) {
-            $(this).hide();
-        } else {
-            $(this).show();
-        }
-        if ($(this).is(':selected')) {
-            $(this).attr("selected", "selected");
-        } else {
-            $(this).attr("selected", false);
-        }
-    });
-
-    // Update popup
-    popup.find("#launchCount").text(count);
-}
-
-// Download summary data from AWS S3
-function downloadHistorical (suffix) {
-    var url = "https://sondehub-history.s3.amazonaws.com/" + suffix;
-    var ajaxReq = $.ajax({
-        type: "GET",
-        url: url,
-        dataType: "json",
-        tryCount : 0,
-        retryLimit : 3, // Retry max of 3 times
-        error : function(xhr, textStatus, errorThrown ) {
-            if (textStatus == 'timeout') {
-                this.tryCount++;
-                if (this.tryCount <= this.retryLimit) {
-                    //try again
-                    $.ajax(this);
-                    return;
-                }
-                return;
-            }
-        }
-    });
-    historicalAjax.push(ajaxReq);
-    return ajaxReq;
-}
-
-// Draw historic summaries to map
-function drawHistorical (data, station) {
-    var landing = data[2];
-    var serial = landing.serial;
-    var time = landing.datetime;
-
-    if (!historicalPlots[station].sondes.hasOwnProperty(serial)) {
-
-        historicalPlots[station].sondes[serial] = {};
-
-        // Using last known alt to detmine colour
-        var minAlt = 0;
-        var actualAlt = landing.alt;
-        var maxAlt = 10000;
-
-        if (actualAlt > maxAlt) {
-            actualAlt = maxAlt;
-        } else if (actualAlt < minAlt) {
-            actualAlt = minAlt;
-        }
-
-        var normalisedAlt = ((actualAlt-minAlt)/(maxAlt-minAlt));
-        var iconColour = ConvertRGBtoHex(evaluate_cmap(normalisedAlt, 'turbo'));
-
-        // Check if we have recovery data for it
-        var recovered = false;
-        if (historicalPlots[station].data.hasOwnProperty("recovered")) {
-            if (historicalPlots[station].data.recovered.hasOwnProperty(serial)) {
-                var recovery_info = historicalPlots[station].data.recovered[serial];
-                recovered = true;
-            }
-        }
-
-        var popup = L.popup();
-
-        html = "<div style='line-height:16px;position:relative;'>";
-        html += "<div>"+serial+" <span style=''>("+time+")</span></div>";
-        html += "<hr style='margin:5px 0px'>";
-        html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(landing.lat, 5) + ',&nbsp;' + roundNumber(landing.lon, 5)+"</div>";
-
-        var imp = offline.get('opt_imperial');
-        var text_alt = Number((imp) ? Math.floor(3.2808399 * parseInt(landing.alt)) : parseInt(landing.alt)).toLocaleString("us");
-        text_alt += "&nbsp;" + ((imp) ? 'ft':'m');
-
-        html += "<div><b>Altitude:&nbsp;</b>"+text_alt+"</div>";
-        html += "<div><b>Time:&nbsp;</b>"+formatDate(stringToDateUTC(time))+"</div>";
-
-        if (landing.hasOwnProperty("type")) {
-            html += "<div><b>Sonde Type:&nbsp;</b>" + landing.type + "</div>";
-        };
-
-        html += "<hr style='margin:0px;margin-top:5px'>";
-
-        if (recovered) {
-            html += "<div><b>"+(recovery_info.recovered ? "Recovered by " : "Not Recovered by ")+recovery_info.recovered_by+"</u></b></div>";
-            html += "<div><b>Recovery time:&nbsp;</b>"+formatDate(stringToDateUTC(recovery_info.datetime))+"</div>";
-            html += "<div><b>Recovery location:&nbsp;</b>"+recovery_info.position[1]+", "+recovery_info.position[0] + "</div>";
-            html += "<div><b>Recovery notes:&nbsp;</b>"+recovery_info.description+"</div>";
-
-            html += "<hr style='margin:0px;margin-top:5px'>";
-        }
-
-        html += "<div><b>Show Full Flight Path: <b><a href=\"javascript:showRecoveredMap('" + serial + "')\">" + serial + "</a></div>";
-
-        html += "<hr style='margin:0px;margin-top:5px'>";
-        html += "<div style='font-size:11px;'>"
-
-        if (landing.hasOwnProperty("uploader_callsign")) {
-            html += "<div>Last received by: " + landing.uploader_callsign.toLowerCase() + "</div>";
-        };
-
-        popup.setContent(html);
-
-        if (!recovered) {
-            var marker = L.circleMarker([landing.lat, landing.lon], {fillColor: "white", color: iconColour, weight: 3, radius: 5, fillOpacity:1});
-        } else {
-            var marker = L.circleMarker([landing.lat, landing.lon], {fillColor: "grey", color: iconColour, weight: 3, radius: 5, fillOpacity:1});
-        }
-
-        marker.bindPopup(popup);
-
-        marker.addTo(map);
-        marker.bringToBack();
-        historicalPlots[station].sondes[serial].marker = marker;
-    }
-}
-
-// Delete historic summaries from map
-function deleteHistorical (station) {
-    var popup = $("#popup" + station);
-    var deleteHistorical = popup.find("#deleteHistorical");
-    var historicalDelete = $("#historicalControlButton");
-
-    deleteHistorical.hide();
-
-    if (historicalPlots.hasOwnProperty(station)) {
-        for (let serial in historicalPlots[station].sondes) {
-            map.removeLayer(historicalPlots[station].sondes[serial].marker);
-        }
-    }
-
-    delete historicalPlots[station];
-
-    var otherSondes = false;
-
-    for (station in historicalPlots) {
-        if (historicalPlots.hasOwnProperty(station)) {
-            if (Object.keys(historicalPlots[station].sondes).length > 1) {
-                otherSondes = true;
-            }
-        }
-    }
-
-    if (!otherSondes) historicalDelete.hide();
-}
-
-function deleteHistoricalButton() {
-    var historicalDelete = $("#historicalControlButton");
-
-    for (station in historicalPlots) {
-        if (historicalPlots.hasOwnProperty(station)) {
-            historicalPlots[station].data.drawing = false;
-            for (let serial in historicalPlots[station].sondes) {
-                map.removeLayer(historicalPlots[station].sondes[serial].marker);
-            }
-            var realpopup = launches.getLayer(stationMarkerLookup[station]).getPopup();
-            var popup = $("#popup" + station);
-            var deleteHistorical = popup.find("#deleteHistorical");
-            deleteHistorical.hide();
-            if (!realpopup.isOpen()) {
-                var tempContent = $(realpopup.getContent());
-                tempContent.find("#deleteHistorical").hide();
-                realpopup.setContent("<div id='popup" + station + "'>" + tempContent.html() + "</div>");
-            }
-        }
-    }
-
-    for (i=0; i < historicalAjax.length; i++) {
-        historicalAjax[i].abort();
-    }
-
-    historicalAjax = [];
-
-    historicalPlots = {};
-
-    historicalDelete.hide();
-
-}
-
-function deletePredictionButton() {
-    var predictionDelete = $("#predictionControlButton");
-
-    for (var marker in launchPredictions) {
-        if (launchPredictions.hasOwnProperty(marker)) {
-            for (var prediction in launchPredictions[marker]) {
-                if (launchPredictions[marker].hasOwnProperty(prediction)) {
-                    for (var object in launchPredictions[marker][prediction]) {
-                        if (launchPredictions[marker][prediction].hasOwnProperty(object)) {
-                            map.removeLayer(launchPredictions[marker][prediction][object]);
-                        }
-                    }
-                }
-            }
-            var realpopup = launches.getLayer(marker).getPopup();
-            var popup = $("#popup" + markerStationLookup[marker]);
-            var deletePrediction = popup.find("#predictionDeleteButton");
-            deletePrediction.hide();
-            if (!realpopup.isOpen()) {
-                var tempContent = $(realpopup.getContent());
-                tempContent.find("#predictionDeleteButton").hide();
-                realpopup.setContent("<div id='popup" + markerStationLookup[marker] + "'>" + tempContent.html() + "</div>");
-            }
-        }
-    }
-
-    launchPredictions = {};
-
-    for (i=0; i < predictionAjax.length; i++) {
-        predictionAjax[i].abort();
-    }
-
-    predictionAjax = [];
-
-    predictionDelete.hide();
-
-}
-
-// Master function to display historic summaries
-function showHistorical (station, marker) {
-    var popup = $("#popup" + station);
-    var realpopup = launches.getLayer(marker).getPopup();
-    var submit = popup.find("#submit");
-    var submitLoading = popup.find("#submitLoading");
-    var deleteHistorical = popup.find("#deleteHistorical");
-    var targetyear = popup.find("#yearList option:selected").val();
-    var targetmonth = popup.find("#monthList option:selected").val();
-
-    submit.hide();
-    submitLoading.show();
-    deleteHistorical.hide();
-
-    var sondes = [];
-    var data = stationHistoricalData[station];
-
-    // Generate list of serial URLs
-    for (let year in data) {
-        if (data.hasOwnProperty(year)) {
-            if (year == targetyear || targetyear == "all") {
-                for (let month in data[year]) {
-                    if (data[year].hasOwnProperty(month)) {
-                        if (month == targetmonth || targetmonth == "all" || targetyear == "all") {
-                            sondes = sondes.concat(data[year][month]);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Generate date range for station
-    // TODO make this reactive?
-    dateNow = new Date();
-    dateNow.setDate(dateNow.getDate() + 2);
-
-    if (!historicalPlots.hasOwnProperty(station)) {
-        historicalPlots[station] = {};
-        historicalPlots[station].sondes = {};
-        historicalPlots[station].data = {};
-    }
-
-    // Get station location to fetch recoveries
-    if (!historicalPlots[station].data.hasOwnProperty("recovered")) {
-        historicalPlots[station].data.recovered = {};
-
-        var station_position = sites[station].position;
-        var data_str = "lat=" + station_position[0] + "&lon=" + station_position[1] + "&distance=400000&last=0";
-
-        $.ajax({
-            type: "GET",
-            url: recovered_sondes_url,
-            data: data_str,
-            dataType: "json",
-            success: function(json) {
-                for (var i = 0; i < json.length; i++) {
-                    historicalPlots[station].data.recovered[json[i].serial] = json[i];
-                }
-                processHistorical()
-            },
-            error: function() {
-                processHistorical();
-            }
-        });
-    } else {
-        processHistorical();
-    }
-
-    function processHistorical() {
-        var historicalDelete = $("#historicalControlButton");
-        historicalDelete.show();
-
-        historicalPlots[station].data.drawing = true;
-
-        for (let i = 0; i < sondes.length; i++) {
-            downloadHistorical(sondes[i]).done(handleData).fail(handleError);
-        }
-    
-        var completed = 0;
-    
-        function handleData(data) {
-            completed += 1;
-            try {
-                drawHistorical(data, station);
-            } catch(e) {};
-            if (completed == sondes.length) {
-                submit.show();
-                submitLoading.hide();
-                if (historicalPlots[station].data.drawing) deleteHistorical.show();
-                // If modal is closed the contents needs to be forced updated
-                if (!realpopup.isOpen()) {
-                    realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
-                }
-                historicalPlots[station].data.drawing = false;
-            }
-        }
-    
-        function handleError(error) {
-            completed += 1;
-            if (completed == sondes.length) {
-                submit.show();
-                submitLoading.hide();
-                if (historicalPlots[station].data.drawing) deleteHistorical.show();
-                // If modal is closed the contents needs to be forced updated
-                if (!realpopup.isOpen()) {
-                    realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
-                }
-                historicalPlots[station].data.drawing = false;
-            }
-        }
-    }
-}
-
-// Used to generate the content for station modal
-function historicalLaunchViewer(station, marker) {
-    var realpopup = launches.getLayer(marker).getPopup();
-    var popup = $("#popup" + station);
-    var historical = popup.find("#historical");
-    function populateDropDown(data) {
-        // Save data
-        stationHistoricalData[station] = data;
-
-        // Check if data exists
-        if (Object.keys(data).length == 0) {
-            historical.html("<br><hr style='margin-bottom:0;'><br>No historical data<br>");
-            historical.show();
-            historicalButton.show();
-            historicalButtonLoading.hide();
-            // If modal is closed the contents needs to be forced updated
-            if (!realpopup.isOpen()) {
-                realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
-            }
-            return;
-        }
-
-        // Find latest year
-        var latestYear = "0";
-        var latestYears = Object.keys(data);
-        for (var i=0; i < latestYears.length; i++) {
-            if (parseInt(latestYears[i]) > parseInt(latestYear)) {
-                latestYear = latestYears[i];
-            }
-        }
-
-        // Generate year drop down
-        var yearList = document.createElement("select");
-        yearList.name = "year"
-        yearList.id = "yearList";
-        var option = document.createElement("option");
-        option.value = "all";
-        option.text = "All";
-        yearList.appendChild(option);
-        for (let year in data) {
-            if (data.hasOwnProperty(year)) {
-                var option = document.createElement("option");
-                option.value = year;
-                option.text = year;
-                if (year == latestYear) {
-                    option.setAttribute("selected", "selected");
-                }
-                yearList.appendChild(option);
-            }
-        }
-
-        // Find latest month
-        var latestMonth = "0";
-        var latestMonths = Object.keys(data[latestYear]);
-        for (var i=0; i < latestMonths.length; i++) {
-            if (parseInt(latestMonths[i]) > parseInt(latestMonth)) {
-                latestMonth = latestMonths[i];
-            }
-        }
-
-        // Generate month drop down
-        var monthList = document.createElement("select");
-        monthList.name = "month"
-        monthList.id = "monthList";
-        var option = document.createElement("option");
-        option.value = "all";
-        option.text = "All";
-        monthList.appendChild(option);
-        var months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
-        var monthsText = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
-        for (var i=0; i < months.length; i++) {
-            var option = document.createElement("option");
-            option.value = months[i];
-            option.text = monthsText[i];
-            if (months[i] == latestMonth) {
-                option.setAttribute("selected", "selected");
-            }
-            monthList.appendChild(option);
-        }
-        
-
-        // Calculate total launches
-        var totalLaunches = 0;
-        for (let year in data) {
-            if (data.hasOwnProperty(year)) {
-                for (let month in data[year]) {
-                    if (data[year].hasOwnProperty(month)) {
-                        totalLaunches += data[year][month].length;
-                    }
-                }
-            }
-        }
-        
-        // Generate HTML
-        var popupContent = "<br><hr style='margin-bottom:0;'><br>Launches Selected: <span id='launchCount'>" + totalLaunches + "</span><br>";
-        popupContent += "<form onchange='getSelectedNumber(\"" + station + "\")'><label for='year'>Year:</label>" + yearList.outerHTML;
-        popupContent += "<label for='month'>Month:</label>" + monthList.outerHTML + "</form>";
-        popupContent += "<br><button id='submit' onclick='return showHistorical(\"" + station + "\", \"" + marker + "\")'>Fetch</button><img id='submitLoading' style='width:60px;height:20px;display:none;' src='img/hab-spinner.gif' /><button id='deleteHistorical' style='display:none;' onclick='return deleteHistorical(\"" + station + "\")'>Delete</button>";
-        historical.html(popupContent);
-        historical.show();
-        historicalButton.show();
-        historicalButtonLoading.hide();
-        // If modal is closed the contents needs to be forced updated
-        if (!realpopup.isOpen()) {
-            realpopup.setContent("<div id='popup" + station + "'>" + popup.html() + "</div>");
-        }
-        getSelectedNumber(station);
-    }
-    if (historical.is(":visible")) {
-        // Don't regenerate if already in memory
-        historical.hide();
-    } else {
-        if (stationHistoricalData.hasOwnProperty(station) && popup.find("#launchCount").length) {
-            // Don't regenerate if already in memory
-            historical.show();
-        } else {
-            var historicalButton = popup.find("#historicalButton");
-            var historicalButtonLoading = popup.find("#historicalButtonLoading");
-            historicalButton.hide();
-            historicalButtonLoading.show();
-            getHistorical(station, populateDropDown);
-        }
-    }
-}
-
-function launchSitePredictions(times, station, properties, marker, id) {
-    var realpopup = launches.getLayer(marker).getPopup();
-    var popup = $("#popup" + id);
-    var predictionButton = popup.find("#predictionButton");
-    var predictionButtonLoading = popup.find("#predictionButtonLoading");
-    var predictionDeleteButton = popup.find("#predictionDeleteButton");
-
-    predictionButton.hide();
-    predictionButtonLoading.show();
-
-    if (predictionDeleteButton.is(':visible')) {
-        deletePredictions(marker, id);
-        predictionDeleteButton.hide();
-    }
-    position = station.split(",");
-    properties = properties.split(":");
-    var now = new Date();
-    if (times.length > 0) {
-        times = times.split(",");
-        var maxCount = 24
-        var count = 0;
-        var day = 0;
-        var dates = [];
-        while (day < 8) {
-            for (var i = 0; i < times.length; i++) {
-                var date = new Date();
-                var time = times[i].split(":");
-                if (time[0] != 0) {
-                    date.setDate(date.getDate() + (7 + time[0] - date.getDay()) % 7);
-                }
-                date.setUTCHours(time[1]);
-                date.setUTCMinutes(time[2]);
-                date.setSeconds(0);
-                date.setMilliseconds(0);
-                // launch time 45 minutes before target time
-                date.setMinutes( date.getMinutes() - 45 );
-                while (date < now) {
-                    if (time[0] == 0) {
-                        date.setDate(date.getDate() + 1);
-                    } else {
-                        date.setDate(date.getDate() + 7);
-                    }
-                }
-                if (day > 0) {
-                    if (time[0] == 0) {
-                        date.setDate(date.getDate() + day);
-                    } else {
-                        date.setDate(date.getDate() + (7*day));
-                    }
-                }
-                if (count < maxCount) {
-                    if (((date - now) / 36e5) < 170) {
-                        if (!dates.includes(date.toISOString().split('.')[0]+"Z")) {
-                            dates.push(date.toISOString().split('.')[0]+"Z");
-                            count += 1;
-                        }
-                    }
-                }
-            }
-            day += 1;
-        }
-        dates.sort();
-    } else {
-        var date = new Date();
-        var dates = [];
-        dates.push(date.toISOString().split('.')[0]+"Z");
-    }
-    var completed = 0;
-    var predictionDelete = $("#predictionControlButton");
-    predictionDelete.show();
-    for (var i = 0; i < dates.length; i++) {
-        var lon = ((360 + (position[1] % 360)) % 360);
-        //var url = "https://predict.cusf.co.uk/api/v1/?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
-        var url = "https://api.v2.sondehub.org/tawhiri?launch_latitude=" + position[0] + "&launch_longitude=" + lon + "&launch_datetime=" + dates[i] + "&ascent_rate=" + properties[0] + "&burst_altitude=" + properties[2] + "&descent_rate=" + properties[1];
-        showPrediction(url).done(handleData).fail(handleError);
-    }
-    function handleData(data) {
-        completed += 1;
-        plotPrediction(data, dates, marker, properties);
-        if (completed == dates.length) {
-            if (Object.keys(launchPredictions).length != 0) predictionDeleteButton.show();
-            predictionButton.show();
-            predictionButtonLoading.hide();
-            if (!realpopup.isOpen()) {
-                realpopup.setContent("<div id='popup" + id + "'>" + popup.html() + "</div>");
-            }
-        }
-    }
-    function handleError(error) {
-        completed += 1;
-        if (completed == dates.length) {
-            if (Object.keys(launchPredictions).length != 0) predictionDeleteButton.show();
-            predictionButton.show();
-            predictionButtonLoading.hide();
-            if (!realpopup.isOpen()) {
-                realpopup.setContent("<div id='popup" + id + "'>" + popup.html() + "</div>");
-            }
-        }
-    }
-}
-
-function plotPrediction (data, dates, marker, properties) {
-    if (!launchPredictions.hasOwnProperty(marker)) {
-        launchPredictions[marker] = {};
-    }
-    launchPredictions[marker][dates.indexOf(data.request.launch_datetime)+1] = {};
-    plot = launchPredictions[marker][dates.indexOf(data.request.launch_datetime)+1];
-
-    ascent = data.prediction[0].trajectory;
-    descent = data.prediction[1].trajectory;
-    var predictionPath = [];
-    for (var i = 0; i < ascent.length; i++) {
-        if (ascent[i].longitude > 180.0) {
-            var longitude = ascent[i].longitude - 360.0;
-        } else {
-            var longitude = ascent[i].longitude;
-        }
-        predictionPath.push([ascent[i].latitude, longitude]);
-    };
-    for (var x = 0; x < descent.length; x++) {
-        if (descent[x].longitude > 180.0) {
-            var longitude = descent[x].longitude - 360.0;
-        } else {
-            var longitude = descent[x].longitude;
-        }
-        predictionPath.push([descent[x].latitude, longitude]);
-    };
-    var burstPoint = ascent[ascent.length-1];
-    var landingPoint = descent[descent.length-1];
-
-    plot.predictionPath = new L.polyline(predictionPath, {color: 'red'}).addTo(map);
-
-    burstIconImage = host_url + markers_url + "balloon-pop.png";
-
-    burstIcon = new L.icon({
-        iconUrl: burstIconImage,
-        iconSize: [20,20],
-        iconAnchor: [10, 10],
-    });
-
-    if (burstPoint.longitude > 180.0) {
-        var burstLongitude = burstPoint.longitude - 360.0;
-    } else {
-        var burstLongitude = burstPoint.longitude;
-    }
-
-    plot.burstMarker = new L.marker([burstPoint.latitude, burstLongitude], {
-        icon: burstIcon
-    }).addTo(map);
-
-    var burstTime = new Date(burstPoint.datetime);
-    var burstTooltip = "<b>Time: </b>" + burstTime.toLocaleString() + "<br><b>Altitude: </b>" + Math.round(burstPoint.altitude) + "m";
-    plot.burstMarker.bindTooltip(burstTooltip, {offset: [5,0]});
-
-    if (landingPoint.longitude > 180.0) {
-        var landingLongitude = landingPoint.longitude - 360.0;
-    } else {
-        var landingLongitude = landingPoint.longitude;
-    }
-
-    plot.landingMarker = new L.marker([landingPoint.latitude, landingLongitude], {
-        icon: new L.NumberedDivIcon({number: dates.indexOf(data.request.launch_datetime)+1})
-    }).addTo(map);
-
-    var landingTime = new Date(landingPoint.datetime);
-    if (properties[3] != "" && properties[4] != "") {
-        var landingTooltip = "<b>Time:</b> " + landingTime.toLocaleString() + "<br><b>Model Dataset:</b> " + data.request.dataset + 
-        "<br><b>Model Assumptions:</b><br>- " + data.request.ascent_rate + "m/s ascent<br>- " + data.request.burst_altitude + "m burst altitude (" + properties[3] + " samples)<br>- " + data.request.descent_rate + "m/s descent (" + properties[4] + " samples)";
-    } else {
-        var landingTooltip = "<b>Time:</b> " + landingTime.toLocaleString() + "<br><b>Model Dataset:</b> " + data.request.dataset + 
-        "<br><b>Model Assumptions:</b><br>- " + data.request.ascent_rate + "m/s ascent<br>- " + data.request.burst_altitude + "m burst altitude<br>- " + data.request.descent_rate + "m/s descent";
-    }
-    plot.landingMarker.bindTooltip(landingTooltip, {offset: [13,-28]});
-}
-
-function showPrediction(url) {
-    var ajaxReq = $.ajax({
-        type: "GET",
-        url: url,
-        dataType: "json",
-    });
-    predictionAjax.push(ajaxReq);
-    return ajaxReq;
-}
-
-function deletePredictions(marker, station) {
-    var predictionDelete = $("#predictionControlButton");
-    if (launchPredictions.hasOwnProperty(marker)) {
-        for (var prediction in launchPredictions[marker]) {
-            if (launchPredictions[marker].hasOwnProperty(prediction)) {
-                for (var object in launchPredictions[marker][prediction]) {
-                    if (launchPredictions[marker][prediction].hasOwnProperty(object)) {
-                        map.removeLayer(launchPredictions[marker][prediction][object]);
-                    }
-                }
-            }
-        }
-        delete launchPredictions[marker];
-    }
-    var popup = $("#popup" + station);
-    var predictionDeleteButton = popup.find("#predictionDeleteButton");
-    if (predictionDeleteButton.is(':visible')) {
-        predictionDeleteButton.hide();
-    }
-    if (Object.keys(launchPredictions).length == 0) predictionDelete.hide();
-}
-
-function getLaunchSites() {
-    $.ajax({
-        type: "GET",
-        url: launches_url,
-        dataType: "json",
-        success: function(json) {
-            sites = json;
-            generateLaunchSites();
-        }
-    });
-}
-
-function generateLaunchSites() {
-    for (var key in sites) {
-        if (sites.hasOwnProperty(key)) {
-            var latlon = [sites[key].position[1], sites[key].position[0]];
-            var sondesList = "";
-            var popupContent = "<div id='popup" + key + "'>";
-            var div = document.createElement('div');
-            div.id = "popup" + key;
-            var ascent_rate = 5;
-            var descent_rate = 6;
-            var burst_altitude = 26000;
-            var burst_samples = "";
-            var descent_samples = "";
-            var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
-            var popup = new L.popup({ autoClose: false, closeOnClick: false });
-            marker.title = key;
-            marker.bindPopup(popup);
-            launches.addLayer(marker);
-
-            // Match sonde codes
-            if (sites[key].hasOwnProperty('rs_types')) {
-                var sondes = sites[key].rs_types;
-                for (var y = 0; y < sondes.length; y++) {
-                    if (Array.isArray(sondes[y]) == false) {
-                        sondes[y] = [sondes[y]];
-                    }
-                    if (sondeCodes.hasOwnProperty(sondes[y][0])) {
-                        sondesList += sondeCodes[sondes[y][0]]
-                        if (sondes[y].length > 1) {
-                            sondesList += " (" + sondes[y][1] + " MHz)";
-                        }
-                    } else if (unsupportedSondeCodes.hasOwnProperty(sondes[y][0])) {
-                        sondesList += unsupportedSondeCodes[sondes[y][0]];
-                        sondesList += " (cannot track)";
-                    } else {
-                        sondesList += sondes[y][0] + " (unknown WMO code)";
-                    }
-                    if (y < sondes.length-1) {
-                        sondesList += ", ";
-                    }
-                }
-                if (sondes.includes("11") || sondes.includes("82")) { //LMS6
-                    ascent_rate = 5;
-                    descent_rate = 2.5;
-                    burst_altitude = 33500;
-                }
-                popupContent += "<font style='font-size: 13px'>" + sites[key].station_name + "</font><br><br><b>Sondes launched:</b> " + sondesList;
-            }
-        
-            // Generate prefilled suggestion form
-            var popupLink = "https://docs.google.com/forms/d/e/1FAIpQLSfIbBSQMZOXpNE4VpK4BqUbKDPCWCDgU9QxYgmhh-JD-JGSsQ/viewform?usp=pp_url&entry.796606853=Modify+Existing+Site";
-            popupLink += "&entry.749833526=" + key;
-            if (sites[key].hasOwnProperty('station_name')) {
-                popupLink += "&entry.675505431=" + sites[key].station_name.replace(/\s/g, '+');
-            }
-            if (sites[key].hasOwnProperty('position')) {
-                popupLink += "&entry.1613779787=" + sites[key].position.reverse().toString();
-            }
-            if (sites[key].hasOwnProperty('alt')) {
-                popupLink += "&entry.753148337=" + sites[key].alt;
-            }
-            if (sites[key].hasOwnProperty('ascent_rate')) {
-                popupLink += "&entry.509146334=" + sites[key]["ascent_rate"];
-            }
-            if (sites[key].hasOwnProperty('burst_altitude')) {
-                popupLink += "&entry.1897602989=" + sites[key]["burst_altitude"];
-            }
-            if (sites[key].hasOwnProperty('descent_rate')) {
-                popupLink += "&entry.267462486=" + sites[key]["descent_rate"];
-            }
-            if (sites[key].hasOwnProperty('notes')) {
-                popupLink += "&entry.197384117=" + sites[key]["notes"].replace(/\s/g, '+');
-            }
-
-            // Update prediction data if provided
-            if (sites[key].hasOwnProperty('ascent_rate')) {
-                ascent_rate = sites[key]["ascent_rate"];
-            }
-            if (sites[key].hasOwnProperty('descent_rate')) {
-                descent_rate = sites[key]["descent_rate"];
-            }
-            if (sites[key].hasOwnProperty('burst_altitude')) {
-                burst_altitude = sites[key]["burst_altitude"];
-            }
-            if (sites[key].hasOwnProperty('burst_samples')) {
-                burst_samples = sites[key]["burst_samples"];
-            }
-            if (sites[key].hasOwnProperty('descent_samples')) {
-                descent_samples = sites[key]["descent_samples"];
-            }
-
-            // Process launch schedule if provided
-            if (sites[key].hasOwnProperty('times')) {
-                popupContent += "<br><b>Launch schedule:</b>";
-                for (var x = 0; x < sites[key]['times'].length; x++) {
-                    popupContent += "<br>- ";
-                    var day = sites[key]['times'][x].split(":")[0];
-                    if (day == 0) {
-                        popupContent += "Everyday at ";
-                    } else if (day == 1) {
-                        popupContent += "Monday at ";
-                    } else if (day == 2) {
-                        popupContent += "Tuesday at ";
-                    } else if (day == 3) {
-                        popupContent += "Wednesday at ";
-                    } else if (day == 4) {
-                        popupContent += "Thursday at ";
-                    } else if (day == 5) {
-                        popupContent += "Friday at ";
-                    } else if (day == 6) {
-                        popupContent += "Saturday at ";
-                    } else if (day == 7) {
-                        popupContent += "Sunday at ";
-                    }
-                    popupContent += sites[key]['times'][x].split(":")[1] + ":" + sites[key]['times'][x].split(":")[2] + " UTC";
-                }
-            }
-                
-            // Show notes if provided
-            if (sites[key].hasOwnProperty('notes')) {
-                popupContent += "<br><b>Notes:</b> " + sites[key]["notes"];
-            }
-                
-            popupContent += "<br><b>Know when this site launches?</b> Contribute <a href='" + popupLink + "' target='_blank'>here</a>";
-
-            // Generate view historical button
-            popupContent += "<br><button id='historicalButton' onclick='historicalLaunchViewer(\"" + key + "\", \"" + launches.getLayerId(marker) + "\")' style='margin-bottom:0;'>Historical</button><img id='historicalButtonLoading' style='width:60px;height:20px;display:none;' src='img/hab-spinner.gif' />";
-
-            // Create prediction button
-            if (sites[key].hasOwnProperty('times')) {
-                popupContent += "<button id='predictionButton' onclick='launchSitePredictions(\"" + sites[key]['times'].toString() + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\", \"" + key + "\")' style='margin-bottom:0;'>Generate Predictions</button><img id='predictionButtonLoading' style='width:60px;height:20px;display:none;' src='img/hab-spinner.gif' /><button id='predictionDeleteButton' onclick='deletePredictions(\"" + launches.getLayerId(marker) + "\", \"" + key + "\")' style='margin-bottom:0;display:none;'>Delete</button>";
-            } else {
-                popupContent += "<button id='predictionButton' onclick='launchSitePredictions(\"" + "\", \"" + latlon.toString() + "\", \"" + ascent_rate + ":" + descent_rate + ":" + burst_altitude + ":" + burst_samples + ":" + descent_samples + "\", \"" + launches.getLayerId(marker) + "\", \"" + key + "\")' style='margin-bottom:0;'>Instant Prediction</button><img id='predictionButtonLoading' style='width:60px;height:20px;display:none;' src='img/hab-spinner.gif' /><button id='predictionDeleteButton' onclick='deletePredictions(\"" + launches.getLayerId(marker) + "\", \"" + key + "\")' style='margin-bottom:0;display:none;'>Delete</button>";
-            }
-
-            popupContent += "<div id='historical' style='display:none;'></div>";
-
-            div.innerHTML = popupContent;
-
-            popup.setContent(div.innerHTML);
-
-            var leafletID = launches.getLayerId(marker);
-
-            stationMarkerLookup[key] = leafletID;
-            markerStationLookup[leafletID] = key;
-        }
-    }
-    if (focusID != 0) {
-        gotoSite();
-    }
-}
-
-function gotoSite() {
-    if (sites != null) {
-        if (sites.hasOwnProperty(focusID)) {
-            var site = sites[focusID];
-            var latlng = new L.LatLng(site["position"][0], site["position"][1]);
-            map.setView(latlng, 9);
-            for (var i in launches._layers) {
-                marker = launches._layers
-                if (marker[i].title == focusID) {
-                    marker[i].openPopup();
-                }
-            }
-        }
-    }
-}
-
 function shareVehicle(callsign) {
     const shareData = {
         title: 'SondeHub: ' + vehicles[callsign].marker.options.title + ' Flight Information',
@@ -1811,46 +1008,7 @@ function guess_name(key) {
 }
 
 function habitat_data(jsondata, alternative) {
-  var keys = {
-    "ascentrate": "Ascent Rate",
-    "battery_percent": "Battery",
-    "temperature_external": "Temperature, External",
-    "pressure_internal": "Pressure, Internal",
-    "voltage_solar_1": "Voltage, Solar 1",
-    "voltage_solar_2": "Voltage, Solar 2",
-    "light_red": "Light (Red)",
-    "light_green": "Light (Green)",
-    "light_blue": "Light (Blue)",
-    "gas_a": "Gas (A)",
-    "gas_b": "Gas (B)",
-    "gas_co2": "Gas (CO)",
-    "gas_combustible": "Gas (Combustible)",
-    "radiation": "Radiation (CPM)",
-    "temperature_radio": "Temperature, Radio",
-    "uplink_rssi": "Uplink RSSI",
-    "light_intensity": "Light Intensity",
-    "pred_lat": "Onboard Prediction (Lat)",
-    "pred_lon": "Onboard Prediction (Lon)",
-    "batt": "Battery Voltage",
-    "sats": "GNSS SVs Used",
-    "humidity": "Relative Humidity",
-    "subtype": "Sonde Sub-type",
-    "frequency": "Frequency",
-    "frequency_tx": "TX Frequency",
-    "manufacturer": "Manufacturer",
-    "type": "Sonde Type",
-    "burst_timer": "Burst Timer",
-    "xdata": "XDATA",
-    "xdata_instrument": "XDATA Instrument",
-    "oif411_ozone_battery_v": "OIF411 Battery",
-    "oif411_ozone_current_uA": "Ozone Current",
-    "oif411_ozone_pump_curr_mA": "Ozone Pump Current",
-    "oif411_ozone_pump_temp": "Ozone Pump Temperature",
-    "oif411_serial": "OIF411 Serial Number",
-    "oif411_diagnostics": "OIF411 Diagnostics",
-    "oif411_version": "OIF411 Version",
-    "oif411_O3_partial_pressure": "Ozone Partial Pressure"
-  };
+  var keys = globalKeys;
 
   var tooltips = {
     "burst_timer": "If active, this indicates the time (HH:MM:SS) until the radiosonde will automatically power-off.",
@@ -1862,39 +1020,10 @@ function habitat_data(jsondata, alternative) {
     "spam": true,
     "battery_millivolts": true,
     "temperature_internal_x10": true,
-    "uplink_rssi_raw": true
+    "uplink_rssi_raw": true,
   };
 
-  var suffixes = {
-    "current": " A",
-    "battery": " V",
-    "batt": " V",
-    "solar_panel": " V",
-    "temperature": "&deg;C",
-    "temperature_internal": "&deg;C",
-    "temperature_external": "&deg;C",
-    "temperature_radio": "&deg;C",
-    "pressure": " hPa",
-    "voltage_solar_1": " V",
-    "voltage_solar_2": " V",
-    "battery_percent": "%",
-    "uplink_rssi": " dBm",
-    "rssi_last_message": " dBm",
-    "rssi_floor": " dBm",
-    "bearing": "&deg;",
-    "iss_azimuth": "&deg;",
-    "iss_elevation": "&deg;",
-    "light_intensity": " lx",
-    "humidity": " %",
-    "frequency": " MHz",
-    "frequency_tx": " MHz",
-    "spam": "",
-    "oif411_ozone_battery_v": " V",
-    "oif411_ozone_current_uA": " uA",
-    "oif411_ozone_pump_curr_mA": " mA",
-    "oif411_ozone_pump_temp": "&deg;C",
-    "oif411_O3_partial_pressure": " mPa (+/- 1)"
-  };
+  var suffixes = globalSuffixes;
 
   try
   {
@@ -3238,32 +2367,27 @@ function mapInfoBox_handle_path_new(data, vehicle, date) {
             xdata_pressure = 1100.0;
         }
         var tempXDATA = parseXDATA(data.xdata, xdata_pressure);
-        if (tempXDATA.hasOwnProperty('xdata_instrument')) {
-            html += "<div><b>XDATA Instrument:&nbsp;</b>" + tempXDATA.xdata_instrument.join(', ') + "</div>";
-        }
-        if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
-            html += "<div><b>OIF411 Battery:&nbsp;</b>" + tempXDATA.oif411_ozone_battery_v + " V</div>";
-        }
-        if (tempXDATA.hasOwnProperty('oif411_ozone_current_uA')) {
-            html += "<div><b>Ozone Current:&nbsp;</b>" + tempXDATA.oif411_ozone_current_uA + " uA</div>";
-        }
-        if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
-            html += "<div><b>Ozone Partial Presure:&nbsp;</b>" + tempXDATA.oif411_O3_partial_pressure + " mPa (+/- 1)</div>";
-        }
-        if (tempXDATA.hasOwnProperty('oif411_ozone_pump_curr_mA')) {
-            html += "<div><b>Ozone Pump Current:&nbsp;</b>" + tempXDATA.oif411_ozone_pump_curr_mA + " mA</div>";
-        }
-        if (tempXDATA.hasOwnProperty('oif411_ozone_pump_temp')) {
-            html += "<div><b>Ozone Pump Temperature:&nbsp;</b>" + tempXDATA.oif411_ozone_pump_temp + "°C</div>";
-        }
-        if (tempXDATA.hasOwnProperty('oif411_serial')) {
-            html += "<div><b>OIF411 Serial Number:&nbsp;</b>" + tempXDATA.oif411_serial + "</div>";
-        }
-        if (tempXDATA.hasOwnProperty('oif411_diagnostics')) {
-            html += "<div><b>OIF411 Diagnostics:&nbsp;</b>" + tempXDATA.oif411_diagnostics + "</div>";
-        }
-        if (tempXDATA.hasOwnProperty('oif411_version')) {
-            html += "<div><b>OIF411 Version:&nbsp;</b>" + tempXDATA.oif411_version + "</div>";
+        for (let field in tempXDATA) {
+            if (tempXDATA.hasOwnProperty(field)) {
+                if (field == "xdata_instrument") {
+                    html += "<div><b>XDATA Instrument:&nbsp;</b>" + tempXDATA.xdata_instrument.join(', ') + "</div>";
+                } else {
+                    if (globalKeys.hasOwnProperty(field)) {
+                        if (globalSuffixes.hasOwnProperty(field)) {
+                            html += "<div><b>" + globalKeys[field] + ":&nbsp;</b>" + tempXDATA[field] + globalSuffixes[field] + "</div>";
+                        } else {
+                            html += "<div><b>" + globalKeys[field] + ":&nbsp;</b>" + tempXDATA[field] + "</div>";
+                        }
+                        
+                    } else {
+                        if (globalSuffixes.hasOwnProperty(field)) {
+                            html += "<div><b>" + guess_name(field) + ":&nbsp;</b>" + tempXDATA[field] + globalSuffixes[field] + "</div>";
+                        } else {
+                            html += "<div><b>" + guess_name(field) + ":&nbsp;</b>" + tempXDATA[field] + "</div>";
+                        }
+                    }  
+                }
+            }
         }
     };
 
@@ -4233,499 +3357,6 @@ function graphAddPosition(vcallsign, new_data) {
     }
 }
 
-function formatData(data, live) {
-    var response = {};
-    response.positions = {};
-    var dataTemp = [];
-    if (live) {
-        if (data.length) {
-            for (let entry in data) {
-                var dataTempEntry = {};
-                var station = data[entry].uploader_callsign;
-                dataTempEntry.callsign = {};
-                //check if other stations also received this packet
-                if (vehicles.hasOwnProperty(data[entry].serial)) {
-                    if (data[entry].datetime == vehicles[data[entry].serial].curr_position.gps_time) {
-                        for (let key in vehicles[data[entry].serial].curr_position.callsign) {
-                            if (vehicles[data[entry].serial].curr_position.callsign.hasOwnProperty(key)) {
-                                if (key != station) {
-                                    dataTempEntry.callsign[key] = {};
-                                    if (vehicles[data[entry].serial].curr_position.callsign[key].hasOwnProperty("snr")) {
-                                        dataTempEntry.callsign[key].snr = vehicles[data[entry].serial].curr_position.callsign[key].snr;
-                                    }
-                                    if (vehicles[data[entry].serial].curr_position.callsign[key].hasOwnProperty("rssi")) {
-                                        dataTempEntry.callsign[key].rssi = vehicles[data[entry].serial].curr_position.callsign[key].rssi;
-                                    }
-                                    if (vehicles[data[entry].serial].curr_position.callsign[key].hasOwnProperty("frequency")) {
-                                        dataTempEntry.callsign[key].frequency = vehicles[data[entry].serial].curr_position.callsign[key].frequency;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                dataTempEntry.callsign[station] = {};
-                if (data[entry].snr) {
-                    dataTempEntry.callsign[station].snr = data[entry].snr;
-                }
-                if (data[entry].rssi) {
-                    dataTempEntry.callsign[station].rssi = data[entry].rssi;
-                }
-                if (data[entry].frequency) {
-                    dataTempEntry.callsign[station].frequency = data[entry].frequency;
-                }
-                dataTempEntry.gps_alt = data[entry].alt;
-                dataTempEntry.gps_lat = data[entry].lat;
-                dataTempEntry.gps_lon = data[entry].lon;
-                if (data[entry].heading) {
-                    dataTempEntry.gps_heading = data[entry].heading;
-                }
-                dataTempEntry.gps_time = data[entry].datetime;
-                dataTempEntry.server_time = data[entry].datetime;
-                dataTempEntry.vehicle = data[entry].serial;
-                dataTempEntry.position_id = data[entry].serial + "-" + data[entry].datetime;
-                dataTempEntry.data = {};
-                if (data[entry].batt) {
-                    dataTempEntry.data.batt = data[entry].batt;
-                }
-                if (data[entry].burst_timer) {
-                    dataTempEntry.data.burst_timer = data[entry].burst_timer;
-                }
-                if (data[entry].frequency) {
-                    dataTempEntry.data.frequency = data[entry].frequency;
-                }
-                if (data[entry].tx_frequency) {
-                    dataTempEntry.data.frequency_tx = data[entry].tx_frequency;
-                }
-                if (data[entry].hasOwnProperty("humidity")) {
-                    dataTempEntry.data.humidity = data[entry].humidity;
-                }
-                if (data[entry].manufacturer) {
-                    dataTempEntry.data.manufacturer = data[entry].manufacturer;
-                }
-                if (data[entry].hasOwnProperty("pressure")) {
-                    dataTempEntry.data.pressure = data[entry].pressure;
-                }
-                if (data[entry].sats) {
-                    dataTempEntry.data.sats = data[entry].sats;
-                }
-                if (data[entry].hasOwnProperty("temp")) {
-                    dataTempEntry.data.temperature_external = data[entry].temp;
-                }
-                if (data[entry].type) {
-                    dataTempEntry.data.type = data[entry].type;
-                    dataTempEntry.type = data[entry].type;
-                }
-                if (data[entry].subtype) {
-                    dataTempEntry.data.type = data[entry].subtype;
-                    dataTempEntry.type = data[entry].subtype;
-                }
-                if (data[entry].xdata) {
-                    dataTempEntry.data.xdata = data[entry].xdata;
-
-                    if (data[entry].hasOwnProperty("pressure")) {
-                        xdata_pressure = data[entry].pressure;
-                    } else {
-                        xdata_pressure = 1100.0;
-                    }
-                    var tempXDATA = parseXDATA(data[entry].xdata, xdata_pressure);
-                    if (tempXDATA.hasOwnProperty('xdata_instrument')) {
-                        dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument.join(', ');
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
-                        dataTempEntry.data.oif411_ozone_battery_v = tempXDATA.oif411_ozone_battery_v;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_ozone_current_uA')) {
-                        dataTempEntry.data.oif411_ozone_current_uA = tempXDATA.oif411_ozone_current_uA;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_ozone_pump_curr_mA')) {
-                        dataTempEntry.data.oif411_ozone_pump_curr_mA = tempXDATA.oif411_ozone_pump_curr_mA;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_ozone_pump_temp')) {
-                        dataTempEntry.data.oif411_ozone_pump_temp = tempXDATA.oif411_ozone_pump_temp;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_serial')) {
-                        dataTempEntry.data.oif411_serial = tempXDATA.oif411_serial;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_diagnostics')) {
-                        dataTempEntry.data.oif411_diagnostics = tempXDATA.oif411_diagnostics;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_version')) {
-                        dataTempEntry.data.oif411_version = tempXDATA.oif411_version;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
-                        dataTempEntry.data.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
-                    }
-                }
-                if (data[entry].serial.toLowerCase() != "xxxxxxxx") {
-                    dataTemp.push(dataTempEntry);
-                }
-            }
-        } else {
-            var dataTempEntry = {};
-            var station = data.uploader_callsign;
-            dataTempEntry.callsign = {};
-            //check if other stations also received this packet
-            if (vehicles.hasOwnProperty(data.serial)) {
-                if (data.datetime == vehicles[data.serial].curr_position.gps_time) {
-                    for (let key in vehicles[data.serial].curr_position.callsign) {
-                        if (vehicles[data.serial].curr_position.callsign.hasOwnProperty(key)) {
-                            if (key != station) {
-                                dataTempEntry.callsign[key] = {};
-                                if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("snr")) {
-                                    dataTempEntry.callsign[key].snr = vehicles[data.serial].curr_position.callsign[key].snr;
-                                }
-                                if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("rssi")) {
-                                    dataTempEntry.callsign[key].rssi = vehicles[data.serial].curr_position.callsign[key].rssi;
-                                }
-                                if (vehicles[data.serial].curr_position.callsign[key].hasOwnProperty("frequency")) {
-                                    dataTempEntry.callsign[key].frequency = vehicles[data.serial].curr_position.callsign[key].frequency;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            dataTempEntry.callsign[station] = {};
-            if (data.snr) {
-                dataTempEntry.callsign[station].snr = data.snr;
-            }
-            if (data.rssi) {
-                dataTempEntry.callsign[station].rssi = data.rssi;
-            }
-            if (data.frequency) {
-                dataTempEntry.callsign[station].frequency = data.frequency;
-            }
-            dataTempEntry.gps_alt = data.alt;
-            dataTempEntry.gps_lat = data.lat;
-            dataTempEntry.gps_lon = data.lon;
-            if (data.heading) {
-                dataTempEntry.gps_heading = data.heading;
-            }
-            dataTempEntry.gps_time = data.datetime;
-            dataTempEntry.server_time = data.datetime;
-            dataTempEntry.vehicle = data.serial;
-            dataTempEntry.position_id = data.serial + "-" + data.datetime;
-            dataTempEntry.data = {};
-            if (data.batt) {
-                dataTempEntry.data.batt = data.batt;
-            }
-            if (data.burst_timer) {
-                dataTempEntry.data.burst_timer = data.burst_timer;
-            }
-            if (data.frequency) {
-                dataTempEntry.data.frequency = data.frequency;
-            }
-            if (data.tx_frequency) {
-                dataTempEntry.data.frequency_tx = data.tx_frequency;
-            }
-            if (data.hasOwnProperty("humidity")) {
-                dataTempEntry.data.humidity = data.humidity;
-            }
-            if (data.manufacturer) {
-                dataTempEntry.data.manufacturer = data.manufacturer;
-            }
-            if (data.hasOwnProperty("pressure")) {
-                dataTempEntry.data.pressure = data.pressure;
-            }
-            if (data.sats) {
-                dataTempEntry.data.sats = data.sats;
-            }
-            if (data.hasOwnProperty("temp")) {
-                dataTempEntry.data.temperature_external = data.temp;
-            }
-            if (data.type) {
-                dataTempEntry.data.type = data.type;
-                dataTempEntry.type = data.type;
-            }
-            if (data.subtype) {
-                dataTempEntry.data.type = data.subtype;
-                dataTempEntry.type = data.subtype;
-            }
-            if (data.xdata) {
-                dataTempEntry.data.xdata = data.xdata;
-                if (data.hasOwnProperty("pressure")) {
-                    xdata_pressure = data.pressure;
-                } else {
-                    xdata_pressure = 1100.0;
-                }
-                var tempXDATA = parseXDATA(data.xdata, xdata_pressure);
-                if (tempXDATA.hasOwnProperty('xdata_instrument')) {
-                    dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument.join(', ');
-                }
-                if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
-                    dataTempEntry.data.oif411_ozone_battery_v = tempXDATA.oif411_ozone_battery_v;
-                }
-                if (tempXDATA.hasOwnProperty('oif411_ozone_current_uA')) {
-                    dataTempEntry.data.oif411_ozone_current_uA = tempXDATA.oif411_ozone_current_uA;
-                }
-                if (tempXDATA.hasOwnProperty('oif411_ozone_pump_curr_mA')) {
-                    dataTempEntry.data.oif411_ozone_pump_curr_mA = tempXDATA.oif411_ozone_pump_curr_mA;
-                }
-                if (tempXDATA.hasOwnProperty('oif411_ozone_pump_temp')) {
-                    dataTempEntry.data.oif411_ozone_pump_temp = tempXDATA.oif411_ozone_pump_temp;
-                }
-                if (tempXDATA.hasOwnProperty('oif411_serial')) {
-                    dataTempEntry.data.oif411_serial = tempXDATA.oif411_serial;
-                }
-                if (tempXDATA.hasOwnProperty('oif411_diagnostics')) {
-                    dataTempEntry.data.oif411_diagnostics = tempXDATA.oif411_diagnostics;
-                }
-                if (tempXDATA.hasOwnProperty('oif411_version')) {
-                    dataTempEntry.data.oif411_version = tempXDATA.oif411_version;
-                }
-                if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
-                    dataTempEntry.data.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
-                }
-            }
-            if (data.serial.toLowerCase() != "xxxxxxxx") {
-                dataTemp.push(dataTempEntry);
-            }
-        }
-    } else if (data.length == null) {
-        for (let key in data) {
-            if (data.hasOwnProperty(key)) {
-                if (typeof data[key] === 'object') {
-                    for (let i in data[key]) {
-                        var dataTempEntry = {};
-                        var station = data[key][i].uploader_callsign;
-                        dataTempEntry.callsign = {};
-                        dataTempEntry.callsign[station] = {};
-                        if (data[key][i].snr) {
-                            dataTempEntry.callsign[station].snr = data[key][i].snr;
-                        }
-                        if (data[key][i].rssi) {
-                            dataTempEntry.callsign[station].rssi = data[key][i].rssi;
-                        }
-                        if (data[key][i].frequency) {
-                            dataTempEntry.callsign[station].frequency = data[key][i].frequency;
-                        }
-                        dataTempEntry.gps_alt = data[key][i].alt;
-                        dataTempEntry.gps_lat = data[key][i].lat;
-                        dataTempEntry.gps_lon = data[key][i].lon;
-                        if (data[key][i].heading) {
-                            dataTempEntry.gps_heading = data[key][i].heading;
-                        }
-                        dataTempEntry.gps_time = data[key][i].datetime;
-                        dataTempEntry.server_time = data[key][i].datetime;
-                        dataTempEntry.vehicle = data[key][i].serial;
-                        dataTempEntry.position_id = data[key][i].serial + "-" + data[key][i].datetime;
-                        dataTempEntry.data = {};
-                        if (data[key][i].batt) {
-                            dataTempEntry.data.batt = data[key][i].batt;
-                        }
-                        if (data[key][i].burst_timer) {
-                            dataTempEntry.data.burst_timer = data[key][i].burst_timer;
-                        }
-                        if (data[key][i].frequency) {
-                            dataTempEntry.data.frequency = data[key][i].frequency;
-                        }
-                        if (data[key][i].tx_frequency) {
-                            dataTempEntry.data.frequency_tx = data[key][i].tx_frequency;
-                        }
-                        if (data[key][i].hasOwnProperty("humidity")) {
-                            dataTempEntry.data.humidity = data[key][i].humidity;
-                        }
-                        if (data[key][i].manufacturer) {
-                            dataTempEntry.data.manufacturer = data[key][i].manufacturer;
-                        }
-                        if (data[key][i].hasOwnProperty("pressure")) {
-                            dataTempEntry.data.pressure = data[key][i].pressure;
-                        }
-                        if (data[key][i].sats) {
-                            dataTempEntry.data.sats = data[key][i].sats;
-                        }
-                        if (data[key][i].hasOwnProperty("temp")) {
-                            dataTempEntry.data.temperature_external = data[key][i].temp;
-                        }
-                        if (data[key][i].type) {
-                            dataTempEntry.data.type = data[key][i].type;
-                            dataTempEntry.type = data[key][i].type;
-                        }
-                        if (data[key][i].subtype) {
-                            dataTempEntry.data.type = data[key][i].subtype;
-                            dataTempEntry.type = data[key][i].subtype;
-                        }
-                        if (data[key][i].xdata) {
-                            dataTempEntry.data.xdata = data[key][i].xdata;
-                            if (data[key][i].hasOwnProperty("pressure")) {
-                                xdata_pressure = data[key][i].pressure;
-                            } else {
-                                xdata_pressure = 1100.0;
-                            }
-                            var tempXDATA = parseXDATA(data[key][i].xdata, xdata_pressure);
-                            if (tempXDATA.hasOwnProperty('xdata_instrument')) {
-                                dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument.join(', ');
-                            }
-                            if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
-                                dataTempEntry.data.oif411_ozone_battery_v = tempXDATA.oif411_ozone_battery_v;
-                            }
-                            if (tempXDATA.hasOwnProperty('oif411_ozone_current_uA')) {
-                                dataTempEntry.data.oif411_ozone_current_uA = tempXDATA.oif411_ozone_current_uA;
-                            }
-                            if (tempXDATA.hasOwnProperty('oif411_ozone_pump_curr_mA')) {
-                                dataTempEntry.data.oif411_ozone_pump_curr_mA = tempXDATA.oif411_ozone_pump_curr_mA;
-                            }
-                            if (tempXDATA.hasOwnProperty('oif411_ozone_pump_temp')) {
-                                dataTempEntry.data.oif411_ozone_pump_temp = tempXDATA.oif411_ozone_pump_temp;
-                            }
-                            if (tempXDATA.hasOwnProperty('oif411_serial')) {
-                                dataTempEntry.data.oif411_serial = tempXDATA.oif411_serial;
-                            }
-                            if (tempXDATA.hasOwnProperty('oif411_diagnostics')) {
-                                dataTempEntry.data.oif411_diagnostics = tempXDATA.oif411_diagnostics;
-                            }
-                            if (tempXDATA.hasOwnProperty('oif411_version')) {
-                                dataTempEntry.data.oif411_version = tempXDATA.oif411_version;
-                            }
-                            if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
-                                dataTempEntry.data.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
-                            }
-                        }
-                        if (data[key][i].serial.toLowerCase() != "xxxxxxxx") {
-                            dataTemp.push(dataTempEntry);
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        for (var i = data.length - 1; i >= 0; i--) {
-            if (data[i].hasOwnProperty('subtype') && data[i].subtype == "SondehubV1") {
-                var dataTempEntry = {};
-                var station = data[i].uploader_callsign;
-                dataTempEntry.callsign = {};
-                dataTempEntry.callsign[station] = {};
-                dataTempEntry.gps_alt = parseFloat(data[i].alt);
-                dataTempEntry.gps_lat = parseFloat(data[i].lat);
-                dataTempEntry.gps_lon = parseFloat(data[i].lon);
-                dataTempEntry.gps_time = data[i].time_received;
-                dataTempEntry.server_time = data[i].time_received;
-                dataTempEntry.vehicle = data[i].serial;
-                dataTempEntry.position_id = data[i].serial + "-" + data[i].time_received;
-                dataTempEntry.data = {};
-                if (data[i].humidity) {
-                    dataTempEntry.data.humidity = parseFloat(data[i].humidity);
-                }
-                if (data[i].temp) {
-                    dataTempEntry.data.temperature_external = parseFloat(data[i].temp);
-                }
-                dataTemp.push(dataTempEntry);
-            } else {
-                var dataTempEntry = {};
-                var station = data[i].uploader_callsign;
-                dataTempEntry.callsign = {};
-                dataTempEntry.callsign[station] = {};
-                if (data[i].snr) {
-                    dataTempEntry.callsign[station].snr = data[i].snr;
-                }
-                if (data[i].rssi) {
-                    dataTempEntry.callsign[station].rssi = data[i].rssi;
-                }
-                if (data[i].frequency) {
-                    dataTempEntry.callsign[station].frequency = data[i].frequency;
-                }
-                dataTempEntry.gps_alt = data[i].alt;
-                dataTempEntry.gps_lat = data[i].lat;
-                dataTempEntry.gps_lon = data[i].lon;
-                if (data[i].heading) {
-                    dataTempEntry.gps_heading = data[i].heading;
-                }
-                dataTempEntry.gps_time = data[i].datetime;
-                dataTempEntry.server_time = data[i].datetime;
-                dataTempEntry.vehicle = data[i].serial;
-                dataTempEntry.position_id = data[i].serial + "-" + data[i].datetime;
-                dataTempEntry.data = {};
-                if (data[i].batt) {
-                    dataTempEntry.data.batt = data[i].batt;
-                }
-                if (data[i].burst_timer) {
-                    dataTempEntry.data.burst_timer = data[i].burst_timer;
-                }
-                if (data[i].frequency) {
-                    dataTempEntry.data.frequency = data[i].frequency;
-                }
-                if (data[i].tx_frequency) {
-                    dataTempEntry.data.frequency_tx = data[i].tx_frequency;
-                }
-                if (data[i].hasOwnProperty("humidity")) {
-                    dataTempEntry.data.humidity = data[i].humidity;
-                }
-                if (data[i].manufacturer) {
-                    dataTempEntry.data.manufacturer = data[i].manufacturer;
-                }
-                if (data[i].hasOwnProperty("pressure")) {
-                    dataTempEntry.data.pressure = data[i].pressure;
-                }
-                if (data[i].sats) {
-                    dataTempEntry.data.sats = data[i].sats;
-                }
-                if (data[i].hasOwnProperty("temp")) {
-                    dataTempEntry.data.temperature_external = data[i].temp;
-                }
-                if (data[i].type && data[i].type == "payload_telemetry") { // SondeHub V1 data
-                    var comment = data[i].comment.split(" ");
-                    if (v1types.hasOwnProperty(comment[0])) {
-                        dataTempEntry.data.type = v1types[comment[0]];
-                        dataTempEntry.type = v1types[comment[0]];
-                        if (v1manufacturers.hasOwnProperty(dataTempEntry.type)) {
-                            dataTempEntry.data.manufacturer = v1manufacturers[dataTempEntry.type];
-                        }
-                    }
-                    dataTempEntry.data.frequency = comment[2];
-                } else if (data[i].type) {
-                    dataTempEntry.data.type = data[i].type;
-                    dataTempEntry.type = data[i].type;
-                }
-                if (data[i].subtype) {
-                    dataTempEntry.data.type = data[i].subtype;
-                    dataTempEntry.type = data[i].subtype;
-                }
-                if (data[i].xdata) {
-                    dataTempEntry.data.xdata = data[i].xdata;
-                    if (data[i].hasOwnProperty("pressure")) {
-                        xdata_pressure = data[i].pressure;
-                    } else {
-                        xdata_pressure = 1100.0;
-                    }
-                    var tempXDATA = parseXDATA(data[i].xdata, xdata_pressure);
-                    if (tempXDATA.hasOwnProperty('xdata_instrument')) {
-                        dataTempEntry.data.xdata_instrument = tempXDATA.xdata_instrument.join(', ');
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_ozone_battery_v')) {
-                        dataTempEntry.data.oif411_ozone_battery_v = tempXDATA.oif411_ozone_battery_v;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_ozone_current_uA')) {
-                        dataTempEntry.data.oif411_ozone_current_uA = tempXDATA.oif411_ozone_current_uA;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_ozone_pump_curr_mA')) {
-                        dataTempEntry.data.oif411_ozone_pump_curr_mA = tempXDATA.oif411_ozone_pump_curr_mA;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_ozone_pump_temp')) {
-                        dataTempEntry.data.oif411_ozone_pump_temp = tempXDATA.oif411_ozone_pump_temp;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_serial')) {
-                        dataTempEntry.data.oif411_serial = tempXDATA.oif411_serial;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_diagnostics')) {
-                        dataTempEntry.data.oif411_diagnostics = tempXDATA.oif411_diagnostics;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_version')) {
-                        dataTempEntry.data.oif411_version = tempXDATA.oif411_version;
-                    }
-                    if (tempXDATA.hasOwnProperty('oif411_O3_partial_pressure')) {
-                        dataTempEntry.data.oif411_O3_partial_pressure = tempXDATA.oif411_O3_partial_pressure;
-                    }
-                }
-                dataTemp.push(dataTempEntry);
-            }
-        }
-    }
-    response.positions.position = dataTemp;
-    response.fetch_timestamp = Date.now();
-    return response;
-}
-
 var ajax_positions = null;
 var ajax_positions_single = null;
 var ajax_positions_single_new = null;
@@ -5113,60 +3744,6 @@ function refreshPredictions() {
         complete: function(request, textStatus) {
         }
     });
-}
-
-// Get initial summary data for station, courtesy of TimMcMahon
-function getHistorical (id, callback, continuation) {
-    var prefix = 'launchsites/' + id + '/';
-    var params = {
-        Prefix: prefix,
-    }; 
-
-    if (typeof continuation !== 'undefined') {
-        params.ContinuationToken = continuation;
-    } else {
-        tempLaunchData = {};
-    }
-
-    s3.makeUnauthenticatedRequest('listObjectsV2', params, function(err, data) {
-        if (err) {
-            console.log(err, err.stack);
-        } else {
-            var tempSerials = [];
-            for (var i = 0; i < data.Contents.length; i++) {
-                // Sort data into year and month groups
-                var date = data.Contents[i].Key.substring(prefix.length).substring(0,10);
-                var year = date.substring(0,4);
-                var month = date.substring(5,7);
-                var serial = data.Contents[i].Key.substring(prefix.length+11).slice(0, -5);
-                if (tempLaunchData.hasOwnProperty(year)) {
-                    if (tempLaunchData[year].hasOwnProperty(month)) {
-                        if (!tempSerials.includes(serial)) {
-                            tempSerials.push(serial)
-                            tempLaunchData[year][month].push(data.Contents[i].Key);
-                        }
-                    } else {
-                        tempLaunchData[year][month] = [];
-                        tempSerials = [];
-                        tempSerials.push(serial)
-                        tempLaunchData[year][month].push(data.Contents[i].Key);
-                    }
-                } else {
-                    tempLaunchData[year] = {};
-                    tempLaunchData[year][month] = [];
-                    tempSerials = [];
-                    tempSerials.push(serial)
-                    tempLaunchData[year][month].push(data.Contents[i].Key);
-                }
-            }
-            if (data.IsTruncated == true) {
-                // Requests are limited to 1000 entries so multiple may be required
-                getHistorical(id, callback, data.NextContinuationToken);
-            } else {
-                callback(tempLaunchData);
-            }
-        }
-    });   
 }
 
 var periodical, periodical_focus, periodical_focus_new, periodical_receivers, periodical_listeners;
