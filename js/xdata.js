@@ -65,7 +65,7 @@ function parseOIF411(xdata, pressure){
         return {};
     }
 
-    _output = {'xdata_instrument': 'OIF411'};
+    var _output = {'xdata_instrument': 'OIF411'};
 
     // Instrument number is common to all XDATA types.
     _output['oif411_instrument_number'] = parseInt(xdata.substr(2,2),16);
@@ -160,7 +160,7 @@ function parseCFH(xdata) {
         return {};
     }
 
-    _output = {'xdata_instrument': 'CFH'};
+    var _output = {'xdata_instrument': 'CFH'};
 
     // Instrument number is common to all XDATA types.
     _output['cfh_instrument_number'] = parseInt(xdata.substr(2,2),16);
@@ -214,7 +214,7 @@ function parseCOBALD(xdata) {
         return {};
     }
 
-    _output = {'xdata_instrument': 'COBALD'};
+    var _output = {'xdata_instrument': 'COBALD'};
 
     // Instrument number is common to all XDATA types.
     _output['cobald_instrument_number'] = parseInt(xdata.substr(2,2),16);
@@ -230,19 +230,19 @@ function parseCOBALD(xdata) {
     _internal_temperature = _internal_temperature/8; // Degrees C
     _output['cobald_internal_temperature'] = Math.round(_internal_temperature * 10) / 10; // 1 DP
 
-    // Blue backskatter
-    _blue_backskatter = parseInt(xdata.substr(10,6),16);
-    if ((_blue_backskatter  & 0x800000) > 0) {
-        _blue_backskatter  = _blue_backskatter  - 0x1000000;
+    // Blue backscatter
+    _blue_backscatter = parseInt(xdata.substr(10,6),16);
+    if ((_blue_backscatter  & 0x800000) > 0) {
+        _blue_backscatter  = _blue_backscatter  - 0x1000000;
     }
-    _output['cobald_blue_backskatter'] = _blue_backskatter;
+    _output['cobald_blue_backscatter'] = _blue_backscatter;
     
-    // Red backskatter
-    _red_backskatter = parseInt(xdata.substr(16,6),16);
-    if ((_red_backskatter  & 0x800000) > 0) {
-        _red_backskatter  = _red_backskatter  - 0x1000000;
+    // Red backckatter
+    _red_backscatter = parseInt(xdata.substr(16,6),16);
+    if ((_red_backscatter  & 0x800000) > 0) {
+        _red_backscatter  = _red_backscatter  - 0x1000000;
     }
-    _output['cobald_red_backskatter'] = _red_backskatter;
+    _output['cobald_red_backscatter'] = _red_backscatter;
 
     // Blue monitor
     _blue_monitor = parseInt(xdata.substr(22,4),16);
@@ -291,7 +291,7 @@ function parseXDATA(data, pressure){
             // V7
             // 0102 time=1001 cnt=0 rpm=0
             // 0102 time=1001 cnt=7 rpm=419
-            _output = {'xdata_instrument': 'V7'};
+            _output['xdata_instrument'] = 'V7';
         } else if (_instrument === '05'){
             // OIF411
             _xdata_temp = parseOIF411(_current_xdata, pressure);
@@ -302,42 +302,42 @@ function parseXDATA(data, pressure){
             _output = Object.assign(_output,_xdata_temp);
         } else if (_instrument === '10'){
             // FPH
-            _output = {'xdata_instrument': 'FPH'};
+            _output['xdata_instrument'] = 'FPH';
         } else if (_instrument === '19'){
             // COBALD
             _xdata_temp = parseCOBALD(_current_xdata);
             _output = Object.assign(_output,_xdata_temp);
         } else if (_instrument === '28'){
             // SLW
-            _output = {'xdata_instrument': 'SLW'};
+            _output['xdata_instrument'] = 'SLW';
         } else if (_instrument === '38'){
             // POPS
-            _output = {'xdata_instrument': 'POPS'};
+            _output['xdata_instrument'] = 'POPS';
         } else if (_instrument === '39'){
             // OPC
-            _output = {'xdata_instrument': 'OPC'};
+            _output['xdata_instrument'] = 'OPC';
         } else if (_instrument === '3C'){
             // PCFH
             // 3c010000184b4b5754
             // 3c0103ce7b58647a98748befff
             // 3c010148719fff8e54b9af627e249fe0
             // 3c01028d696fff8db4b7865980cdbbb3
-            _output = {'xdata_instrument': 'PCFH'};
+            _output['xdata_instrument'] = 'PCFH';
         } else if (_instrument === '3D'){
             // FLASH-B
-            _output = {'xdata_instrument': 'FLASH-B'};
+            _output['xdata_instrument'] = 'FLASH-B';
         } else if (_instrument === '3E'){
             // TRAPS
-            _output = {'xdata_instrument': 'TRAPS'};
+            _output['xdata_instrument'] = 'TRAPS';
         } else if (_instrument === '3F'){
             // SKYDEW
-            _output = {'xdata_instrument': 'SKYDEW'};
+            _output['xdata_instrument'] = 'SKYDEW';
         } else if (_instrument === '41'){
             // CICANUM
-            _output = {'xdata_instrument': 'CICANUM'};
+            _output['xdata_instrument'] = 'CICANUM';
         } else if (_instrument === '45'){
             // POPS
-            _output = {'xdata_instrument': 'POPS'};
+            _output['xdata_instrument'] = 'POPS';
         } else if (_instrument === '80'){
             // Unknown!
             //console.log("Saw unknown XDATA instrument 0x80.")
