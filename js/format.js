@@ -8,6 +8,9 @@ function formatData(data, live) {
     response.positions = {};
     var dataTemp = [];
     if (live) { // Websockets
+        if (!data.length) { // handle single sonde
+            data = {"entry": data};
+        }
         for (let entry in data) {
             var dataTempEntry = {};
             var station = data[entry].uploader_callsign;
