@@ -100,19 +100,19 @@ function parseOIF411(xdata, pressure){
         if ((_ozone_pump_temp & 0x8000) > 0) {
             _ozone_pump_temp = _ozone_pump_temp - 0x10000;
         }
-        _ozone_pump_temp = _ozone_pump_temp*0.01; // Degrees C
-        _output['oif411_ozone_pump_temp'] = Math.round(_ozone_pump_temp * 10) / 10; // 1 DP
+        _ozone_pump_temp = _ozone_pump_temp*0.01; // Degrees C (5 - 35)
+        _output['oif411_ozone_pump_temp'] = Math.round(_ozone_pump_temp * 100) / 100; // 2 DP
 
         // Ozone Current
-        _ozone_current_uA = parseInt(xdata.substr(8,5),16)*0.0001; // micro-Amps
+        _ozone_current_uA = parseInt(xdata.substr(8,5),16)*0.0001; // micro-Amps (0.05 - 30)
         _output['oif411_ozone_current_uA'] = Math.round(_ozone_current_uA * 10000) / 10000; // 4 DP
 
         // Battery Voltage
-        _ozone_battery_v = parseInt(xdata.substr(13,2),16)*0.1; // Volts
+        _ozone_battery_v = parseInt(xdata.substr(13,2),16)*0.1; // Volts (14 - 19)
         _output['oif411_ozone_battery_v'] = Math.round(_ozone_battery_v * 10) / 10; // 1 DP
 
         // Ozone Pump Current
-        _ozone_pump_curr_mA = parseInt(xdata.substr(15,3),16); // mA
+        _ozone_pump_curr_mA = parseInt(xdata.substr(15,3),16); // mA (30 - 110)
         _output['oif411_ozone_pump_curr_mA'] = Math.round(_ozone_pump_curr_mA * 10) / 10; // 1 DP
 
         // External Voltage
@@ -164,30 +164,6 @@ function parseCFH(xdata) {
     // Instrument number is common to all XDATA types.
     _output['cfh_instrument_number'] = parseInt(xdata.substr(2,2),16);
 
-    // Mirror temperature
-    _mirror_temperature = parseInt(xdata.substr(4,6),16);
-    if ((_mirror_temperature & 0x80000) > 0) {
-        _mirror_temperature = _mirror_temperature - 0x1000000;
-    }
-    _mirror_temperature = _mirror_temperature*0.00001; // Degrees C
-    _output['cfh_mirror_temperature'] = Math.round(_mirror_temperature*100000) / 100000; // 5 DP
-
-    // Optics voltage
-    _optics_voltage = parseInt(xdata.substr(10,6),16)*0.000001; // Volts
-    _output['cfh_optics_voltage'] =  Math.round(_optics_voltage*1000000) / 1000000; // 6 DP
-
-    // Optics temperature
-    _optics_temperature = parseInt(xdata.substr(16,4),16);
-    if ((_optics_temperature & 0x8000) > 0) {
-        _optics_temperature = _optics_temperature - 0x10000;
-    }
-    _optics_temperature = _optics_temperature*0.01; // Degrees C
-    _output['cfh_optics_temperature'] = Math.round(_optics_temperature*100) / 100; // 2 DP
-
-    // CFH battery
-    _battery = parseInt(xdata.substr(20,4),16)*0.01; // Volts
-    _output['cfh_battery'] = Math.round(_battery*100) / 100; // 2 DP
-
     return _output
 }
 
@@ -227,37 +203,80 @@ function parseCOBALD(xdata) {
     if ((_internal_temperature  & 0x800) > 0) {
         _internal_temperature  = _internal_temperature  - 0x1000;
     }
-    _internal_temperature = _internal_temperature/8; // Degrees C
-    _output['cobald_internal_temperature'] = Math.round(_internal_temperature * 10) / 10; // 1 DP
+    _internal_temperature = _internal_temperature/8; // Degrees C (-40 - 50)
+    _output['cobald_internal_temperature'] = Math.round(_internal_temperature * 100) / 100; // 2 DP
 
     // Blue backscatter
     _blue_backscatter = parseInt(xdata.substr(10,6),16);
     if ((_blue_backscatter  & 0x800000) > 0) {
         _blue_backscatter  = _blue_backscatter  - 0x1000000;
     }
-    _output['cobald_blue_backscatter'] = _blue_backscatter;
+    _output['cobald_blue_backscatter'] = _blue_backscatter; // (0 - 1000000)
     
     // Red backckatter
     _red_backscatter = parseInt(xdata.substr(16,6),16);
     if ((_red_backscatter  & 0x800000) > 0) {
         _red_backscatter  = _red_backscatter  - 0x1000000;
     }
-    _output['cobald_red_backscatter'] = _red_backscatter;
+    _output['cobald_red_backscatter'] = _red_backscatter; // (0 - 1000000)
 
     // Blue monitor
     _blue_monitor = parseInt(xdata.substr(22,4),16);
     if ((_blue_monitor  & 0x8000) > 0) {
         _blue_monitor  = _blue_monitor  - 0x10000;
     }
-    _output['cobald_blue_monitor'] = _blue_monitor;
+    _output['cobald_blue_monitor'] = _blue_monitor; // (-32768 - 32767)
     
     // Red monitor
     _red_monitor = parseInt(xdata.substr(26,4),16);
     if ((_red_monitor  & 0x8000) > 0) {
         _red_monitor  = _red_monitor  - 0x10000;
     }
-    _output['cobald_red_monitor'] = _red_monitor;
+    _output['cobald_red_monitor'] = _red_monitor; // (-32768 - 32767)
 
+    return _output
+}
+
+function parseSKYDEW(xdata) {
+    // Attempt to parse an XDATA string from a SKYDEW Peltier-based chilled-mirror hygrometer
+    // Returns an object with parameters to be added to the sondes telemetry.
+    //
+    // References: 
+    // https://www.gruan.org/gruan/editor/documents/meetings/icm-12/pres/pres_306_Sugidachi_SKYDEW.pdf
+    //
+    // Sample data:      3F0141DF73B940F600150F92FF27D5C8304102   (length = 38 characters)
+
+    // Cast to string if not already
+    xdata = String(xdata);
+
+    // Run some checks over the input
+    if(xdata.length != 38){
+        // Invalid SKYDEW dataset
+        return {};
+    }
+
+    if(xdata.substr(0,2) !== '3F'){
+        // Not a SKYDEW (shouldn't get here)
+        return {};
+    }
+
+    var _output = {};
+
+    // Instrument number is common to all XDATA types.
+    _output['skydew_instrument_number'] = parseInt(xdata.substr(2,2),16);
+
+    // Other fields may include
+    // Serial number
+    // Mirror temperature (-120 - 30)
+    // Mixing ratio V (ppmV)
+    // PT100 (Ohm 60 - 120)
+    // SCA light
+    // SCA base
+    // PLT current
+    // HS temp
+    // CB temp
+    // PID
+    // Battery
     return _output
 }
 
@@ -269,7 +288,7 @@ function parseXDATA(data, pressure){
     // "0501R20234850000006EI"
     // "0501034F02CA08B06700#800261FCA6F80012F6F40A75"
     // "800262358C080012FE6C0A70#0501035902BA08908400"
-    // "0802AC83D88AB61107A30175"
+    // "0501092C000000000000#190214f0df03e82e03660048d73683#0803DC5EF086C244078601A5#3F04475A4B0D415900160D510C270200465900"
 
     // Split apart any contatenated xdata.
     if(data.includes('#')){
@@ -322,6 +341,7 @@ function parseXDATA(data, pressure){
             if (!_instruments.includes("OPC")) _instruments.push('OPC');
         } else if (_instrument === '3C'){
             // PCFH
+            // SRNO, H0, H1, F0, F1
             // 3c010000184b4b5754
             // 3c0103ce7b58647a98748befff
             // 3c010148719fff8e54b9af627e249fe0
@@ -335,6 +355,8 @@ function parseXDATA(data, pressure){
             if (!_instruments.includes("TRAPS")) _instruments.push('TRAPS');
         } else if (_instrument === '3F'){
             // SKYDEW
+            _xdata_temp = parseSKYDEW(_current_xdata);
+            _output = Object.assign(_output,_xdata_temp);
             if (!_instruments.includes("SKYDEW")) _instruments.push('SKYDEW');
         } else if (_instrument === '41'){
             // CICANUM
@@ -351,7 +373,7 @@ function parseXDATA(data, pressure){
         }
     }
 
-    _output["xdata_instrument"] = _instruments;
+    if (_instrument.length > 0) _output["xdata_instrument"] = _instruments;
 
     return _output
 
