@@ -532,7 +532,7 @@ function parseXDATA(data, pressure){
         }
     }
 
-    if (_instrument.length > 0) _output["xdata_instrument"] = _instruments;
+    if (_instruments.length > 0) _output["xdata_instrument"] = _instruments;
 
     return _output
 
