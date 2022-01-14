@@ -48,10 +48,7 @@ function parseOIF411(xdata, pressure){
     // https://www.vaisala.com/sites/default/files/documents/Ozone%20Sounding%20with%20Vaisala%20Radiosonde%20RS41%20User%27s%20Guide%20M211486EN-C.pdf
     //
     // Sample data:      0501036402B958B07500   (length = 20 characters)
-    // More sample data: 0501R20234850000006EI (length = 21 characters)
-
-    // Cast to string if not already
-    xdata = String(xdata);
+    // More sample data: 0501R20234850000006EI  (length = 21 characters)
 
     // Run some checks over the input
     if(xdata.length < 20){
@@ -91,8 +88,6 @@ function parseOIF411(xdata, pressure){
 
         // Version number
         _output['oif411_version'] = (parseInt(xdata.substr(16,4),16)/100).toFixed(2);
-
-        return _output
     } else if (xdata.length == 20){
         // Measurement Data (Table 18)
         // Ozone pump temperature - signed int16
@@ -128,12 +123,9 @@ function parseOIF411(xdata, pressure){
 
         _O3_partial_pressure = (4.30851e-4)*(_output['oif411_ozone_current_uA'] - Ibg)*(_output['oif411_ozone_pump_temp']+273.15)*FlowRate*Cef; // mPa
         _output['oif411_O3_partial_pressure'] = Math.round(_O3_partial_pressure * 1000) / 1000; // 3 DP
+    } 
 
-        return _output
-
-    } else {
-        return {}
-    }
+    return _output
 }
 
 function parseCFH(xdata) {
@@ -144,9 +136,6 @@ function parseCFH(xdata) {
     // https://eprints.lib.hokudai.ac.jp/dspace/bitstream/2115/72249/1/GRUAN-TD-5_MeiseiRadiosondes_v1_20180221.pdf
     //
     // Sample data:      0802E21FFD85C8CE078A0193   (length = 24 characters)
-
-    // Cast to string if not already
-    xdata = String(xdata);
 
     // Run some checks over the input
     if(xdata.length != 24){
@@ -175,9 +164,6 @@ function parseCOBALD(xdata) {
     // https://hobbydocbox.com/Radio/83430839-Cobald-operating-instructions-imet-configuration.html
     //
     // Sample data:      190213fffe005fcf00359943912cca   (length = 30 characters)
-
-    // Cast to string if not already
-    xdata = String(xdata);
 
     // Run some checks over the input
     if(xdata.length != 30){
@@ -246,9 +232,6 @@ function parseSKYDEW(xdata) {
     //
     // Sample data:      3F0141DF73B940F600150F92FF27D5C8304102   (length = 38 characters)
 
-    // Cast to string if not already
-    xdata = String(xdata);
-
     // Run some checks over the input
     if(xdata.length != 38){
         // Invalid SKYDEW dataset
@@ -280,6 +263,183 @@ function parseSKYDEW(xdata) {
     return _output
 }
 
+function getPCFHdate(code) {
+    // months reference list
+    var PCFHmonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    // Get year from first character
+    var year = parseInt(code.charAt(0),16);
+    year = year + 2016;
+
+    // Get month from second character
+    var month = parseInt(code.charAt(1),16);
+    month = PCFHmonths[month-1];
+
+    // Generate string
+    _part_date = month + " " + year;
+    return _part_date;
+}
+
+function parsePCFH(xdata) {
+    // Attempt to parse an XDATA string from a Peltier Cooled Frost point Hygrometer (PCFH)
+    // Returns an object with parameters to be added to the sondes telemetry.
+    //
+    // References: 
+    // Peltier Cooled Frost point Hygrometer (PCFH) Telemetry Interface PDF
+    //
+    // Sample data:      3c0101434a062c5cd4a5747b81486c93   (length = 32 characters)        
+    //                   3c0103456076175ec5fc9df9b1         (length = 26 characters) 
+    //                   3c0104a427104e203a9861a8ab6a65     (length = 30 characters) 
+    //                   3c010000011b062221                 (length = 18 characters) 
+
+    // Run some checks over the input
+    if(xdata.length > 32){
+        // Invalid PCFH dataset
+        return {};
+    }
+
+    if(xdata.substr(0,2) !== '3C'){
+        // Not a PCFH (shouldn't get here)
+        return {};
+    }
+
+    var _output = {};
+
+    // Instrument number is common to all XDATA types.
+    _output['pcfh_instrument_number'] = parseInt(xdata.substr(2,2),16);
+
+    // Packet ID
+    var packetID = xdata.substr(4,2);
+
+    // Packet type
+    if (packetID == "00") { // Individual instrument identification (10 s)
+        // Serial number
+        _output["pcfh_serial_number"] = parseInt(xdata.substr(6,4));
+
+        // Temperature PCB date
+        _output["pcfh_temperature_pcb_date"] = getPCFHdate(xdata.substr(10,2));
+
+        // Main PCB date
+        _output["pcfh_main_pcb_date"] = getPCFHdate(xdata.substr(12,2));
+
+        // Controller FW date
+        _output["pcfh_controller_fw_date"] = getPCFHdate(xdata.substr(14,2));
+
+        // FPGA FW date
+        _output["pcfh_fpga_fw_date"] = getPCFHdate(xdata.substr(16,2));
+    } else if (packetID == "01" || packetID == "02") { // Regular one second data, sub-sensor 1/2
+        // Frost point mirror temperature
+        _frost_point_mirror_temperature = parseInt(xdata.substr(8,3),16);
+        _frost_point_mirror_temperature = (_frost_point_mirror_temperature*0.05) - 125;
+        _output['pcfh_frost_point_mirror_temperature_' + packetID] = Math.round(_frost_point_mirror_temperature * 100) / 100; // 2 DP
+
+        // Peltier hot side temperature
+        _peltier_hot_side_temperature = parseInt(xdata.substr(11,3),16);
+        _peltier_hot_side_temperature = (_peltier_hot_side_temperature*0.05) - 125;
+        _output['pcfh_peltier_hot_side_temperature_' + packetID] = Math.round(_peltier_hot_side_temperature * 100) / 100; // 2 DP
+
+        // Air temperature
+        _air_temperature = parseInt(xdata.substr(14,3),16);
+        _air_temperature = (_air_temperature*0.05) - 125;
+        _output['pcfh_air_temperature_' + packetID] = Math.round(_air_temperature * 100) / 100; // 2 DP
+
+        // Anticipated frost point mirror temperature
+        _anticipated_frost_point_mirror_temperature = parseInt(xdata.substr(17,3),16);
+        _anticipated_frost_point_mirror_temperature = (_anticipated_frost_point_mirror_temperature*0.05) - 125;
+        _output['pcfh_anticipated_frost_point_mirror_temperature_' + packetID] = Math.round(_anticipated_frost_point_mirror_temperature * 100) / 100; // 2 DP
+
+        // Frost point mirror reflectance
+        _frost_point_mirror_reflectance = parseInt(xdata.substr(20,4),16);
+        _frost_point_mirror_reflectance = _frost_point_mirror_reflectance/32768;
+        _output['pcfh_frost_point_mirror_reflectance_' + packetID] = Math.round(_frost_point_mirror_reflectance * 1000) / 1000; // 3 DP
+
+        // Reference surface reflectance
+        _reference_surface_reflectance = parseInt(xdata.substr(24,4),16);
+        _reference_surface_reflectance = _reference_surface_reflectance/32768;
+        _output['pcfh_reference_surface_reflectance_' + packetID] = Math.round(_reference_surface_reflectance * 1000) / 1000; // 3 DP
+
+        // Reference surface heating current
+        _reference_surface_heating_current = parseInt(xdata.substr(28,2),16);
+        _reference_surface_heating_current = _reference_surface_heating_current/2.56;
+        _output['pcfh_reference_surface_heating_current_' + packetID] = Math.round(_reference_surface_heating_current * 100) / 100; // 2 DP
+
+        // Peltier current
+        _peltier_current = parseInt(xdata.substr(30,2),16);
+        if ((_peltier_current  & 0x80) > 0) {
+            _peltier_current  = _peltier_current  - 0x100;
+        }
+        _peltier_current = _peltier_current/64;
+        _output['pcfh_peltier_current_' + packetID] = Math.round(_peltier_current * 1000) / 1000; // 3 DP
+    } else if (packetID == "03") { // Regular five second data
+        // Heat sink temperature 1
+        _heat_sink_temperature = parseInt(xdata.substr(8,3),16);
+        _heat_sink_temperature = (_heat_sink_temperature*0.05) - 125;
+        _output['pcfh_heat_sink_temperature_01'] = Math.round(_heat_sink_temperature * 100) / 100; // 2 DP
+
+        // Reference surface temperature 1
+        _reference_surface_temperature = parseInt(xdata.substr(11,3),16);
+        _reference_surface_temperature = (_reference_surface_temperature*0.05) - 125;
+        _output['pcfh_reference_surface_temperature_01'] = Math.round(_reference_surface_temperature * 100) / 100; // 2 DP
+
+        // Heat sink temperature 2
+        _heat_sink_temperature = parseInt(xdata.substr(14,3),16);
+        _heat_sink_temperature = (_heat_sink_temperature*0.05) - 125;
+        _output['pcfh_heat_sink_temperature_02'] = Math.round(_heat_sink_temperature * 100) / 100; // 2 DP
+
+        // Reference surface temperature 2
+        _reference_surface_temperature = parseInt(xdata.substr(17,3),16);
+        _reference_surface_temperature = (_reference_surface_temperature*0.05) - 125;
+        _output['pcfh_reference_surface_temperature_02'] = Math.round(_reference_surface_temperature * 100) / 100; // 2 DP
+
+        // Thermocouple reference temperature
+        _thermocouple_reference_temperature = parseInt(xdata.substr(20,3),16);
+        _thermocouple_reference_temperature = (_thermocouple_reference_temperature*0.05) - 125;
+        _output['pcfh_thermocouple_reference_temperature'] = Math.round(_thermocouple_reference_temperature * 100) / 100; // 2 DP
+
+        // Reserved temperature
+        _reserved_temperature = parseInt(xdata.substr(23,3),16);
+        _reserved_temperature = (_reserved_temperature*0.05) - 125;
+        _output['pcfh_reserved_temperature'] = Math.round(_reserved_temperature * 100) / 100; // 2 DP
+    } else if (packetID == "04") { // Instrument status (10 s)
+        // Clean frost point mirror reflectance 1
+        _clean_frost_point_mirror_reflectance = parseInt(xdata.substr(8,4),16);
+        _clean_frost_point_mirror_reflectance = _clean_frost_point_mirror_reflectance*0.001;
+        _output['pcfh_clean_frost_point_mirror_reflectance_01'] = Math.round(_clean_frost_point_mirror_reflectance * 1000) / 1000; // 3 DP
+
+        // Clean reference surface reflectance 1
+        _clean_reference_surface_reflectance = parseInt(xdata.substr(12,4),16);
+        _clean_reference_surface_reflectance = _clean_reference_surface_reflectance*0.001;
+        _output['pcfh_clean_reference_surface_reflectance_01'] = Math.round(_clean_reference_surface_reflectance * 1000) / 1000; // 3 DP
+
+        // Clean frost point mirror reflectance 2
+        _clean_frost_point_mirror_reflectance = parseInt(xdata.substr(16,4),16);
+        _clean_frost_point_mirror_reflectance = _clean_frost_point_mirror_reflectance*0.001;
+        _output['pcfh_clean_frost_point_mirror_reflectance_02'] = Math.round(_clean_frost_point_mirror_reflectance * 1000) / 1000; // 3 DP
+
+        // Clean reference surface reflectance 2
+        _clean_reference_surface_reflectance = parseInt(xdata.substr(20,4),16);
+        _clean_reference_surface_reflectance = _clean_reference_surface_reflectance*0.001;
+        _output['pcfh_clean_reference_surface_reflectance_02'] = Math.round(_clean_reference_surface_reflectance * 1000) / 1000; // 3 DP
+
+        // 6V Analog supply battery voltage
+        _6v_analog_supply_battery_voltage = parseInt(xdata.substr(24,2),16);
+        _6v_analog_supply_battery_voltage = (_6v_analog_supply_battery_voltage*0.02) + 2.5;
+        _output['pcfh_6v_analog_supply_battery_voltage'] = Math.round(_6v_analog_supply_battery_voltage * 100) / 100; // 2 DP
+
+        // 4.5V Logic supply battery voltage
+        _45v_logic_supply_battery_voltage = parseInt(xdata.substr(26,2),16);
+        _45v_logic_supply_battery_voltage = (_45v_logic_supply_battery_voltage*0.02) + 2.5;
+        _output['pcfh_45v_logic_supply_battery_voltage'] = Math.round(_45v_logic_supply_battery_voltage * 100) / 100; // 2 DP
+
+        // 4.5V Peltier and heater supply battery voltage
+        _45v_peltier_and_heater_supply_battery_voltage = parseInt(xdata.substr(28,2),16);
+        _45v_peltier_and_heater_supply_battery_voltage = (_45v_peltier_and_heater_supply_battery_voltage*0.02) + 2.5;
+        _output['pcfh_45v_peltier_and_heater_supply_battery_voltage'] = Math.round(_45v_peltier_and_heater_supply_battery_voltage * 100) / 100; // 2 DP
+    }
+
+    return _output
+}
+
 function parseXDATA(data, pressure){
     // Accept an XDATA string, or multiple XDATA entries, delimited by '#'
     // Attempt to parse each one, and return an object
@@ -301,6 +461,8 @@ function parseXDATA(data, pressure){
     _instruments = [];
     for(xdata_i = 0; xdata_i < data_split.length; xdata_i++){
         _current_xdata = data_split[xdata_i];
+
+        _current_xdata = String(_current_xdata).toUpperCase();
 
         // Get Instrument ID
         // https://gml.noaa.gov/aftp/user/jordan/XDATA%20Instrument%20ID%20Allocation.pdf
@@ -341,11 +503,8 @@ function parseXDATA(data, pressure){
             if (!_instruments.includes("OPC")) _instruments.push('OPC');
         } else if (_instrument === '3C'){
             // PCFH
-            // SRNO, H0, H1, F0, F1
-            // 3c010000184b4b5754
-            // 3c0103ce7b58647a98748befff
-            // 3c010148719fff8e54b9af627e249fe0
-            // 3c01028d696fff8db4b7865980cdbbb3
+            _xdata_temp = parsePCFH(_current_xdata);
+            _output = Object.assign(_output,_xdata_temp);
             if (!_instruments.includes("PCFH")) _instruments.push('PCFH');
         } else if (_instrument === '3D'){
             // FLASH-B
