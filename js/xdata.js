@@ -117,41 +117,13 @@ function parseOIF411(xdata, pressure){
         // Now attempt to calculate the O3 partial pressure
 
         // Calibration values
-        Ibg = 0.0; // The BOM appear to use a Ozone background current value of 0 uA
+        Ibg = 12.0; // The BOM appear to use a Ozone background current value of 12 uA (+- 0.6)
         Cef = get_oif411_Cef(pressure); // Calculate the pump efficiency correction.
         FlowRate = 28.5; // Use a 'nominal' value for Flow Rate (seconds per 100mL).
 
         _O3_partial_pressure = (4.30851e-4)*(_output['oif411_ozone_current_uA'] - Ibg)*(_output['oif411_ozone_pump_temp']+273.15)*FlowRate*Cef; // mPa
         _output['oif411_O3_partial_pressure'] = Math.round(_O3_partial_pressure * 1000) / 1000; // 3 DP
     } 
-
-    return _output
-}
-
-function parseCFH(xdata) {
-    // Attempt to parse an XDATA string from a CFH Cryogenic Frostpoint Hygrometer
-    // Returns an object with parameters to be added to the sondes telemetry.
-    //
-    // References: 
-    // https://eprints.lib.hokudai.ac.jp/dspace/bitstream/2115/72249/1/GRUAN-TD-5_MeiseiRadiosondes_v1_20180221.pdf
-    //
-    // Sample data:      0802E21FFD85C8CE078A0193   (length = 24 characters)
-
-    // Run some checks over the input
-    if(xdata.length != 24){
-        // Invalid CFH dataset
-        return {};
-    }
-
-    if(xdata.substr(0,2) !== '08'){
-        // Not an CFH (shouldn't get here)
-        return {};
-    }
-
-    var _output = {};
-
-    // Instrument number is common to all XDATA types.
-    _output['cfh_instrument_number'] = parseInt(xdata.substr(2,2),16);
 
     return _output
 }
@@ -220,46 +192,6 @@ function parseCOBALD(xdata) {
     }
     _output['cobald_red_monitor'] = _red_monitor; // (-32768 - 32767)
 
-    return _output
-}
-
-function parseSKYDEW(xdata) {
-    // Attempt to parse an XDATA string from a SKYDEW Peltier-based chilled-mirror hygrometer
-    // Returns an object with parameters to be added to the sondes telemetry.
-    //
-    // References: 
-    // https://www.gruan.org/gruan/editor/documents/meetings/icm-12/pres/pres_306_Sugidachi_SKYDEW.pdf
-    //
-    // Sample data:      3F0141DF73B940F600150F92FF27D5C8304102   (length = 38 characters)
-
-    // Run some checks over the input
-    if(xdata.length != 38){
-        // Invalid SKYDEW dataset
-        return {};
-    }
-
-    if(xdata.substr(0,2) !== '3F'){
-        // Not a SKYDEW (shouldn't get here)
-        return {};
-    }
-
-    var _output = {};
-
-    // Instrument number is common to all XDATA types.
-    _output['skydew_instrument_number'] = parseInt(xdata.substr(2,2),16);
-
-    // Other fields may include
-    // Serial number
-    // Mirror temperature (-120 - 30)
-    // Mixing ratio V (ppmV)
-    // PT100 (Ohm 60 - 120)
-    // SCA light
-    // SCA base
-    // PLT current
-    // HS temp
-    // CB temp
-    // PID
-    // Battery
     return _output
 }
 
@@ -440,7 +372,81 @@ function parsePCFH(xdata) {
     return _output
 }
 
-function parseXDATA(data, pressure){
+function calculateFLASHBWaterVapour(S, B, P, T) {
+    var K1 = 0;
+    var K2 = 0;
+    var U = 0;
+
+    var F = S - B + K2*(S-B)
+
+    if (P < 36) {
+        U = K1*F*0.956*(1+((0.00781*(T+273.16))/P));
+    } else if (36 <= 36 < 300) {
+        U = K1*F*(1 + 0.00031*P)
+    }
+
+    return U;
+}
+
+function parseFLASHB(xdata, pressure, temperature) {
+    // Attempt to parse an XDATA string from a Fluorescent Lyman-Alpha Stratospheric Hygrometer for Balloon (FLASH-B)
+    // Returns an object with parameters to be added to the sondes telemetry.
+    //
+    //
+    // Sample data:      3D0204E20001407D00E4205DC24406B1012   (length = 35 characters)
+
+    // Run some checks over the input
+    if(xdata.length != 35){
+        // Invalid FLASH-B dataset
+        return {};
+    }
+
+    if(xdata.substr(0,2) !== '3D'){
+        // Not a FLASH-B (shouldn't get here)
+        return {};
+    }
+
+    var _output = {};
+
+    // Instrument number is common to all XDATA types.
+    _output['flashb_instrument_number'] = parseInt(xdata.substr(2,2),16);
+
+    _photomultiplier_counts = parseInt(xdata.substr(5,4),16);
+
+    _photomultiplier_background_counts = parseInt(xdata.substr(9,4),16);
+    _output['flashb_photomultiplier_background_counts'] = _photomultiplier_background_counts
+
+    //_photomultiplier_counts = calculateFLASHBWaterVapour(_photomultiplier_counts, _photomultiplier_background_counts, pressure, temperature);
+    _output['flashb_photomultiplier_counts'] = _photomultiplier_counts;
+
+    _photomultiplier_temperature = parseInt(xdata.substr(13,4),16);
+    _photomultiplier_temperature = (-21.103*Math.log((_photomultiplier_temperature*0.0183)/(2.49856 - (_photomultiplier_temperature*0.00061)))) + 97.106;
+    _output['flashb_photomultiplier_temperature'] = Math.round(_photomultiplier_temperature * 100) / 100; // 2 DP
+
+    _battery_voltage = parseInt(xdata.substr(17,4),16);
+    _battery_voltage = _battery_voltage*0.005185;
+    _output['flashb_battery_voltage'] = Math.round(_battery_voltage * 100) / 100; // 2 DP
+
+    _yuv_current = parseInt(xdata.substr(21,4),16);
+    _yuv_current = _yuv_current*0.0101688;
+    _output['flashb_yuv_current'] = Math.round(_yuv_current * 100) / 100; // 2 DP
+
+    _pmt_voltage = parseInt(xdata.substr(25,4),16);
+    _pmt_voltage = _pmt_voltage*0.36966;
+    _output['flashb_pmt_voltage'] = Math.round(_pmt_voltage * 10) / 10; // 1 DP
+
+    _firmware_version = parseInt(xdata.substr(29,2),16);
+    _firmware_version = _firmware_version*0.1;
+    _output['flashb_firmware_version'] = Math.round(_firmware_version * 10) / 10; // 1 DP
+
+    _output['flashb_production_year'] = parseInt(xdata.substr(31,2),16);
+
+    _output['flashb_hardware_version'] = parseInt(xdata.substr(33,2),16);
+
+    return _output
+}
+
+function parseXDATA(data, pressure, temperature){
     // Accept an XDATA string, or multiple XDATA entries, delimited by '#'
     // Attempt to parse each one, and return an object
     // Test datasets:
@@ -481,8 +487,6 @@ function parseXDATA(data, pressure){
             if (!_instruments.includes("OIF411")) _instruments.push('OIF411');
         } else if (_instrument === '08'){
             // CFH
-            _xdata_temp = parseCFH(_current_xdata);
-            _output = Object.assign(_output,_xdata_temp);
             if (!_instruments.includes("CFH")) _instruments.push('CFH');
         } else if (_instrument === '10'){
             // FPH
@@ -508,14 +512,14 @@ function parseXDATA(data, pressure){
             if (!_instruments.includes("PCFH")) _instruments.push('PCFH');
         } else if (_instrument === '3D'){
             // FLASH-B
+            _xdata_temp = parseFLASHB(_current_xdata, pressure, temperature);
+            _output = Object.assign(_output,_xdata_temp);
             if (!_instruments.includes("FLASH-B")) _instruments.push('FLASH-B');
         } else if (_instrument === '3E'){
             // TRAPS
             if (!_instruments.includes("TRAPS")) _instruments.push('TRAPS');
         } else if (_instrument === '3F'){
             // SKYDEW
-            _xdata_temp = parseSKYDEW(_current_xdata);
-            _output = Object.assign(_output,_xdata_temp);
             if (!_instruments.includes("SKYDEW")) _instruments.push('SKYDEW');
         } else if (_instrument === '41'){
             // CICANUM
