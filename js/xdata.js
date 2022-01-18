@@ -117,7 +117,7 @@ function parseOIF411(xdata, pressure){
         // Now attempt to calculate the O3 partial pressure
 
         // Calibration values
-        Ibg = 12.0; // The BOM appear to use a Ozone background current value of 12 uA (+- 0.6)
+        Ibg = 0.0; // The BOM appear to use a Ozone background current value of 0 uA
         Cef = get_oif411_Cef(pressure); // Calculate the pump efficiency correction.
         FlowRate = 28.5; // Use a 'nominal' value for Flow Rate (seconds per 100mL).
 
