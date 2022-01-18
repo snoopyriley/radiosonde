@@ -446,6 +446,94 @@ function parseFLASHB(xdata, pressure, temperature) {
     return _output
 }
 
+function parseSKYDEW(xdata) {
+    // Attempt to parse an XDATA string from a Peltier-based chilled-mirror hygrometer SKYDEW
+    // Returns an object with parameters to be added to the sondes telemetry.
+    //
+    // References: 
+    // Peltier-based chilled-mirror hygrometer “SKYDEW” XDATA protocol (draft)
+    //
+    // Sample data:      3F0144A75446416100160ECAFFFF6EC8000006   (length = 38 characters)
+
+    // Run some checks over the input
+    if(xdata.length != 38){
+        // Invalid SKYDEW dataset
+        return {};
+    }
+
+    if(xdata.substr(0,2) !== '3F'){
+        // Not a SKYDEW (shouldn't get here)
+        return {};
+    }
+
+    var _output = {};
+
+    // Instrument number is common to all XDATA types.
+    _output['skydew_instrument_number'] = parseInt(xdata.substr(2,2),16);
+
+    // Mirror temperature value
+    // This requires the four coefficients to actually get a value
+    _output['skydew_mirror_temperature_value'] = parseInt(xdata.substr(4,4),16);
+
+    // Scattered light level
+    _scattered_light_value = parseInt(xdata.substr(8,4),16);
+    _scattered_light_value = _scattered_light_value*0.0000625 // V
+    _output['skydew_scattered_light'] = Math.round(_scattered_light_value * 10000) / 10000; // 4 DP
+
+    // Reference resistance
+    // Used to calculate mirror temperature
+    _reference_resistance = parseInt(xdata.substr(12,4),16);
+
+    // Offset value
+    // Used to calculate mirror temperature
+    _offset_value = parseInt(xdata.substr(16,4),16);
+
+    // Peltier current
+    _peltier_current_value = parseInt(xdata.substr(20,4),16);
+    _peltier_current_value = (_peltier_current_value*0.00040649414 - 1.5)*2; // A
+    _output['skydew_peltier_current'] = Math.round(_peltier_current_value * 10000) / 10000; // 4 DP
+
+    // Heatsink temperature
+    _heatsink_temperature = parseInt(xdata.substr(24,2),16);
+    _heatsink_temperature = (Math.pow((((Math.log(((_heatsink_temperature/8192)*141.9)/(3.3-(_heatsink_temperature/8192)*3.3)/6))/3390)+1)/273.16, -1) -276.16); // Degrees C
+    _output['skydew_heatsink_temperature'] = Math.round(_heatsink_temperature * 100) / 100; // 2 DP
+
+    // Circuit board temperature
+    _circuit_board_temperature = parseInt(xdata.substr(26,2),16);
+    _circuit_board_temperature = (Math.pow((((Math.log(((_circuit_board_temperature/8192)*39.6)/(3.3-(_circuit_board_temperature/8192)*3.3)/6))/3390)+1)/273.16, -1) -276.16); // Degrees C
+    _output['skydew_circuit_board_temperature'] = Math.round(_circuit_board_temperature * 100) / 100; // 2 DP
+
+    // Battery
+    _output['skydew_battery'] = parseInt(xdata.substr(28,2),16);
+
+    // PID
+    _output['skydew_pid'] = parseInt(xdata.substr(30,2),16);
+
+    // Parameter
+    var parameter = parseInt(xdata.substr(32,4),16);
+
+    // Coefficent type
+    var parameterType = parseInt(xdata.substr(36,2),16);
+
+    // Parameter Type
+    switch(parameterType) {
+        case 0:
+            _output['skydew_serial_number'] = parameter;
+        case 1:
+            _output['skydew_coefficient_b'] = parameter;
+        case 2:
+            _output['skydew_coefficient_c'] = parameter;
+        case 3:
+            _output['skydew_coefficient_d'] = parameter;
+        case 4:
+            _output['skydew_coefficient_e'] = parameter;
+        case 5:
+            _output['skydew_firmware_version'] = parameter;
+    }
+
+    return _output
+}
+
 function parseXDATA(data, pressure, temperature){
     // Accept an XDATA string, or multiple XDATA entries, delimited by '#'
     // Attempt to parse each one, and return an object
@@ -487,6 +575,10 @@ function parseXDATA(data, pressure, temperature){
             if (!_instruments.includes("OIF411")) _instruments.push('OIF411');
         } else if (_instrument === '08'){
             // CFH
+            // 0803B922067F1D0707CD0144
+            // 0803ABD602800F7907D9015D
+            // 08038AB16A7FBF4908E50161
+            // https://www.en-sci.com/cryogenic-frost-point-hygrometer/
             if (!_instruments.includes("CFH")) _instruments.push('CFH');
         } else if (_instrument === '10'){
             // FPH
@@ -520,6 +612,8 @@ function parseXDATA(data, pressure, temperature){
             if (!_instruments.includes("TRAPS")) _instruments.push('TRAPS');
         } else if (_instrument === '3F'){
             // SKYDEW
+            _xdata_temp = parseSKYDEW(_current_xdata);
+            _output = Object.assign(_output,_xdata_temp);
             if (!_instruments.includes("SKYDEW")) _instruments.push('SKYDEW');
         } else if (_instrument === '41'){
             // CICANUM
