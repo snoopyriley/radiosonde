@@ -373,6 +373,7 @@ function parsePCFH(xdata) {
 }
 
 function calculateFLASHBWaterVapour(S, B, P, T) {
+    // This code is incomplete as I don't have reference values
     var K1 = 0;
     var K2 = 0;
     var U = 0;
@@ -420,19 +421,19 @@ function parseFLASHB(xdata, pressure, temperature) {
     _output['flashb_photomultiplier_counts'] = _photomultiplier_counts;
 
     _photomultiplier_temperature = parseInt(xdata.substr(13,4),16);
-    _photomultiplier_temperature = (-21.103*Math.log((_photomultiplier_temperature*0.0183)/(2.49856 - (_photomultiplier_temperature*0.00061)))) + 97.106;
+    _photomultiplier_temperature = (-21.103*Math.log((_photomultiplier_temperature*0.0183)/(2.49856 - (_photomultiplier_temperature*0.00061)))) + 97.106; // Degrees C
     _output['flashb_photomultiplier_temperature'] = Math.round(_photomultiplier_temperature * 100) / 100; // 2 DP
 
     _battery_voltage = parseInt(xdata.substr(17,4),16);
-    _battery_voltage = _battery_voltage*0.005185;
+    _battery_voltage = _battery_voltage*0.005185; // V
     _output['flashb_battery_voltage'] = Math.round(_battery_voltage * 100) / 100; // 2 DP
 
     _yuv_current = parseInt(xdata.substr(21,4),16);
-    _yuv_current = _yuv_current*0.0101688;
+    _yuv_current = _yuv_current*0.0101688;  // mA
     _output['flashb_yuv_current'] = Math.round(_yuv_current * 100) / 100; // 2 DP
 
     _pmt_voltage = parseInt(xdata.substr(25,4),16);
-    _pmt_voltage = _pmt_voltage*0.36966;
+    _pmt_voltage = _pmt_voltage*0.36966; // V
     _output['flashb_pmt_voltage'] = Math.round(_pmt_voltage * 10) / 10; // 1 DP
 
     _firmware_version = parseInt(xdata.substr(29,2),16);
