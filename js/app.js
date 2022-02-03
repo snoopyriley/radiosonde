@@ -860,7 +860,7 @@ $(window).ready(function() {
                 // open map
                 $('.nav .home').click();
                 // pan map to our current location
-                map.flyTo(new L.LatLng(currentPosition.lat, currentPosition.lon));
+                map.panTo(new L.LatLng(currentPosition.lat, currentPosition.lon));
             } else {
                 alert("No position available");
             }
