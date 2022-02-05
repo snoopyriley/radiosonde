@@ -3,7 +3,43 @@
  * Authors: Mark Jessop & Luke Prior
  */
 
-function parseOzonesonde(xdata) {
+// Pump Efficiency Correction Parameters for ECC-6A Ozone Sensor, with 3.0cm^3 volume.
+// We are using these as a nominal correction value for pump efficiency vs pressure
+// 
+OIF411_Cef_Pressure =    [    0,     2,     3,      5,    10,    20,    30,    50,   100,   200,   300,   500, 1000, 1100];
+OIF411_Cef = [ 1.171, 1.171, 1.131, 1.092, 1.055, 1.032, 1.022, 1.015, 1.011, 1.008, 1.006, 1.004,    1,    1];
+
+function lerp(x, y, a){
+    // Helper function for linear interpolation between two points
+    return x * (1 - a) + y * a
+}
+
+function get_oif411_Cef(pressure){
+    // Get the Pump efficiency correction value for a given pressure.
+
+    // Off-scale use bottom-end value
+    if (pressure <= OIF411_Cef_Pressure[0]){
+        return OIF411_Cef[0];
+    }
+    
+    // Off-scale top, use top-end value
+    if (pressure >= OIF411_Cef_Pressure[OIF411_Cef_Pressure.length-1]){
+        return OIF411_Cef[OIF411_Cef.length-1];
+    }
+    
+
+    // Within the correction range, perform linear interpolation.
+    for(i= 1; i<OIF411_Cef_Pressure.length; i++){
+        if (pressure < OIF411_Cef_Pressure[i]) {
+            return lerp(OIF411_Cef[i-1], OIF411_Cef[i],  ( (pressure-OIF411_Cef_Pressure[i-1]) / (OIF411_Cef_Pressure[i]-OIF411_Cef_Pressure[i-1])) );
+        }
+    }
+
+    // Otherwise, bomb out and return 1.0
+    return 1.0;
+}
+
+function parseOzonesonde(xdata, pressure) {
     // Attempt to parse an XDATA string from an ECC Ozonesonde
     // Returns an object with parameters to be added to the sondes telemetry.
     //
@@ -29,7 +65,7 @@ function parseOzonesonde(xdata) {
     _output['ozonesonde_instrument_number'] = parseInt(xdata.substr(2,2),16);
 
     // Cell Current
-    _cell_current = parseInt(xdata.substr(4,4),16)*0.001; // micro-Amps
+    _cell_current = parseInt(xdata.substr(4,4),16)*0.001; // uA
     _output['ozonesonde_cell_current'] = Math.round(_cell_current * 1000) / 1000; // 3 DP
 
     // Pump Temperature
@@ -48,44 +84,17 @@ function parseOzonesonde(xdata) {
     _battery_voltage = parseInt(xdata.substr(14,2),16)*0.1; // Volts
     _output['ozondesonde_battery_voltage'] = Math.round(_battery_voltage * 10) / 10; // 1 DP
 
+    // Now attempt to calculate the O3 partial pressure (copy OIF411 calculations)
+
+    // Calibration values
+    Ibg = 0.0; // The BOM appear to use a Ozone background current value of 0 uA
+    Cef = get_oif411_Cef(pressure); // Calculate the pump efficiency correction.
+    FlowRate = 28.5; // Use a 'nominal' value for Flow Rate (seconds per 100mL).
+
+    _O3_partial_pressure = (4.30851e-4)*(_output['ozonesonde_cell_current'] - Ibg)*(_output['ozonesonde_pump_temperature']+273.15)*FlowRate*Cef; // mPa
+    _output['ozondesonde_O3_partial_pressure'] = Math.round(_O3_partial_pressure * 1000) / 1000; // 3 DP
+
     return _output
-}
-
-// Pump Efficiency Correction Parameters for ECC-6A Ozone Sensor, with 3.0cm^3 volume.
-// We are using these as a nominal correction value for pump efficiency vs pressure
-// 
-OIF411_Cef_Pressure =    [    0,     2,     3,      5,    10,    20,    30,    50,   100,   200,   300,   500, 1000, 1100];
-OIF411_Cef = [ 1.171, 1.171, 1.131, 1.092, 1.055, 1.032, 1.022, 1.015, 1.011, 1.008, 1.006, 1.004,    1,    1];
-
-function lerp(x, y, a){
-    // Helper function for linear interpolation between two points
-    return x * (1 - a) + y * a
-}
-
-
-function get_oif411_Cef(pressure){
-    // Get the Pump efficiency correction value for a given pressure.
-
-    // Off-scale use bottom-end value
-    if (pressure <= OIF411_Cef_Pressure[0]){
-        return OIF411_Cef[0];
-    }
-    
-    // Off-scale top, use top-end value
-    if (pressure >= OIF411_Cef_Pressure[OIF411_Cef_Pressure.length-1]){
-        return OIF411_Cef[OIF411_Cef.length-1];
-    }
-    
-
-    // Within the correction range, perform linear interpolation.
-    for(i= 1; i<OIF411_Cef_Pressure.length; i++){
-        if (pressure < OIF411_Cef_Pressure[i]) {
-            return lerp(OIF411_Cef[i-1], OIF411_Cef[i],  ( (pressure-OIF411_Cef_Pressure[i-1]) / (OIF411_Cef_Pressure[i]-OIF411_Cef_Pressure[i-1])) );
-        }
-    }
-
-    // Otherwise, bomb out and return 1.0
-    return 1.0;
 }
 
 function parseOIF411(xdata, pressure){
@@ -615,7 +624,7 @@ function parseXDATA(data, pressure, temperature){
         if (_instrument === '01') {
             if (_current_xdata.length = 16) { 
                 // Ozonesonde
-                _xdata_temp = parseOzonesonde(_current_xdata);
+                _xdata_temp = parseOzonesonde(_current_xdata, pressure);
                 _output = Object.assign(_output,_xdata_temp);
                 if (!_instruments.includes("Ozonesonde")) _instruments.push('Ozonesonde');
             }
