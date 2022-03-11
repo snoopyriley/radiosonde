@@ -2563,8 +2563,16 @@ var marker_rotate_setup = function(marker, image_src) {
     marker.rotated = false;
     if(image_src in icon_cache) {
         marker.iconImg = icon_cache[image_src];
-        marker.setCourse(90);
-        marker.setLatLng(marker.getLatLng());
+        
+        if (marker.iconImg.complete){
+            marker.setCourse(90);
+            marker.setLatLng(marker.getLatLng());
+        }else{
+            marker.iconImg.addEventListener("load", function() {
+                marker.setCourse(90);
+                marker.setLatLng(marker.getLatLng());
+            })
+        }
     }
     else {
         marker.iconImg = new Image();
