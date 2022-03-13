@@ -14,7 +14,6 @@ function lerp(x, y, a){
     return x * (1 - a) + y * a
 }
 
-
 function get_oif411_Cef(pressure){
     // Get the Pump efficiency correction value for a given pressure.
 
@@ -38,6 +37,64 @@ function get_oif411_Cef(pressure){
 
     // Otherwise, bomb out and return 1.0
     return 1.0;
+}
+
+function parseOzonesonde(xdata, pressure) {
+    // Attempt to parse an XDATA string from an ECC Ozonesonde
+    // Returns an object with parameters to be added to the sondes telemetry.
+    //
+    // References: 
+    // https://gml.noaa.gov/aftp/user/jordan/iMet%20Radiosonde%20Protocol.pdf
+    //
+    // Sample data:      01010349FDC54296   (length = 16 characters)
+
+    // Run some checks over the input
+    if(xdata.length != 16){
+        // Invalid Ozonesonde dataset
+        return {};
+    }
+
+    if(xdata.substr(0,2) !== '01'){
+        // Not an Ozonesonde (shouldn't get here)
+        return {};
+    }
+
+    var _output = {};
+
+    // Instrument number is common to all XDATA types.
+    _output['ozonesonde_instrument_number'] = parseInt(xdata.substr(2,2),16);
+
+    // Cell Current
+    _cell_current = parseInt(xdata.substr(4,4),16)*0.001; // uA
+    _output['ozonesonde_cell_current'] = Math.round(_cell_current * 1000) / 1000; // 3 DP
+
+    // Pump Temperature
+    _pump_temperature = parseInt(xdata.substr(8,4),16);
+    if ((_pump_temperature  & 0x8000) > 0) {
+        _pump_temperature = _pump_temperature  - 0x10000;
+    }
+    _pump_temperature = _pump_temperature*0.01; // Degrees C
+    _output['ozonesonde_pump_temperature'] = Math.round(_pump_temperature * 100) / 100; // 2 DP
+
+    // Pump Current
+    _pump_current = parseInt(xdata.substr(12,2),16); // mA
+    _output['ozondesonde_pump_current'] = Math.round(_pump_current * 10) / 10; // 1 DP
+
+    // Battery Voltage
+    _battery_voltage = parseInt(xdata.substr(14,2),16)*0.1; // Volts
+    _output['ozondesonde_battery_voltage'] = Math.round(_battery_voltage * 10) / 10; // 1 DP
+
+    // Now attempt to calculate the O3 partial pressure (copy OIF411 calculations)
+
+    // Calibration values
+    Ibg = 0.0; // The BOM appear to use a Ozone background current value of 0 uA
+    Cef = get_oif411_Cef(pressure); // Calculate the pump efficiency correction.
+    FlowRate = 28.5; // Use a 'nominal' value for Flow Rate (seconds per 100mL).
+
+    _O3_partial_pressure = (4.30851e-4)*(_output['ozonesonde_cell_current'] - Ibg)*(_output['ozonesonde_pump_temperature']+273.15)*FlowRate*Cef; // mPa
+    _output['ozondesonde_O3_partial_pressure'] = Math.round(_O3_partial_pressure * 1000) / 1000; // 3 DP
+
+    return _output
 }
 
 function parseOIF411(xdata, pressure){
@@ -159,7 +216,7 @@ function parseCOBALD(xdata) {
     // Internal temperature
     _internal_temperature = parseInt(xdata.substr(7,3),16);
     if ((_internal_temperature  & 0x800) > 0) {
-        _internal_temperature  = _internal_temperature  - 0x1000;
+        _internal_temperature = _internal_temperature  - 0x1000;
     }
     _internal_temperature = _internal_temperature/8; // Degrees C (-40 - 50)
     _output['cobald_internal_temperature'] = Math.round(_internal_temperature * 100) / 100; // 2 DP
@@ -167,28 +224,28 @@ function parseCOBALD(xdata) {
     // Blue backscatter
     _blue_backscatter = parseInt(xdata.substr(10,6),16);
     if ((_blue_backscatter  & 0x800000) > 0) {
-        _blue_backscatter  = _blue_backscatter  - 0x1000000;
+        _blue_backscatter = _blue_backscatter  - 0x1000000;
     }
     _output['cobald_blue_backscatter'] = _blue_backscatter; // (0 - 1000000)
     
     // Red backckatter
     _red_backscatter = parseInt(xdata.substr(16,6),16);
     if ((_red_backscatter  & 0x800000) > 0) {
-        _red_backscatter  = _red_backscatter  - 0x1000000;
+        _red_backscatter = _red_backscatter  - 0x1000000;
     }
     _output['cobald_red_backscatter'] = _red_backscatter; // (0 - 1000000)
 
     // Blue monitor
     _blue_monitor = parseInt(xdata.substr(22,4),16);
     if ((_blue_monitor  & 0x8000) > 0) {
-        _blue_monitor  = _blue_monitor  - 0x10000;
+        _blue_monitor = _blue_monitor  - 0x10000;
     }
     _output['cobald_blue_monitor'] = _blue_monitor; // (-32768 - 32767)
     
     // Red monitor
     _red_monitor = parseInt(xdata.substr(26,4),16);
     if ((_red_monitor  & 0x8000) > 0) {
-        _red_monitor  = _red_monitor  - 0x10000;
+        _red_monitor = _red_monitor  - 0x10000;
     }
     _output['cobald_red_monitor'] = _red_monitor; // (-32768 - 32767)
 
@@ -565,10 +622,12 @@ function parseXDATA(data, pressure, temperature){
         _instrument = _current_xdata.substr(0,2);
 
         if (_instrument === '01') {
-            // V7
-            // 0102 time=1001 cnt=0 rpm=0
-            // 0102 time=1001 cnt=7 rpm=419
-            if (!_instruments.includes("V7")) _instruments.push('V7');
+            if (_current_xdata.length = 16) { 
+                // Ozonesonde
+                _xdata_temp = parseOzonesonde(_current_xdata, pressure);
+                _output = Object.assign(_output,_xdata_temp);
+                if (!_instruments.includes("Ozonesonde")) _instruments.push('Ozonesonde');
+            }
         } else if (_instrument === '05'){
             // OIF411
             _xdata_temp = parseOIF411(_current_xdata, pressure);
