@@ -1061,7 +1061,9 @@ function sidebar_update() {
             if (map.getBounds().contains(vehicles[serial].marker.getLatLng())) {
                 $("#main .vehicle"+vehicles[serial].uuid).show();
             } else {
-                $("#main .vehicle"+vehicles[serial].uuid).hide();
+                if (!($("#main .vehicle"+vehicles[serial].uuid).hasClass("follow"))) {
+                    $("#main .vehicle"+vehicles[serial].uuid).hide();
+                }
             }
         }
     } else {
