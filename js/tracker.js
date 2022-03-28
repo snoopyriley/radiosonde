@@ -3491,7 +3491,7 @@ function refresh() {
             refreshSingle(wvar.query);
         } else {
             response = formatData(data, false);
-            update(response);   
+            update(response, true);   
             $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
         }
         $("#stText").text("");
@@ -3619,7 +3619,7 @@ function refreshSingle(serial) {
       dataType: "json",
       success: function(data, textStatus) {
         response = formatData(data, false);
-        update(response);
+        update(response, true);
         singleRecovery(serial);
         $("#stText").text("");
       },
@@ -3661,7 +3661,7 @@ function refreshSingleNew(serial) {
       dataType: "json",
       success: function(data, textStatus) {
         response = formatData(data, false);
-        update(response);
+        update(response, true);
       },
       error: function() {
         ajax_inprogress_single_new = false;
@@ -4376,14 +4376,16 @@ var ssdv = {};
 var status = "";
 var bs_idx = 0;
 
-function update(response) {
+function update(response, none) {
     if (response === null ||
         !response.positions ||
         !response.positions.position ||
         !response.positions.position.length) {
 
         // if no vehicles are found, this will remove the spinner and put a friendly message
-        $("#main .empty").html("<span>No vehicles :(</span>");
+        if (none) {
+            $("#main .empty").html("<span>No vehicles :(</span>");
+        }
 
         return;
     }
