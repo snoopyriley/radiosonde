@@ -722,6 +722,7 @@ $(window).ready(function() {
         '#sw_hide_horizon',
         '#sw_hide_titles',
         '#sw_layers_launches',
+        '#sw_selective_sidebar',
         "#sw_nowelcome",
         "#sw_interpolate",
     ];
@@ -819,6 +820,9 @@ $(window).ready(function() {
             case "opt_layers_aprs":
                 if(on) map.overlayMapTypes.setAt("1", overlayAPRS);
                 else map.overlayMapTypes.setAt("1", null);
+                break;
+            case "opt_selective_sidebar":
+                sidebar_update();
                 break;
             case "opt_layers_launches":
                 if(on) {
