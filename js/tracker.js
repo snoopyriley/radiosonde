@@ -878,6 +878,7 @@ function load() {
 
     map.on('moveend', function (e) {
         lhash_update();
+        sidebar_update();
     });
 
     map.on('baselayerchange', function (e) {
@@ -926,6 +927,7 @@ function load() {
 
         map.on('moveend', function() {
             lhash_update();
+            sidebar_update();
         });
         map.on('baselayerchange', function() {
             lhash_update();
@@ -1049,6 +1051,24 @@ function panToRecovery(rcallsign) {
                 //pan map
                 map.setView(recoveries[i]['marker'].getLatLng(), 10);
             }
+        }
+    }
+}
+
+function sidebar_update() {
+    if (offline.get('opt_selective_sidebar')) {
+        for (let serial in vehicles) {
+            if (map.getBounds().contains(vehicles[serial].marker.getLatLng())) {
+                $("#main .vehicle"+vehicles[serial].uuid).show();
+            } else {
+                if (!($("#main .vehicle"+vehicles[serial].uuid).hasClass("follow"))) {
+                    $("#main .vehicle"+vehicles[serial].uuid).hide();
+                }
+            }
+        }
+    } else {
+        for (let serial in vehicles) {
+            $("#main .vehicle"+vehicles[serial].uuid).show();
         }
     }
 }
@@ -1526,6 +1546,14 @@ function updateVehicleInfo(vcallsign, newPosition) {
     } else {
         $('.portrait').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
         $('.landscape').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+    }
+
+    if (offline.get('opt_selective_sidebar')) {
+        if (map.getBounds().contains(vehicles[vcallsign].marker.getLatLng())) {
+            $("#main .vehicle"+vehicle.uuid).show();
+        } else {
+            $("#main .vehicle"+vehicle.uuid).hide();
+        }
     }
 
   } else if(elm.attr('data-vcallsign') === undefined) {
@@ -3463,7 +3491,7 @@ function refresh() {
             refreshSingle(wvar.query);
         } else {
             response = formatData(data, false);
-            update(response);   
+            update(response, true);   
             $("#stTimer").attr("data-timestamp", response.fetch_timestamp);
         }
         $("#stText").text("");
@@ -3591,7 +3619,7 @@ function refreshSingle(serial) {
       dataType: "json",
       success: function(data, textStatus) {
         response = formatData(data, false);
-        update(response);
+        update(response, true);
         singleRecovery(serial);
         $("#stText").text("");
       },
@@ -3633,7 +3661,7 @@ function refreshSingleNew(serial) {
       dataType: "json",
       success: function(data, textStatus) {
         response = formatData(data, false);
-        update(response);
+        update(response, true);
       },
       error: function() {
         ajax_inprogress_single_new = false;
@@ -4348,14 +4376,16 @@ var ssdv = {};
 var status = "";
 var bs_idx = 0;
 
-function update(response) {
+function update(response, none) {
     if (response === null ||
         !response.positions ||
         !response.positions.position ||
         !response.positions.position.length) {
 
         // if no vehicles are found, this will remove the spinner and put a friendly message
-        $("#main .empty").html("<span>No vehicles :(</span>");
+        if (none) {
+            $("#main .empty").html("<span>No vehicles :(</span>");
+        }
 
         return;
     }
