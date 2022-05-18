@@ -40,11 +40,10 @@ Requirements: Java
 
     $ git clone https://github.com/projecthorus/sondehub-tracker.git
     $ ./build.sh
+    $ python serve.py
+
+Visit [http://localhost:8000](http://localhost:8000) to view the local version of the tracker!
 
 ## Original design
 
 Author: Daniel Saul [@danielsaul](https://github.com/danielsaul)
-
-
-
-
