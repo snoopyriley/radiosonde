@@ -3530,6 +3530,11 @@ function liveData() {
             client.subscribe("batch");
             clientTopic = "batch";
         }
+        // Also subscribe to listener data, for listener and chase-car telemetry.
+        // To revert listener-via-websockets change, comment out this line,
+        // and un-comment the 'Disable periodical listener refresh' lines further below.
+        client.subscribe("listener/#");
+
         clientConnected = true;
         $("#stText").text("websocket |");
     };
@@ -3570,25 +3575,51 @@ function liveData() {
         var dateNow = new Date().getTime();
         try {
             if (clientActive) {
-                var frame = JSON.parse(message.payloadString.toString());
-                if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1 || wvar.query == frame.serial) {
-                    if (frame.length == null) {
-                        var tempDate = new Date(frame.time_received).getTime();
-                    } else {
-                        var tempDate = new Date(frame[frame.length - 1].time_received).getTime()
-                    }
-                    if ((dateNow - tempDate) < 30000) {
-                        var test = formatData(frame, true);
-                        if (clientActive) {
-                            live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
+                if(message.topic.startsWith("listener")){
+                    // Message is Listener / Chase-Car information
+                    var frame = JSON.parse(message.payloadString.toString());
+                    // We need to convert this into the right format for feeding into the receiver / chase car update functions.
+                    // Probably a cleaner way of doing this.
+                    // Format needs to be {callsign : {timestamp: frame}}
+                    var formatted_frame = {};
+                    formatted_frame[frame.uploader_callsign] = {};
+                    formatted_frame[frame.uploader_callsign][frame.ts] = frame;
+
+                    // Send frames with mobile present and true onto the chase-car updater,
+                    // otherwise, send them to the receiver updater.
+                    // Do this on a per-update bases, since listener / chase car updates shouldn't
+                    // be as frequent.
+                    if(frame.hasOwnProperty('mobile')) {
+                        if(frame.mobile == true) {
+                            updateChase(formatted_frame);
+                        } else {
+                            updateReceivers(formatted_frame, single=true);
                         }
-                        $("#stTimer").attr("data-timestamp", dateNow);
-                        $("#stText").text("websocket |");
-                    } else if ((dateNow - new Date(frame.time_received).getTime()) > 150000) {
-                        $("#stText").text("error |");
-                        refresh();
                     } else {
-                        $("#stText").text("error |");
+                        updateReceivers(formatted_frame, single=true);
+                    }
+
+                } else {
+                    var frame = JSON.parse(message.payloadString.toString());
+                    if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1 || wvar.query == frame.serial) {
+                        if (frame.length == null) {
+                            var tempDate = new Date(frame.time_received).getTime();
+                        } else {
+                            var tempDate = new Date(frame[frame.length - 1].time_received).getTime()
+                        }
+                        if ((dateNow - tempDate) < 30000) {
+                            var test = formatData(frame, true);
+                            if (clientActive) {
+                                live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
+                            }
+                            $("#stTimer").attr("data-timestamp", dateNow);
+                            $("#stText").text("websocket |");
+                        } else if ((dateNow - new Date(frame.time_received).getTime()) > 150000) {
+                            $("#stText").text("error |");
+                            refresh();
+                        } else {
+                            $("#stText").text("error |");
+                        }
                     }
                 }
             }
@@ -3710,7 +3741,7 @@ function refreshReceivers() {
             data: data_str,
             dataType: "json",
             success: function(response, textStatus) {
-                updateReceivers(response);
+                updateReceivers(response, single=false);
             },
             complete: function(request, textStatus) {
                 if (!offline.get("opt_hide_chase")) {
@@ -3746,7 +3777,8 @@ function refreshNewReceivers(initial, serial) {
         },
         complete: function(request, textStatus) {
             if (typeof serial === 'undefined') {
-                periodical_listeners = setTimeout(function() {refreshNewReceivers(false)}, 30 * 1000);
+                // Disable periodical listener refresh - this data now comes via websockets.
+                //periodical_listeners = setTimeout(function() {refreshNewReceivers(false)}, 30 * 1000);
             }
         }
     });
@@ -4023,7 +4055,7 @@ function showRecoveredMap(serial) {
     clean_refresh(wvar.mode, true, true);
 };
 
-function updateReceivers(r) {
+function updateReceivers(r, single) {
     if(!r) return;
     ls_receivers = true;
 
@@ -4065,20 +4097,22 @@ function updateReceivers(r) {
     }
 
     // clear old receivers
-    i = 0;
-    for(; i < receivers.length;) {
-        var e = receivers[i];
-        if(e.fresh) {
-            e.fresh = false;
-            i++;
-        }
-        else {
-            map.removeLayer(e.infobox);
-            receiverCanvas.removeLayer(e.marker);
+    if(single == false){
+        i = 0;
+        for(; i < receivers.length;) {
+            var e = receivers[i];
+            if(e.fresh) {
+                e.fresh = false;
+                i++;
+            }
+            else {
+                map.removeLayer(e.infobox);
+                receiverCanvas.removeLayer(e.marker);
 
-            // remove from arrays
-            receivers.splice(i,1);
-            receiver_names.splice(i,1);
+                // remove from arrays
+                receivers.splice(i,1);
+                receiver_names.splice(i,1);
+            }
         }
     }
 
