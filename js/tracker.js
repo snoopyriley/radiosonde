@@ -3634,7 +3634,7 @@ function liveData() {
                         } else {
                             var tempDate = new Date(frame[frame.length - 1].time_received).getTime()
                         }
-                        if ((dateNow - tempDate) < 30000) {
+                        if ((dateNow - tempDate) < 45000) {
                             var test = formatData(frame, true);
                             if (clientActive) {
                                 live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
