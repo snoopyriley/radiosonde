@@ -3634,18 +3634,20 @@ function liveData() {
                         } else {
                             var tempDate = new Date(frame[frame.length - 1].time_received).getTime()
                         }
-                        if ((dateNow - tempDate) < 30000) {
+                        if ((dateNow - tempDate) < 45000) {
                             var test = formatData(frame, true);
                             if (clientActive) {
                                 live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
                             }
                             $("#stTimer").attr("data-timestamp", dateNow);
-                            $("#stText").text("websocket |");
+                            $("#stText").text("websocket ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
                         } else if ((dateNow - new Date(frame.time_received).getTime()) > 150000) {
-                            $("#stText").text("data error |");
+                            $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
+                            console.log("WebSockets Error: Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length);
                             refresh();
                         } else {
-                            $("#stText").text("data error |");
+                            $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
+                            console.log("WebSockets Error: Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length);
                         }
                     }
                 }
