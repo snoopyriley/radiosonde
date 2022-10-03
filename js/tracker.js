@@ -3567,7 +3567,7 @@ function liveData() {
     };
 
     function connectionError(error) {
-        $("#stText").text("error |");
+        $("#stText").text("conn. error |");
         clientConnected = false;
         clientActive = false;
         if (!document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
@@ -3642,10 +3642,10 @@ function liveData() {
                             $("#stTimer").attr("data-timestamp", dateNow);
                             $("#stText").text("websocket |");
                         } else if ((dateNow - new Date(frame.time_received).getTime()) > 150000) {
-                            $("#stText").text("error |");
+                            $("#stText").text("data error |");
                             refresh();
                         } else {
-                            $("#stText").text("error |");
+                            $("#stText").text("data error |");
                         }
                     }
                 }
