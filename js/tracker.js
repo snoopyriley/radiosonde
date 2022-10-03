@@ -2095,6 +2095,20 @@ function redrawPrediction(vcallsign) {
             });
         }
         vehicle.prediction_target.pdata = data[data.length-1];
+
+        if(vehicle.prediction.descent_rate == null){
+            vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Float\n";
+        } else {
+            if(vehicle.prediction.descending == 1){
+                vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Standard \n" + 
+                    "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
+            } else {
+                vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Standard \n" + 
+                    "<b>Ascent Rate:</b> " + vehicle.prediction.ascent_rate.toFixed(1) + " m/s \n" + 
+                    "<b>Burst Altitude:</b> " + vehicle.prediction.burst_altitude.toFixed(0) + " m\n" + 
+                    "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
+            }
+        }
     } else {
         if(vehicle.prediction_target) vehicle.prediction_target = null;
     }
@@ -2118,6 +2132,19 @@ function redrawPrediction(vcallsign) {
             });
         }
         vehicle.prediction_burst.pdata = data[burst_index];
+        if(vehicle.prediction.descent_rate == null){
+            vehicle.prediction_burst.pred_type = "<b>Prediction Type:</b> Float\n";
+        } else {
+            if(vehicle.prediction.descending == 1){
+                vehicle.prediction_burst.pred_type = "<b>Prediction Type:</b> Standard \n" + 
+                    "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
+            } else {
+                vehicle.prediction_burst.pred_type = "<b>Prediction Type:</b> Standard \n" + 
+                    "<b>Ascent Rate:</b> " + vehicle.prediction.ascent_rate.toFixed(1) + " m/s \n" + 
+                    "<b>Burst Altitude:</b> " + vehicle.prediction.burst_altitude.toFixed(0) + " m\n" + 
+                    "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
+            }
+        }
     } else {
         if(vehicle.prediction_burst) vehicle.prediction_burst = null;
     }
@@ -2533,8 +2560,8 @@ function mapInfoBox_handle_prediction(event) {
     mapInfoBox.setContent("<pre>" +
                         formatDate(new Date(parseInt(data.time) * 1000), true) + "\n\n" +
                         "<b>Altitude:</b> " + altitude + "\n" +
-                        "<b>Latitude:</b> " + data.lat + "\n" +
-                        "<b>Longitude:</b> " + data.lon + "\n" +
+                        "<b>Location:</b> <a href='geo:" + data.lat.toFixed(5) + "," + data.lon.toFixed(5) + "'>" + data.lat.toFixed(5) + ", " + data.lon.toFixed(5) + "</a>\n" + 
+                        event.target.pred_type +
                         "</pre>"
                         );
     mapInfoBox.setLatLng(event.latlng);
