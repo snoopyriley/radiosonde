@@ -3644,7 +3644,7 @@ function liveData() {
                         } else if ((dateNow - new Date(frame.datetime).getTime()) > 150000) {
                             $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
                             console.log("WebSockets Error: Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length);
-                            refresh();
+                            //refresh();
                         } else {
                             $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
                             console.log("WebSockets Error: Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length);
