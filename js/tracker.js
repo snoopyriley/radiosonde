@@ -3630,9 +3630,9 @@ function liveData() {
                     var frame = JSON.parse(message.payloadString.toString());
                     if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1 || wvar.query == frame.serial) {
                         if (frame.length == null) {
-                            var tempDate = new Date(frame.time_received).getTime();
+                            var tempDate = new Date(frame.datetime).getTime();
                         } else {
-                            var tempDate = new Date(frame[frame.length - 1].time_received).getTime()
+                            var tempDate = new Date(frame[frame.length - 1].datetime).getTime()
                         }
                         if ((dateNow - tempDate) < 45000) {
                             var test = formatData(frame, true);
@@ -3641,7 +3641,7 @@ function liveData() {
                             }
                             $("#stTimer").attr("data-timestamp", dateNow);
                             $("#stText").text("websocket ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
-                        } else if ((dateNow - new Date(frame.time_received).getTime()) > 150000) {
+                        } else if ((dateNow - new Date(frame.datetime).getTime()) > 150000) {
                             $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
                             console.log("WebSockets Error: Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length);
                             refresh();
