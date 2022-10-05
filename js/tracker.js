@@ -3636,7 +3636,7 @@ function liveData() {
                         } else {
                             var tempDate = new Date(frame[frame.length - 1].datetime).getTime()
                         }
-                        if ((dateNow - tempDate) < 30000) {
+                        if ((dateNow - tempDate) < 100000) {
                             // Data is recent enough. 
                             var test = formatData(frame, true);
                             if (clientActive) {
