@@ -3670,7 +3670,7 @@ function liveData() {
 setInterval(function(){
     update(live_data_buffer);
     live_data_buffer.positions.position=[];
-}, 200)
+}, 500)
 
 function refreshSingle(serial) {
     if(ajax_inprogress_single) {
@@ -4515,15 +4515,21 @@ function update(response, none) {
             ctx.idx = max;
 
             if(ctx.idx < ctx.max) {
-              setTimeout(function() { ctx.step(ctx); }, 4);
+              //setTimeout(function() { 
+                ctx.step(ctx); 
+              //}, 4);
             } else {
               ctx.list = Object.keys(vehicles);
-              setTimeout(function() { ctx.draw(ctx); }, 16);
+              //setTimeout(function() { 
+                ctx.draw(ctx); 
+              //  }, 16);
             }
         },
         draw: function(ctx) {
             if(ctx.list.length < 1) {
-              setTimeout(function() { ctx.end(ctx); }, 16);
+              //setTimeout(function() { 
+                ctx.end(ctx); 
+               // }, 16);
               return;
             }
 
@@ -4550,7 +4556,9 @@ function update(response, none) {
             }
 
             // step to the next callsign
-            setTimeout(function() { ctx.draw(ctx); }, 16);
+            // setTimeout(function() { 
+                ctx.draw(ctx); 
+            //}, 16);
         },
         end: function(ctx) {
 
