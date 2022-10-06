@@ -3535,7 +3535,7 @@ function refresh() {
             document.getElementById("timeperiod").disabled = false;
         }
         clientActive = true;
-        console.log("WebSockets - Resuming Websockets updates.")
+        //console.log("WebSockets - Resuming Websockets updates after poll.")
         clearTimeout(periodical);
         ajax_inprogress = false;
     }
@@ -3631,46 +3631,59 @@ function liveData() {
                     var frame = JSON.parse(message.payloadString.toString());
 
                     if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1 || wvar.query == frame.serial) {
-                        if (frame.length == null) {
-                            var tempDate = new Date(frame.datetime).getTime();
-                        } else {
-                            var tempDate = new Date(frame[frame.length - 1].datetime).getTime()
-                        }
-                        if ((dateNow - tempDate) < 100000) {
-                            // Data is recent enough. 
-                            var test = formatData(frame, true);
-                            if (clientActive) {
-                                live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
-                            }
+
+                        var test = formatData(frame, true);
+                        if (clientActive) {
+                            live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
                             $("#stTimer").attr("data-timestamp", dateNow);
-                            $("#stText").text("websocket ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
-                        } else if ((dateNow - new Date(frame.datetime).getTime()) > 150000) {
-                            // Data is very old, which may indicate that our tab has probably been suspended.
-                            // We now poll for data.
-                            $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
-                            console.log("WebSockets - Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length + ". Discarding and polling for data.");
-                            // Discard all further messages until we have finished the next poll.
-                            console.log("WebSockets - Tab possibly suspended, polling for updates.")
-                            clientActive = false;
-                            refresh();
-                        } else {
-                            $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
-                            console.log("WebSockets - Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length + ". Discarding frame.");
+                            $("#stText").text("websocket |");
                         }
+
+                        // if (frame.length == null) {
+                        //     var tempDate = new Date(frame.datetime).getTime();
+                        // } else {
+                        //     var tempDate = new Date(frame[frame.length - 1].datetime).getTime()
+                        // }
+                        // if ((dateNow - tempDate) < 100000) {
+                        //     // Data is recent enough. 
+                        //     var test = formatData(frame, true);
+                        //     if (clientActive) {
+                        //         live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
+                        //     }
+                        //     $("#stTimer").attr("data-timestamp", dateNow);
+                        //     $("#stText").text("websocket ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
+                        // } else if ((dateNow - new Date(frame.datetime).getTime()) > 150000) {
+                        //     // Data is very old, which may indicate that our tab has probably been suspended.
+                        //     // We now poll for data.
+                        //     $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
+                        //     console.log("WebSockets - Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length + ". Discarding and polling for data.");
+                        //     // Discard all further messages until we have finished the next poll.
+                        //     console.log("WebSockets - Tab possibly suspended, polling for updates.")
+                        //     clientActive = false;
+                        //     refresh();
+                        // } else {
+                        //     $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
+                        //     console.log("WebSockets - Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length + ". Discarding frame.");
+                        // }
                     }
                 }
             } else {
-                console.log("WebSockets - Discarding Message.")
+                console.log("WebSockets - Discarding Message, not ready yet.")
             }
         }
         catch(err) {}
     };
 }
 
+
+// Interval to read in the live data buffer and update the page.
 setInterval(function(){
     update(live_data_buffer);
     live_data_buffer.positions.position=[];
 }, 500)
+
+// Event listener to update on page resume from suspend.
+document.addEventListener('resume', refresh);
 
 function refreshSingle(serial) {
     if(ajax_inprogress_single) {
