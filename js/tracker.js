@@ -3526,7 +3526,7 @@ function refresh() {
         $("#stText").text("");
     },
     error: function() {
-        $("#stText").text("error |");
+        $("#stText").text("poll error |");
         document.getElementById("timeperiod").disabled = false;
         ajax_inprogress = false;
     },
@@ -3535,6 +3535,7 @@ function refresh() {
             document.getElementById("timeperiod").disabled = false;
         }
         clientActive = true;
+        //console.log("WebSockets - Resuming Websockets updates after poll.")
         clearTimeout(periodical);
         ajax_inprogress = false;
     }
@@ -3628,37 +3629,61 @@ function liveData() {
 
                 } else {
                     var frame = JSON.parse(message.payloadString.toString());
+
                     if (wvar.query == "" || sondePrefix.indexOf(wvar.query) > -1 || wvar.query == frame.serial) {
-                        if (frame.length == null) {
-                            var tempDate = new Date(frame.time_received).getTime();
-                        } else {
-                            var tempDate = new Date(frame[frame.length - 1].time_received).getTime()
-                        }
-                        if ((dateNow - tempDate) < 45000) {
-                            var test = formatData(frame, true);
-                            if (clientActive) {
-                                live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
-                            }
+
+                        var test = formatData(frame, true);
+                        if (clientActive) {
+                            live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
                             $("#stTimer").attr("data-timestamp", dateNow);
                             $("#stText").text("websocket |");
-                        } else if ((dateNow - new Date(frame.time_received).getTime()) > 150000) {
-                            $("#stText").text("data error |");
-                            refresh();
-                        } else {
-                            $("#stText").text("data error |");
                         }
+
+                        // if (frame.length == null) {
+                        //     var tempDate = new Date(frame.datetime).getTime();
+                        // } else {
+                        //     var tempDate = new Date(frame[frame.length - 1].datetime).getTime()
+                        // }
+                        // if ((dateNow - tempDate) < 100000) {
+                        //     // Data is recent enough. 
+                        //     var test = formatData(frame, true);
+                        //     if (clientActive) {
+                        //         live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
+                        //     }
+                        //     $("#stTimer").attr("data-timestamp", dateNow);
+                        //     $("#stText").text("websocket ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
+                        // } else if ((dateNow - new Date(frame.datetime).getTime()) > 150000) {
+                        //     // Data is very old, which may indicate that our tab has probably been suspended.
+                        //     // We now poll for data.
+                        //     $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
+                        //     console.log("WebSockets - Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length + ". Discarding and polling for data.");
+                        //     // Discard all further messages until we have finished the next poll.
+                        //     console.log("WebSockets - Tab possibly suspended, polling for updates.")
+                        //     clientActive = false;
+                        //     refresh();
+                        // } else {
+                        //     $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
+                        //     console.log("WebSockets - Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length + ". Discarding frame.");
+                        // }
                     }
                 }
+            } else {
+                console.log("WebSockets - Discarding Message, not ready yet.")
             }
         }
         catch(err) {}
     };
 }
 
+
+// Interval to read in the live data buffer and update the page.
 setInterval(function(){
     update(live_data_buffer);
     live_data_buffer.positions.position=[];
-}, 200)
+}, 500)
+
+// Event listener to update on page resume from suspend.
+document.addEventListener('resume', refresh);
 
 function refreshSingle(serial) {
     if(ajax_inprogress_single) {
@@ -4066,7 +4091,7 @@ function updateChase(r) {
     response.positions.position = dataTemp;
     response.fetch_timestamp = Date.now();
     if (response.positions.position.length > 0) {
-        update(response);
+        live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,response.positions.position)
     }
 }
 
@@ -4115,7 +4140,7 @@ function updateReceivers(r, single) {
                 receiver.alt = alt;
                 receiver.age = age.toISOString();
                 receiver.description = "<font style='font-size: 13px'>"+receiver.name+"</font><br/><font size='-2'><BR><B>Radio: </B>" + last.software_name + "-" + last.software_version
-                + "<BR><B>Antenna: </B>" + last.uploader_antenna + "<BR><B>Last Contact: </B>" + age.toISOString() + "<BR></font>";
+                + "<BR><B>Antenna: </B>" + last.uploader_antenna + "<BR><B>Last Contact: </B>" + last.ts + "Z<BR></font>";
                 receiver.fresh = true;
 
                 updateReceiverMarker(receiver);
@@ -4473,93 +4498,85 @@ function update(response, none) {
         lastPPointer: lastPositions.positions.position,
         idx: 0,
         max: response.positions.position.length,
-        step: function(ctx) {
-            var draw_idx = -1;
+        run: function(ctx) {
+            while(ctx.idx < ctx.max){
+                var draw_idx = -1;
 
-            var i = ctx.idx;
-            var max = i + 5000;
-            max = (max >= ctx.max) ? ctx.max : max;
+                var i = ctx.idx;
+                var max = i + 5000;
+                max = (max >= ctx.max) ? ctx.max : max;
 
-            for (; i < max ; i++) {
-                var row = ctx.positions[i];
+                for (; i < max ; i++) {
+                    var row = ctx.positions[i];
 
-                // set the position based on the last record (oldest) returned from the server. Only provide minute accuracy to allow better hit rate with cloudfront
-                this_position_id = new Date(row.gps_time);
+                    // set the position based on the last record (oldest) returned from the server. Only provide minute accuracy to allow better hit rate with cloudfront
+                    this_position_id = new Date(row.gps_time);
 
-                if (new Date(position_id) < this_position_id || position_id == 0){
-                    if (new Date() > this_position_id) {
-                        this_position_id.setSeconds(0)
-                        this_position_id.setMilliseconds(0)
-                        position_id = this_position_id.toISOString()
+                    if (new Date(position_id) < this_position_id || position_id == 0){
+                        if (new Date() > this_position_id) {
+                            this_position_id.setSeconds(0)
+                            this_position_id.setMilliseconds(0)
+                            position_id = this_position_id.toISOString()
+                        }
+                    }
+
+                    if (!row.picture) {
+                        addPosition(row);
+                        got_positions = true;
                     }
                 }
 
-                if (!row.picture) {
-                    addPosition(row);
-                    got_positions = true;
+                ctx.idx = max;
+
+            }
+
+            ctx.list = Object.keys(vehicles);
+
+            // draw loop  
+            while(ctx.list.length >= 1){
+                // pop a callsign from the top
+                var vcallsign = ctx.list.shift();
+                var vehicle = vehicles[vcallsign];
+
+                if(vehicle === undefined) return;
+
+                if(vehicle.updated) {
+                    updatePolyline(vcallsign);
+                    
+                    updateVehicleInfo(vcallsign, vehicle.curr_position);
+
+                    // remember last position for each vehicle
+                    ctx.lastPPointer.push(vehicle.curr_position);
+
+                    if(listScroll) listScroll.refresh();
+                    if(zoomed_in && follow_vehicle == vcallsign && !manual_pan) panTo(follow_vehicle);
+                    if (follow_vehicle == vcallsign) {
+                        update_lookangles(follow_vehicle);
+                        drawLOSPaths(vcallsign);
+                    }
                 }
             }
+            // ctx.end
 
-            ctx.idx = max;
+            // update graph is current vehicles is followed
+            if(follow_vehicle !== null &&
+            vehicles.hasOwnProperty(follow_vehicle) &&
+            vehicles[follow_vehicle].graph_data_updated) updateGraph(follow_vehicle, false);
 
-            if(ctx.idx < ctx.max) {
-              setTimeout(function() { ctx.step(ctx); }, 4);
-            } else {
-              ctx.list = Object.keys(vehicles);
-              setTimeout(function() { ctx.draw(ctx); }, 16);
-            }
-        },
-        draw: function(ctx) {
-            if(ctx.list.length < 1) {
-              setTimeout(function() { ctx.end(ctx); }, 16);
-              return;
-            }
-
-            // pop a callsign from the top
-            var vcallsign = ctx.list.shift();
-            var vehicle = vehicles[vcallsign];
-
-            if(vehicle === undefined) return;
-
-            if(vehicle.updated) {
-                updatePolyline(vcallsign);
-                
-                updateVehicleInfo(vcallsign, vehicle.curr_position);
-
-                // remember last position for each vehicle
-                ctx.lastPPointer.push(vehicle.curr_position);
-
-                if(listScroll) listScroll.refresh();
-                if(zoomed_in && follow_vehicle == vcallsign && !manual_pan) panTo(follow_vehicle);
-                if (follow_vehicle == vcallsign) {
-                    update_lookangles(follow_vehicle);
-                    drawLOSPaths(vcallsign);
-                }
-            }
-
-            // step to the next callsign
-            setTimeout(function() { ctx.draw(ctx); }, 16);
-        },
-        end: function(ctx) {
-
-          // update graph is current vehicles is followed
-          if(follow_vehicle !== null &&
-             vehicles.hasOwnProperty(follow_vehicle) &&
-             vehicles[follow_vehicle].graph_data_updated) updateGraph(follow_vehicle, false);
-
-          if (got_positions && !zoomed_in && Object.keys(vehicles).length) {
+            if (got_positions && !zoomed_in && Object.keys(vehicles).length) {
             if (vehicles.hasOwnProperty(wvar.query) && wvar.query !== "") {
                 zoom_on_payload();
             }
             // TODO: Zoom to geolocation position
 
-          }
+            }
 
-          if(periodical_predictions === null) refreshPredictions();
-        }
+            if(periodical_predictions === null) refreshPredictions();
+        },
+
     };
 
-    ctx_init.step(ctx_init);
+    ctx_init.run(ctx_init);
 }
 
 function zoom_on_payload() {
