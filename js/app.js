@@ -771,10 +771,12 @@ $(window).ready(function() {
                 break;
             case "opt_hide_receivers":
                 if(on) {
-                    updateReceivers([]);
-                    clearTimeout(periodical_listeners);
+                    updateReceivers([],single=false);
+                    //clearTimeout(periodical_listeners);
+                    receiversHidden = true;
                 }
                 else {
+                    receiversHidden = false;
                     refreshReceivers();
                 }
                 break;
@@ -789,9 +791,11 @@ $(window).ready(function() {
                     break;
             case "opt_hide_chase":
                 if(on) {
-                    clearTimeout(periodical_listeners);
+                    chaseCarsHidden = true;
+                    //clearTimeout(periodical_listeners);
                     deleteChase();
                 } else {
+                    chaseCarsHidden = false;
                     refreshNewReceivers(true);
                 }
                 break;

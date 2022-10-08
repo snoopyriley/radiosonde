@@ -16,6 +16,9 @@ var clientTopic;
 var messageRate = 0;
 var messageRateAverage = 10;
 
+var receiversHidden = false;
+var chaseCarsHidden = false;
+
 var pledges = {};
 var pledges_loaded = false
 
@@ -3638,33 +3641,6 @@ function liveData() {
                             $("#stTimer").attr("data-timestamp", dateNow);
                             $("#stText").text("websocket |");
                         }
-
-                        // if (frame.length == null) {
-                        //     var tempDate = new Date(frame.datetime).getTime();
-                        // } else {
-                        //     var tempDate = new Date(frame[frame.length - 1].datetime).getTime()
-                        // }
-                        // if ((dateNow - tempDate) < 100000) {
-                        //     // Data is recent enough. 
-                        //     var test = formatData(frame, true);
-                        //     if (clientActive) {
-                        //         live_data_buffer.positions.position.push.apply(live_data_buffer.positions.position,test.positions.position)
-                        //     }
-                        //     $("#stTimer").attr("data-timestamp", dateNow);
-                        //     $("#stText").text("websocket ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
-                        // } else if ((dateNow - new Date(frame.datetime).getTime()) > 150000) {
-                        //     // Data is very old, which may indicate that our tab has probably been suspended.
-                        //     // We now poll for data.
-                        //     $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
-                        //     console.log("WebSockets - Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length + ". Discarding and polling for data.");
-                        //     // Discard all further messages until we have finished the next poll.
-                        //     console.log("WebSockets - Tab possibly suspended, polling for updates.")
-                        //     clientActive = false;
-                        //     refresh();
-                        // } else {
-                        //     $("#stText").text("data error ("+ ((dateNow - tempDate)/1000).toFixed(1) +" s) |");
-                        //     console.log("WebSockets - Data Age was " + ((dateNow - tempDate)/1000).toFixed(1) + " s, frame length: " + frame.length + ". Discarding frame.");
-                        // }
                     }
                 }
             } else {
@@ -3929,7 +3905,7 @@ function refreshPredictions() {
     });
 }
 
-var periodical, periodical_focus, periodical_focus_new, periodical_receivers, periodical_listeners;
+var periodical, periodical_focus, periodical_focus_new, periodical_receivers, periodical_listeners, periodical_recoveries;
 var periodical_predictions = null;
 var timer_seconds = 5;
 
@@ -4060,6 +4036,10 @@ function deleteChase(r) {
 function updateChase(r) {
     if(!r) return;
 
+    if(chaseCarsHidden == true){
+        return;
+    }
+
     var response = {};
     response.positions = {};
     var dataTemp = [];
@@ -4109,6 +4089,11 @@ function showRecoveredMap(serial) {
 
 function updateReceivers(r, single) {
     if(!r) return;
+
+    if(receiversHidden==true){
+        return;
+    }
+
     ls_receivers = true;
 
     for (var i in r) {
