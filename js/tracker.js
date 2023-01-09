@@ -2701,7 +2701,7 @@ function addPosition(position) {
                 _vehicle_idname = ".vehicle"+vehicles[_vehicle_id].uuid;
                 $(_vehicle_idname).addClass('active');
                 listScroll.refresh();
-                listScroll.scrollToElement(_vehicle_idname);
+                listScroll.scrollToElement(_vehicle_idname, 0);
                 panTo(vcallsign);
                 clearTimeout(periodical_focus_new);
                 refreshSingleNew(_vehicle_id);
@@ -2779,7 +2779,7 @@ function addPosition(position) {
                 _vehicle_idname = ".vehicle"+vehicles[_vehicle_id].uuid;
                 $(_vehicle_idname).addClass('active');
                 listScroll.refresh();
-                listScroll.scrollToElement(_vehicle_idname);
+                listScroll.scrollToElement(_vehicle_idname, 0);
                 followVehicle($(_vehicle_idname).attr('data-vcallsign'));
             };
 
@@ -4622,7 +4622,7 @@ function zoom_on_payload() {
 
     // scroll list to the expanded element
     listScroll.refresh();
-    listScroll.scrollToElement('.portrait .vehicle'+target.uuid);
+    listScroll.scrollToElement('.portrait .vehicle'+target.uuid, 0);
 
     zoomed_in = true;
 }
