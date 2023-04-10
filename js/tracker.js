@@ -69,7 +69,8 @@ var car_index = 0;
 var car_colors = ["blue", "red", "green", "yellow", "teal", "purple"];
 var balloon_index = 0;
 var balloon_colors_name = ["red", "blue", "green", "yellow", "purple", "orange", "cyan"];
-var balloon_colors = ["#f00", "blue", "green", "#FDFC30", "#c700e6", "#ff8a0f", "#0fffca"];
+// Yellow was #FDFC30, darker version is "#caca02"
+var balloon_colors = ["#f00", "blue", "green", "#caca02", "#c700e6", "#ff8a0f", "#0fffca"];
 
 var nyan_color_index = 0;
 var nyan_colors = ['nyan', 'nyan-coin', 'nyan-mon', 'nyan-pirate', 'nyan-cool', 'nyan-tothemax', 'nyan-pumpkin', 'nyan-afro', 'nyan-coin', 'nyan-mummy'];
@@ -2120,7 +2121,7 @@ function redrawPrediction(vcallsign) {
     } else {
         vehicle.prediction_polyline = new L.Polyline(line, {
             color: balloon_colors[vehicle.color_index],
-            opacity: 0.4,
+            opacity: 0.5, // Was 0.4
             weight: 3,
         }).addTo(map);
         vehicle.prediction_polyline.on('click', function (e) {
