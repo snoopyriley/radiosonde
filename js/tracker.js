@@ -1768,9 +1768,9 @@ function updateVehicleInfo(vcallsign, newPosition) {
   if(wvar.mode != "Position" && vehicle.graph_data.length) {
       var can = $('.vehicle'+vehicle.uuid+' .graph');
       if (vehicle.vehicle_type!="car") {
-        drawAltitudeProfile(can.get(0), can.get(1), vehicle.graph_data[0], vehicle.max_alt, vehicle.max_alt_time, true, vehicle.callsign);
+        drawAltitudeProfile(can.get(0), can.get(1), vehicle.graph_data[0], vehicle.max_alt, true);
       } else {
-        drawAltitudeProfile(can.get(0), can.get(1), vehicle.graph_data[0], vehicle.max_alt, vehicle.max_alt_time, true, vehicle.callsign);
+        drawAltitudeProfile(can.get(0), can.get(1), vehicle.graph_data[0], vehicle.max_alt, true);
       }
   }
 
@@ -2213,7 +2213,7 @@ function updatePolyline(vcallsign) {
     }
 }
 
-function drawAltitudeProfile(c1, c2, series, alt_max, alt_max_time, chase, name) {
+function drawAltitudeProfile(c1, c2, series, alt_max, chase) {
     // Updated 2023-04-10 to make use of position time data to set 
     // the x-coordinate. This helps resolve issues with backlog vs live data.
     alt_max = (alt_max < 2000) ? 2000 : alt_max;
