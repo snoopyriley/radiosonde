@@ -1949,7 +1949,7 @@ function skewTdraw (callsign) {
                 _pressure = getPressure(_new_pos.alt);
             }
     
-            if(_pressure < 50.0){
+            if(_pressure < 10.0){
                 break;
             }
     
