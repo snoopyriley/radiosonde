@@ -1662,37 +1662,82 @@ function updateVehicleInfo(vcallsign, newPosition) {
 
   var callsign_list = [];
 
+  var current_time = convert_time(newPosition.server_time)
+
+  for(var i = 0; i < vehicle.receiver_info.length; i++){
+    if (vehicle.receiver_info[i]["time"] < current_time - 10000) {
+        vehicle.receiver_info.splice(i,1);
+    }
+  }
+
+  function addReceiver(callsign) {
+    for(var i = 0; i < vehicle.receiver_info.length; i++){
+        if (vehicle.receiver_info[i]["callsign"] === callsign) {
+            vehicle.receiver_info[i]["time"] = current_time
+            if(newPosition.callsign[callsign].hasOwnProperty('snr')){
+                if(newPosition.callsign[callsign].snr){
+                    vehicle.receiver_info[i].snr = newPosition.callsign[rxcall].snr.toFixed(0)
+                }
+            }
+            if(newPosition.callsign[callsign].hasOwnProperty('rssi')){
+                if(newPosition.callsign[callsign].rssi){
+                    vehicle.receiver_info[i].rssi = newPosition.callsign[rxcall].rssi.toFixed(0)
+                }
+            }
+            if(newPosition.callsign[callsign].hasOwnProperty('frequency')){
+                if(newPosition.callsign[callsign].frequency){
+                    vehicle.receiver_info[i].frequency = newPosition.callsign[rxcall].frequency.toFixed(4)
+                }
+            }
+            return
+        }
+      }
+    var temp_receiver = {callsign: callsign, time: current_time}
+    if(newPosition.callsign[callsign].hasOwnProperty('snr')){
+        if(newPosition.callsign[callsign].snr){
+            temp_receiver.snr = newPosition.callsign[rxcall].snr.toFixed(0)
+        }
+    }
+    if(newPosition.callsign[callsign].hasOwnProperty('rssi')){
+        if(newPosition.callsign[callsign].rssi){
+            temp_receiver.rssi = newPosition.callsign[rxcall].rssi.toFixed(0)
+        }
+    }
+    if(newPosition.callsign[callsign].hasOwnProperty('frequency')){
+        if(newPosition.callsign[callsign].frequency){
+            temp_receiver.frequency = newPosition.callsign[rxcall].frequency.toFixed(4)
+        }
+    }
+    vehicle.receiver_info.push(temp_receiver)
+  }
+
   if($.type(newPosition.callsign) === "string"){
       // Single callsign entry, as a string (chase cars)
       callsign_list = newPosition.callsign;
   } else {
     // Multiple callsigns, as an object
     for(var rxcall in newPosition.callsign){
-        if(newPosition.callsign.hasOwnProperty(rxcall)) {
-            _new_call = rxcall;
-            tempFields = [];
-            if(newPosition.callsign[rxcall].hasOwnProperty('snr')){
-                if(newPosition.callsign[rxcall].snr){
-                    tempFields.push(newPosition.callsign[rxcall].snr.toFixed(0) + " dB");
-                }
-            }
-            if(newPosition.callsign[rxcall].hasOwnProperty('rssi')){
-                if(newPosition.callsign[rxcall].rssi){
-                    tempFields.push(newPosition.callsign[rxcall].rssi.toFixed(0) + " dBm");
-                }
-            }
-            if(newPosition.callsign[rxcall].hasOwnProperty('frequency')){
-                if(newPosition.callsign[rxcall].frequency){
-                    tempFields.push(newPosition.callsign[rxcall].frequency + " MHz");
-                }
-            }
-            if(tempFields.length > 0) {
-                _new_call += " (" + tempFields.join(", ") + ")";
-            }
-            callsign_list.push(_new_call); // catch cases where there are no fields
-        }
+        addReceiver(rxcall)
     }
-    callsign_list = callsign_list.join(", ");
+
+    for(var receiver in vehicle.receiver_info){
+        _new_call = "- " + vehicle.receiver_info[receiver].callsign;
+        tempFields = [];
+        if(vehicle.receiver_info[receiver].hasOwnProperty('snr')){
+            tempFields.push(vehicle.receiver_info[receiver].snr + " dB");
+        }
+        if(vehicle.receiver_info[receiver].hasOwnProperty('rssi')){
+            tempFields.push(vehicle.receiver_info[receiver].rssi + " dBm");
+        }
+        if(vehicle.receiver_info[receiver].hasOwnProperty('frequency')){
+            tempFields.push(vehicle.receiver_info[receiver].frequency + " MHz");
+        }
+        if(tempFields.length > 0) {
+            _new_call += " (" + tempFields.join(", ") + ")";
+        }
+        callsign_list.push(_new_call); // catch cases where there are no fields
+    }
+    callsign_list = callsign_list.join("<br>");
   }
 
   var timeNow = new Date();
@@ -3072,7 +3117,8 @@ function addPosition(position) {
                             graph_data: [],
                             graph_yaxes: [],
                             updated: false,
-                            start_time: 2147483647000
+                            start_time: 2147483647000,
+                            receiver_info: []
                             };
                     
         // deep copy yaxes config for graph
