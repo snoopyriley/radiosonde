@@ -1664,14 +1664,14 @@ function updateVehicleInfo(vcallsign, newPosition) {
 
   var current_time = convert_time(newPosition.server_time)
 
-  for(var i = 0; i < vehicle.receiver_info.length; i++){
-    if (vehicle.receiver_info[i]["time"] < current_time - 10000) {
-        vehicle.receiver_info.splice(i,1);
+  for(i in vehicle.receiver_info){
+    if (vehicle.receiver_info[i]["time"] < current_time - 20000) {
+        delete vehicle.receiver_info[i];
     }
   }
 
   function addReceiver(callsign) {
-    for(var i = 0; i < vehicle.receiver_info.length; i++){
+    for(i in vehicle.receiver_info){
         if (vehicle.receiver_info[i]["callsign"] === callsign) {
             vehicle.receiver_info[i]["time"] = current_time
             if(newPosition.callsign[callsign].hasOwnProperty('snr')){
@@ -1708,7 +1708,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
             temp_receiver.frequency = newPosition.callsign[rxcall].frequency.toFixed(4)
         }
     }
-    vehicle.receiver_info.push(temp_receiver)
+    vehicle.receiver_info[callsign] = temp_receiver;
   }
 
   if($.type(newPosition.callsign) === "string"){
@@ -1720,7 +1720,10 @@ function updateVehicleInfo(vcallsign, newPosition) {
         addReceiver(rxcall)
     }
 
-    for(var receiver in vehicle.receiver_info){
+    var receiver_list_sorted = Object.keys(vehicle.receiver_info).sort();
+
+    for(var receiver_idx in receiver_list_sorted){
+        var receiver = receiver_list_sorted[receiver_idx];
         _new_call = "- " + vehicle.receiver_info[receiver].callsign;
         tempFields = [];
         if(vehicle.receiver_info[receiver].hasOwnProperty('snr')){
@@ -3118,7 +3121,7 @@ function addPosition(position) {
                             graph_yaxes: [],
                             updated: false,
                             start_time: 2147483647000,
-                            receiver_info: []
+                            receiver_info: {}
                             };
                     
         // deep copy yaxes config for graph
