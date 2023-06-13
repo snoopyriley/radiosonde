@@ -4483,6 +4483,11 @@ function updateLeaderboardPane(r){
     var hunters = r.chaser_count;
     var top = r.top_chasers;
 
+    // create a sorted list
+    top = Object.keys(top).map(function(key){return [key, top[key]]});
+    top.sort(function(a, b) {
+        return a[1] < b[1]
+    });
 
     html += "<div><b>Total sondes recovered: " + recovered + "/" + total + "</b></div>";
     html += "<div><b>Total hunters: " + hunters + "</b></div><br>";
@@ -4491,7 +4496,7 @@ function updateLeaderboardPane(r){
     var i = 1;
     for (let chaser in top) {
         if (top.hasOwnProperty(chaser)) {
-            html += "<div><b>" + parseInt(i) + ". </b>" + chaser + " - " + top[chaser] + "</div>";
+            html += "<div><b>" + parseInt(i) + ". </b>" + top[chaser][0] + " - " + top[chaser][1] + "</div>";
             i+=1;
          }
     }
