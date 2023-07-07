@@ -7,6 +7,9 @@ var launch_predictions_url = "https://api.v2.sondehub.org/predictions/reverse";
 var recovered_sondes_url = "https://api.v2.sondehub.org/recovered";
 var recovered_sondes_stats_url = "https://api.v2.sondehub.org/recovered/stats";
 
+// Grafana dashboard for Radiosondes
+var grafana_url = "https://grafana.v2.sondehub.org/d/bbaa7894-e5f4-4c0d-be96-897b4ffde43b/radiosonde-telemetry-dashboard?";
+
 var livedata = "wss://ws-reader.v2.sondehub.org/";
 var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000000000);
 var client = new Paho.Client(livedata, clientID);
@@ -72,7 +75,6 @@ var car_index = 0;
 var car_colors = ["blue", "red", "green", "yellow", "teal", "purple"];
 var balloon_index = 0;
 var balloon_colors_name = ["red", "blue", "green", "purple", "orange", "cyan"];
-// Yellow was #FDFC30, darker version is "#caca02"
 var balloon_colors = ["#f00", "blue", "green", "#c700e6", "#ff8a0f", "#0fffca"];
 
 var nyan_color_index = 0;
@@ -1085,6 +1087,10 @@ function shareVehicle(callsign) {
     
 }
 
+function openURL(address){
+    window.open(address, '_blank');
+}
+
 function panTo(vcallsign) {
     if(!vcallsign || vehicles[vcallsign] === undefined) return;
 
@@ -1756,6 +1762,19 @@ function updateVehicleInfo(vcallsign, newPosition) {
       timeChosen = timeSent;
   }
 
+  // Use to-time = now, and enable refresh if the data age is < 30 min old.
+  if ((timeNow - timeSent) < (30*60*1000)){
+    var grafana_to_time = "now";
+    var grafana_refresh = "&refresh=1m";
+  } else {
+    var grafana_to_time = vehicle.positions_ts[vehicle.positions_ts.length-1];
+    var grafana_refresh = "";
+  }
+
+   // Finally generate the URL to use for the 'Plots' button.
+   var grafana_dashboard_url = grafana_url + "var-Serial=" + vcallsign + "&from=" + vehicle.positions_ts[0] + "&to=" + grafana_to_time + "&orgId=1" + grafana_refresh;
+
+
   //desktop
   var a    = '<div class="header">' +
            '<span>' + sonde_type + vcallsign + ' <i class="icon-target"></i></span>' +
@@ -1766,6 +1785,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">Share</span>' : '') +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">SkewT</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:'+(vehicle.image_src_size[1]+145)+'px">Plots</span>' : '') +
            '<div class="left">' +
            '<dl>';
   //mobile
@@ -1778,6 +1798,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:55px">Path</span>' +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:85px">Share</span>' : '') +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:115px">SkewT</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:145px">Plots</span>' : '') + 
            '<div class="left">' +
            '<dl>';
   var b    = '</dl>' +
