@@ -1930,6 +1930,8 @@ function skewTdraw (callsign) {
                 burst_idx = i;
             }
         }
+
+
         if(data.length < 50){
             $("#skewtErrors").text("Insufficient data for Skew-T plot (<50 points).");
             $("#skewtErrors").show();
@@ -1976,6 +1978,7 @@ function skewTdraw (callsign) {
                 idx = idx + 1;
                 continue;
             }
+
     
             _temp = null;
             _dewp = -1000.0;
@@ -1994,6 +1997,7 @@ function skewTdraw (callsign) {
                 idx = idx + 1;
                 continue;
             }
+
     
             // Try and extract RH datapoint
             if (entry.hasOwnProperty('humidity')){
@@ -2010,6 +2014,12 @@ function skewTdraw (callsign) {
             _old_pos = {'lat': old_entry.lat, 'lon': old_entry.lon, 'alt': old_entry.alt};
             _new_pos = {'lat': entry.lat, 'lon': entry.lon, 'alt': entry.alt};
     
+            // Skip over negative altitudes, the skewT library really doesn't like these.
+            if(_new_pos.alt < 10){
+                idx = idx + 1;
+                continue;
+            }
+
             _pos_info = calculate_lookangles(_old_pos, _new_pos);
             _wdir = (_pos_info['azimuth']+180.0)%360.0;
             _wspd = _pos_info['great_circle_distance']/_time_delta;
@@ -2033,6 +2043,7 @@ function skewTdraw (callsign) {
         }
 
         skewtdata = skewt_data;
+
 
         $("#skewtLoading").hide();
 
