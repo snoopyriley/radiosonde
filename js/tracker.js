@@ -714,22 +714,33 @@ function throttle_events(event) {
 
 function sub_to_nearby_sondes(){
     let bounds = map.getBounds().pad(1); // expand by one viewport
-    for (let vehicle in vehicles){
-        let topic = "sondes/"+vehicle;
-        inside_bounds = map.getBounds().pad(1).contains(vehicles[vehicle].marker._latlng)
-        if (inside_bounds){
-            if (!clientTopic.includes(topic)){
-                console.log("Subbing to " + topic)
-                client.subscribe(topic);
-                clientTopic.push(topic)
-            }
-        } else {
-            if (clientTopic.includes(topic) ){
-                console.log("unsubbing from " + topic)
-                client.unsubscribe(topic)
-                var topic_index = clientTopic.indexOf(topic)
-                if (topic_index > -1) {
-                    clientTopic.splice(topic_index, 1);
+    let zoomed_out = map.getZoom() <= 7;
+    if (zoomed_out){
+        // If we are fairly zooomed out - only give the slow feed
+        for(let i = 1; i<clientTopic.length; i++){ // skip first slow topic
+            console.log("zoomed fully out. unsubbing from " + clientTopic[i])
+            client.unsubscribe(clientTopic[i]);
+        }
+        clientTopic = [clientTopic[0]]
+    } else {
+        // If zoomed in then we sub to specific sondes
+        for (let vehicle in vehicles){
+            let topic = "sondes/"+vehicle;
+            inside_bounds = map.getBounds().pad(1).contains(vehicles[vehicle].marker._latlng)
+            if (inside_bounds){
+                if (!clientTopic.includes(topic)){
+                    console.log("Subbing to " + topic)
+                    client.subscribe(topic);
+                    clientTopic.push(topic)
+                }
+            } else {
+                if (clientTopic.includes(topic) ){
+                    console.log("unsubbing from " + topic)
+                    client.unsubscribe(topic)
+                    var topic_index = clientTopic.indexOf(topic)
+                    if (topic_index > -1) {
+                        clientTopic.splice(topic_index, 1);
+                    }
                 }
             }
         }
