@@ -714,7 +714,7 @@ function throttle_events(event) {
 
 function sub_to_nearby_sondes(){
     let bounds = map.getBounds().pad(1); // expand by one viewport
-    let zoomed_out = map.getZoom() <= 7;
+    let zoomed_out = map.getZoom() <= 6;
     if (zoomed_out){
         // If we are fairly zooomed out - only give the slow feed
         for(let i = 1; i<clientTopic.length; i++){ // skip first slow topic
@@ -722,7 +722,9 @@ function sub_to_nearby_sondes(){
             client.unsubscribe(clientTopic[i]);
         }
         clientTopic = [clientTopic[0]]
+        document.getElementById("zoom_warning").style.display="block"
     } else {
+        document.getElementById("zoom_warning").style.display="none"
         // If zoomed in then we sub to specific sondes
         for (let vehicle in vehicles){
             let topic = "sondes/"+vehicle;
@@ -822,6 +824,7 @@ function clean_refresh(text, force, history_step) {
         refreshNewReceivers(true);
     }
 
+    sub_to_nearby_sondes();
     return true;
 }
 
@@ -1633,7 +1636,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
                     zIndexOffset: Z_CAR,
                     icon: landing_icon,
                     title: vcallsign + " Onboard Landing Prediction",
-                }).addTo(map);
+                })//.addTo(map);
 
                 // Add the marker to the vehicle object.
                 vehicle.landing_marker = landing_marker;
@@ -1826,9 +1829,9 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<i class="arrow"></i></div>' +
            '<div class="data">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">Share</span>' : '') +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">SkewT</span>' : '') +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:'+(vehicle.image_src_size[1]+145)+'px">Plots</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+55)+'px">Share</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">SkewT</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">Plots</span>' : '') +
            '<div class="left">' +
            '<dl>';
   //mobile
@@ -1838,9 +1841,9 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<i class="arrow"></i></div>' +
            '<div class="data">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:85px">Share</span>' : '') +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:115px">SkewT</span>' : '') +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:145px">Plots</span>' : '') + 
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:55px">Share</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:85px">SkewT</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:115px">Plots</span>' : '') + 
            '<div class="left">' +
            '<dl>';
   var b    = '</dl>' +
@@ -2194,7 +2197,7 @@ function drawLaunchPrediction(vcallsign) {
             color: balloon_colors[vehicle.color_index],
             opacity: 0.4,
             weight: 3,
-    }).addTo(map);
+    })//.addTo(map);
 
     vehicle.prediction_launch_polyline.on('click', function (e) {
         mapInfoBox_handle_prediction_path(e);
@@ -2257,45 +2260,43 @@ function redrawPrediction(vcallsign) {
     vehicle.prediction_polyline.path_length = path_length;
 
     var image_src;
-    if(vcallsign != "wb8elk2") { // WhiteStar
-        var html = "";
-        if(vehicle.prediction_target) {
-            vehicle.prediction_target.setLatLng(latlng);
-        } else {
-            image_src = host_url + markers_url + "target-" + balloon_colors_name[vehicle.color_index] + ".png";
-            predictionIcon = new L.icon({
-                iconUrl: image_src,
-                iconSize: [20,20],
-                iconAnchor: [10, 10],
-            });
-            vehicle.prediction_target = new L.Marker(latlng, {
-                zIndexOffset: Z_SHADOW,
-                icon: predictionIcon,
-            }).addTo(map);
-            vehicle.prediction_target.on('click', function (e) {
-                mapInfoBox_handle_prediction(e);
-            });
-        }
-        vehicle.prediction_target.pdata = data[data.length-1];
 
-        if(vehicle.prediction.descent_rate == null){
-            vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Float\n";
-        } else {
-            if(vehicle.prediction.descending == 1){
-                vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Standard \n" + 
-                    "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
-            } else {
-                vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Standard \n" + 
-                    "<b>Ascent Rate:</b> " + vehicle.prediction.ascent_rate.toFixed(1) + " m/s \n" + 
-                    "<b>Burst Altitude:</b> " + vehicle.prediction.burst_altitude.toFixed(0) + " m\n" + 
-                    "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
-            }
-        }
+    var html = "";
+    if(vehicle.prediction_target) {
+        vehicle.prediction_target.setLatLng(latlng);
     } else {
-        if(vehicle.prediction_target) vehicle.prediction_target = null;
+        image_src = host_url + markers_url + "target-" + balloon_colors_name[vehicle.color_index] + ".png";
+        predictionIcon = new L.icon({
+            iconUrl: image_src,
+            iconSize: [20,20],
+            iconAnchor: [10, 10],
+        });
+        vehicle.prediction_target = new L.Marker(latlng, {
+            zIndexOffset: Z_SHADOW,
+            icon: predictionIcon,
+        })//addTo(map);
+        // vehicle.prediction_target.on('click', function (e) {
+        //     mapInfoBox_handle_prediction(e);
+        // });
     }
+    vehicle.prediction_target.pdata = data[data.length-1];
 
-    if(burst_index !== 0 && vcallsign != "wb8elk2") {
+    if(vehicle.prediction.descent_rate == null){
+        vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Float\n";
+    } else {
+        if(vehicle.prediction.descending == 1){
+            vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Standard \n" + 
+                "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
+        } else {
+            vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Standard \n" + 
+                "<b>Ascent Rate:</b> " + vehicle.prediction.ascent_rate.toFixed(1) + " m/s \n" + 
+                "<b>Burst Altitude:</b> " + vehicle.prediction.burst_altitude.toFixed(0) + " m\n" + 
+                "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
+        }
+    }
+    
+
+    if(burst_index !== 0 ) {
         if(vehicle.prediction_burst) {
             vehicle.prediction_burst.setLatLng(latlng_burst);
         } else {
@@ -3825,7 +3826,14 @@ function liveData() {
         if ( document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
             document.getElementById("stTimer").classList.remove('friendly-dtime');
         }
-        $("#stTimer").text(Math.round(messageRate/10) + " msg/s");
+        var tracking_sondes = clientTopic.length;
+        if (clientTopic[0] = "sondes-new/#"){ // need to subtract one if we are subbed to the slow feed
+            tracking_sondes = tracking_sondes - 1;
+        }
+
+        
+        
+        $("#stTimer").text(Math.round(messageRate/10) + " msg/s " + tracking_sondes + " sondes");
         $("#updatedText").text(" ");
         var dateNow = new Date().getTime();
         try {
@@ -4791,6 +4799,7 @@ function update(response, none) {
     };
 
     ctx_init.run(ctx_init);
+    sub_to_nearby_sondes();
 }
 
 function zoom_on_payload() {
