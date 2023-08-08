@@ -719,7 +719,9 @@ function sub_to_nearby_sondes(){
         // If we are fairly zooomed out - only give the slow feed
         for(let i = 1; i<clientTopic.length; i++){ // skip first slow topic
             console.log("zoomed fully out. unsubbing from " + clientTopic[i])
-            client.unsubscribe(clientTopic[i]);
+            if (client.isConnected()) {
+                client.unsubscribe(clientTopic[i]);
+            }
         }
         clientTopic = [clientTopic[0]]
         document.getElementById("zoom_warning").style.display="block"
@@ -732,13 +734,17 @@ function sub_to_nearby_sondes(){
             if (inside_bounds){
                 if (!clientTopic.includes(topic)){
                     console.log("Subbing to " + topic)
-                    client.subscribe(topic);
+                    if (client.isConnected()) {
+                        client.subscribe(topic);
+                    }
                     clientTopic.push(topic)
                 }
             } else {
                 if (clientTopic.includes(topic) ){
                     console.log("unsubbing from " + topic)
-                    client.unsubscribe(topic)
+                    if (client.isConnected()) {
+                        client.unsubscribe(topic)
+                    }
                     var topic_index = clientTopic.indexOf(topic)
                     if (topic_index > -1) {
                         clientTopic.splice(topic_index, 1);
