@@ -15,7 +15,7 @@ var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000000000);
 var client = new Paho.Client(livedata, clientID);
 var clientConnected = false;
 var clientActive = false;
-var clientTopic;
+var clientTopic = [];
 var messageRate = 0;
 var messageRateAverage = 10;
 
@@ -712,6 +712,29 @@ function throttle_events(event) {
     }
 }
 
+function sub_to_nearby_sondes(){
+    let bounds = map.getBounds().pad(1); // expand by one viewport
+    for (let vehicle in vehicles){
+        let topic = "sondes/"+vehicle;
+        inside_bounds = map.getBounds().pad(1).contains(vehicles[vehicle].marker._latlng)
+        if (inside_bounds){
+            if (!clientTopic.includes(topic)){
+                console.log("Subbing to " + topic)
+                client.subscribe(topic);
+                clientTopic.push(topic)
+            }
+        } else {
+            if (clientTopic.includes(topic) ){
+                console.log("unsubbing from " + topic)
+                client.unsubscribe(topic)
+                var topic_index = clientTopic.indexOf(topic)
+                if (topic_index > -1) {
+                    clientTopic.splice(topic_index, 1);
+                }
+            }
+        }
+    }
+}
 
 function clean_refresh(text, force, history_step) {
     force = !!force;
@@ -732,14 +755,16 @@ function clean_refresh(text, force, history_step) {
     }
 
     try {
-        client.unsubscribe(clientTopic);
+        for (let topic in clientTopic){
+            client.unsubscribe(topic);
+        }
         if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
             var topic = "sondes/" + wvar.query;
             client.subscribe(topic);
-            clientTopic = topic;
+            clientTopic = [topic];
         } else {
-            client.subscribe("batch");
-            clientTopic = "batch";
+            client.subscribe("sondes-new/#");
+            clientTopic =["sondes-new/#"];
         }
     } catch (err) {}
 
@@ -941,6 +966,7 @@ function load() {
     map.on('moveend', function (e) {
         lhash_update();
         sidebar_update();
+        sub_to_nearby_sondes();
     });
 
     map.on('baselayerchange', function (e) {
@@ -949,6 +975,7 @@ function load() {
     });
 
     map.on('zoomend', function() {
+        sub_to_nearby_sondes();
         //do check for horizon labels
         if (offline.get("opt_hide_horizon")) {
             for (key in vehicles) {
@@ -1094,6 +1121,12 @@ function openURL(address){
 function panTo(vcallsign) {
     if(!vcallsign || vehicles[vcallsign] === undefined) return;
 
+    for (let serial in vehicles) {
+        vehicles[serial].polyline_visible = false;
+        set_polyline_visibility(serial,false);
+    }
+    vehicles[vcallsign].polyline_visible = true;
+    set_polyline_visibility(vcallsign,true);
     // update lookangles
     update_lookangles(vcallsign);
 
@@ -1782,7 +1815,6 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<i class="arrow"></i></div>' +
            '<div class="data">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
-           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">Share</span>' : '') +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">SkewT</span>' : '') +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:'+(vehicle.image_src_size[1]+145)+'px">Plots</span>' : '') +
@@ -1795,7 +1827,6 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<i class="arrow"></i></div>' +
            '<div class="data">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
-           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:55px">Path</span>' +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:85px">Share</span>' : '') +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:115px">SkewT</span>' : '') +
            ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:145px">Plots</span>' : '') + 
@@ -2206,10 +2237,10 @@ function redrawPrediction(vcallsign) {
             color: balloon_colors[vehicle.color_index],
             opacity: 0.5, // Was 0.4
             weight: 3,
-        }).addTo(map);
-        vehicle.prediction_polyline.on('click', function (e) {
-            mapInfoBox_handle_prediction_path(e);
-        });
+         })//.addTo(map);
+        // vehicle.prediction_polyline.on('click', function (e) {
+        //     mapInfoBox_handle_prediction_path(e);
+        // });
     }
 
     vehicle.prediction_polyline.path_length = path_length;
@@ -3104,13 +3135,13 @@ function addPosition(position) {
                 } catch (err) {}
             });  
             
-            polyline_visible = true;
+            polyline_visible = false;
             polyline = [
                 new L.Polyline(point, {
                     color: balloon_colors[color_index],
                     opacity: 1,
                     weight: 3,
-                }).addTo(map)
+                })
             ];
         }
 
@@ -3738,10 +3769,10 @@ function liveData() {
         if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
             var topic = "sondes/" + wvar.query;
             client.subscribe(topic);
-            clientTopic = topic;
+            clientTopic = [topic];
         } else {
-            client.subscribe("batch");
-            clientTopic = "batch";
+            client.subscribe("sondes-new/#");
+            clientTopic = ["sondes-new/#"];
         }
         // Also subscribe to listener data, for listener and chase-car telemetry.
         // To revert listener-via-websockets change, comment out this line,
