@@ -716,15 +716,16 @@ function throttle_events(event) {
 function sub_to_nearby_sondes(){
     let bounds = map.getBounds().pad(1); // expand by one viewport
     let zoomed_out = map.getZoom() <= 6;
+    const sub_logging = false;
     if (zoomed_out){
         // If we are fairly zooomed out - only give the slow feed
         var newClientTopic=[clientTopic[0]]
         for(let i = 1; i<clientTopic.length; i++){ // skip first slow topic
             if (client.isConnected() && !alwaysSub.includes(clientTopic[i].replace("sondes/",""))) {
-                console.log("zoomed fully out. unsubbing from " + clientTopic[i])
+                if (sub_logging) console.log("zoomed fully out. unsubbing from " + clientTopic[i])
                 client.unsubscribe(clientTopic[i]);
             } else {
-                console.log("retaining " + clientTopic[i]);
+                if (sub_logging) console.log("retaining " + clientTopic[i]);
                 newClientTopic.push(clientTopic[i])
             }
         }
@@ -735,10 +736,10 @@ function sub_to_nearby_sondes(){
         // If zoomed in then we sub to specific sondes
         for (let vehicle in vehicles){
             let topic = "sondes/"+vehicle;
-            inside_bounds = map.getBounds().pad(1).contains(vehicles[vehicle].marker._latlng)
+            inside_bounds = bounds.contains(vehicles[vehicle].marker._latlng)
             if (inside_bounds){
                 if (!clientTopic.includes(topic)){
-                    console.log("Subbing to " + topic)
+                    if (sub_logging) console.log("Subbing to " + topic)
                     if (client.isConnected()) {
                         client.subscribe(topic);
                     }
@@ -747,9 +748,9 @@ function sub_to_nearby_sondes(){
             } else {
                 if (clientTopic.includes(topic)){
                     if (alwaysSub.includes(vehicle)){
-                        console.log("retaining " + vehicle)
+                        if (sub_logging) console.log("retaining " + vehicle)
                     } else {
-                        console.log("unsubbing from " + topic)
+                        if (sub_logging) console.log("unsubbing from " + topic)
                         if (client.isConnected()) {
                             client.unsubscribe(topic)
                         }
