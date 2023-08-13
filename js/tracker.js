@@ -1175,20 +1175,19 @@ function panToRecovery(rcallsign) {
 }
 
 function sidebar_update() {
-    if (offline.get('opt_selective_sidebar')) {
-        for (let serial in vehicles) {
+    for (let serial in vehicles) {
+        var p = document.getElementById("pv"+vehicles[serial].uuid)
+        var l = document.getElementById("lv"+vehicles[serial].uuid)
+        var state = "block"
+        if (offline.get('opt_selective_sidebar')) {
             if (map.getBounds().contains(vehicles[serial].marker.getLatLng())) {
-                $("#main .vehicle"+vehicles[serial].uuid).show();
+                state = "block"
             } else {
-                if (!($("#main .vehicle"+vehicles[serial].uuid).hasClass("follow"))) {
-                    $("#main .vehicle"+vehicles[serial].uuid).hide();
-                }
+                state = "none"
             }
         }
-    } else {
-        for (let serial in vehicles) {
-            $("#main .vehicle"+vehicles[serial].uuid).show();
-        }
+        if (p) { p.style.display=state}
+        if (l) { l.style.display=state }
     }
 }
 
@@ -1660,18 +1659,20 @@ function updateVehicleInfo(vcallsign, newPosition) {
   // if (vehicle["vehicle_type"] == "car") {
   if (elm.length === 0) {
     if (vehicle.vehicle_type!="car") {
-        $('.portrait').prepend('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
-        $('.landscape').prepend('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.portrait').prepend('<div id="pv'+vehicle.uuid+'" class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.landscape').prepend('<div id="lv'+vehicle.uuid+'" class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
     } else {
-        $('.portrait').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
-        $('.landscape').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.portrait').append('<div id="pv'+vehicle.uuid+'" class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.landscape').append('<div id="lv'+vehicle.uuid+'" class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
     }
 
     if (offline.get('opt_selective_sidebar')) {
         if (map.getBounds().contains(vehicles[vcallsign].marker.getLatLng())) {
-            $("#main .vehicle"+vehicle.uuid).show();
+            document.getElementById("pv"+vehicle.uuid).style.display = "block";
+            document.getElementById("lv"+vehicle.uuid).style.display = "block";
         } else {
-            $("#main .vehicle"+vehicle.uuid).hide();
+            document.getElementById("pv"+vehicle.uuid).style.display = "none";
+            document.getElementById("lv"+vehicle.uuid).style.display = "none";
         }
     }
 
