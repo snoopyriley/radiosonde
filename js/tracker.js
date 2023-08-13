@@ -16,6 +16,7 @@ var client = new Paho.Client(livedata, clientID);
 var clientConnected = false;
 var clientActive = false;
 var clientTopic = [];
+var alwaysSub = [];
 var messageRate = 0;
 var messageRateAverage = 10;
 
