@@ -840,7 +840,7 @@ function load() {
         zoom: 5,
         zoomControl: false,
         zoomAnimationThreshold: 0,
-        zoomAnimation: false,
+        zoomAnimation: true,
         markerZoomAnimation: false,
         center: [53.467511,-2.233894],
         layers: baseMaps[selectedLayer],
