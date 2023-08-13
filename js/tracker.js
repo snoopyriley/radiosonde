@@ -718,13 +718,17 @@ function sub_to_nearby_sondes(){
     let zoomed_out = map.getZoom() <= 6;
     if (zoomed_out){
         // If we are fairly zooomed out - only give the slow feed
+        var newClientTopic=[clientTopic[0]]
         for(let i = 1; i<clientTopic.length; i++){ // skip first slow topic
-            console.log("zoomed fully out. unsubbing from " + clientTopic[i])
-            if (client.isConnected()) {
+            if (client.isConnected() && !alwaysSub.includes(clientTopic[i].replace("sondes/",""))) {
+                console.log("zoomed fully out. unsubbing from " + clientTopic[i])
                 client.unsubscribe(clientTopic[i]);
+            } else {
+                console.log("retaining " + clientTopic[i]);
+                newClientTopic.push(clientTopic[i])
             }
         }
-        clientTopic = [clientTopic[0]]
+        clientTopic = newClientTopic
         document.getElementById("zoom_warning").style.display="block"
     } else {
         document.getElementById("zoom_warning").style.display="none"
@@ -741,14 +745,18 @@ function sub_to_nearby_sondes(){
                     clientTopic.push(topic)
                 }
             } else {
-                if (clientTopic.includes(topic) ){
-                    console.log("unsubbing from " + topic)
-                    if (client.isConnected()) {
-                        client.unsubscribe(topic)
-                    }
-                    var topic_index = clientTopic.indexOf(topic)
-                    if (topic_index > -1) {
-                        clientTopic.splice(topic_index, 1);
+                if (clientTopic.includes(topic)){
+                    if (alwaysSub.includes(vehicle)){
+                        console.log("retaining " + vehicle)
+                    } else {
+                        console.log("unsubbing from " + topic)
+                        if (client.isConnected()) {
+                            client.unsubscribe(topic)
+                        }
+                        var topic_index = clientTopic.indexOf(topic)
+                        if (topic_index > -1) {
+                            clientTopic.splice(topic_index, 1);
+                        }
                     }
                 }
             }
@@ -1144,9 +1152,13 @@ function openURL(address){
 function panTo(vcallsign) {
     if(!vcallsign || vehicles[vcallsign] === undefined) return;
 
+    alwaysSub.push(vcallsign);
+
     for (let serial in vehicles) {
-        vehicles[serial].polyline_visible = false;
-        set_polyline_visibility(serial,false);
+        if (!alwaysSub.includes(serial)){
+            vehicles[serial].polyline_visible = false;
+            set_polyline_visibility(serial,false);
+        }
     }
     vehicles[vcallsign].polyline_visible = true;
     set_polyline_visibility(vcallsign,true);
