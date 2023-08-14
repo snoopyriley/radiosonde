@@ -806,7 +806,7 @@ function generateLaunchSites() {
             var burst_altitude = 26000;
             var burst_samples = "";
             var descent_samples = "";
-            var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: 8});
+            var marker = new L.circleMarker(latlon, {color: '#696969', fillColor: "white", radius: Math.min(map.getZoom(),8)});
             var popup = new L.popup({ autoClose: false, closeOnClick: false });
             marker.title = key;
             marker.bindPopup(popup);

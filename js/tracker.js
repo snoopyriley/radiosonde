@@ -1356,6 +1356,15 @@ function updateAltitude(vcallsign) {
 }
 
 function updateZoom() {
+    for(x in launches._layers){launches.getLayer(x).setRadius(Math.min(map.getZoom(),8))}
+    for(x in receivers){
+        var radius = 6;
+        if (receivers[x].name in pledges){
+            radius = radius * 1.3
+        }
+        
+        receivers[x].marker.setRadius(Math.min(map.getZoom(),radius))
+    }
     for(var vcallsign in vehicles) {
         var vehicle = vehicles[vcallsign];
 
@@ -4239,21 +4248,21 @@ function updateReceiverMarker(receiver) {
     if (pledges.hasOwnProperty(receiver.name)) {
         if (pledges[receiver.name].icon == "bronze") {
             receiver.marker = new L.CircleMarker(latlng, {
-                radius: 8,
+                radius: Math.min(map.getZoom(),6*1.3),
                 fillOpacity: 0.6,
                 color: "#CD7F32",
             });
             receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "bronze" }).setContent(receiver.description);
         } else if (pledges[receiver.name].icon == "silver") {
             receiver.marker = new L.CircleMarker(latlng, {
-                radius: 8,
+                radius: Math.min(map.getZoom(),6*1.3),
                 fillOpacity: 0.6,
                 color: "#C0C0C0",
             });
             receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "silver" }).setContent(receiver.description);
         } else {
             receiver.marker = new L.CircleMarker(latlng, {
-                radius: 8,
+                radius: Math.min(map.getZoom(),6*1.3),
                 fillOpacity: 0.6,
                 color: "#FFD700",
             });
@@ -4261,7 +4270,7 @@ function updateReceiverMarker(receiver) {
         };
     } else {
         receiver.marker = new L.CircleMarker(latlng, {
-            radius: 6,
+            radius: Math.min(map.getZoom(),6),
             fillOpacity: 0.6,
             color: "#008000",
         });
