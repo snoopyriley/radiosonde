@@ -456,6 +456,7 @@ var updateTime = function(date) {
     }
 };
 
+const version = "{VER}";
 
 $(window).ready(function() {
     // refresh timebox
@@ -464,7 +465,7 @@ $(window).ready(function() {
     }, 1000);
 
     // Update Tracker version info
-    $('#build_version').text("{VER}");
+    $('#build_version').text(version);
     $('#build_date').text("{BUILD_DATE}");
 
     // resize elements if needed
@@ -999,3 +1000,34 @@ $(window).ready(function() {
        clean_refresh(wvar.mode, true, true);
    });
 });
+
+
+function check_version(){
+    const updateRequest = new Request("/js/version.json");
+    fetch(updateRequest)
+        .then(function(response){ return response.json()})
+        .then(function(response){
+            if (response['version'] != version) {
+                window.clearInterval(update_check)
+                reload_timer = window.setTimeout(update_site, response['refresh']*1000)
+                reload_end_time = new Date().getTime() +response['refresh']*1000
+                update_countdown();
+                countdown_interval = setInterval(update_countdown, 100);
+                document.getElementById("reload_warning").style.display = "block";
+            }
+        })
+}
+function update_site(){
+    window.location.reload(true)
+}
+
+function update_countdown(){
+    var date = new Date(0);
+    time_remaining = (reload_end_time - new Date().getTime())/1000
+    date.setSeconds(time_remaining);
+    var timeString = date.toISOString().substring(11, 19); // hacky
+    document.getElementById("reload_timer").innerText = timeString;
+}
+
+check_version()
+update_check = setInterval(check_version, 15 * 60 * 1000)

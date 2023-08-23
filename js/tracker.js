@@ -15,7 +15,8 @@ var clientID = "SondeHub-Tracker-" + Math.floor(Math.random() * 10000000000);
 var client = new Paho.Client(livedata, clientID);
 var clientConnected = false;
 var clientActive = false;
-var clientTopic;
+var clientTopic = [];
+var alwaysSub = [];
 var messageRate = 0;
 var messageRateAverage = 10;
 
@@ -712,6 +713,57 @@ function throttle_events(event) {
     }
 }
 
+function sub_to_nearby_sondes(){
+    let bounds = map.getBounds().pad(1); // expand by one viewport
+    let zoomed_out = map.getZoom() <= 6;
+    const sub_logging = false;
+    if (zoomed_out){
+        // If we are fairly zooomed out - only give the slow feed
+        var newClientTopic=[clientTopic[0]]
+        for(let i = 1; i<clientTopic.length; i++){ // skip first slow topic
+            if (client.isConnected() && !alwaysSub.includes(clientTopic[i].replace("sondes/",""))) {
+                if (sub_logging) console.log("zoomed fully out. unsubbing from " + clientTopic[i])
+                client.unsubscribe(clientTopic[i]);
+            } else {
+                if (sub_logging) console.log("retaining " + clientTopic[i]);
+                newClientTopic.push(clientTopic[i])
+            }
+        }
+        clientTopic = newClientTopic
+        document.getElementById("zoom_warning").style.display="block"
+    } else {
+        document.getElementById("zoom_warning").style.display="none"
+        // If zoomed in then we sub to specific sondes
+        for (let vehicle in vehicles){
+            let topic = "sondes/"+vehicle;
+            inside_bounds = bounds.contains(vehicles[vehicle].marker._latlng)
+            if (inside_bounds){
+                if (!clientTopic.includes(topic)){
+                    if (sub_logging) console.log("Subbing to " + topic)
+                    if (client.isConnected()) {
+                        client.subscribe(topic);
+                    }
+                    clientTopic.push(topic)
+                }
+            } else {
+                if (clientTopic.includes(topic)){
+                    if (alwaysSub.includes(vehicle)){
+                        if (sub_logging) console.log("retaining " + vehicle)
+                    } else {
+                        if (sub_logging) console.log("unsubbing from " + topic)
+                        if (client.isConnected()) {
+                            client.unsubscribe(topic)
+                        }
+                        var topic_index = clientTopic.indexOf(topic)
+                        if (topic_index > -1) {
+                            clientTopic.splice(topic_index, 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 function clean_refresh(text, force, history_step) {
     force = !!force;
@@ -732,14 +784,16 @@ function clean_refresh(text, force, history_step) {
     }
 
     try {
-        client.unsubscribe(clientTopic);
+        for (let topic in clientTopic){
+            client.unsubscribe(topic);
+        }
         if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
             var topic = "sondes/" + wvar.query;
             client.subscribe(topic);
-            clientTopic = topic;
+            clientTopic = [topic];
         } else {
-            client.subscribe("batch");
-            clientTopic = "batch";
+            client.subscribe("sondes-new/#");
+            clientTopic =["sondes-new/#"];
         }
     } catch (err) {}
 
@@ -786,6 +840,7 @@ function clean_refresh(text, force, history_step) {
         refreshNewReceivers(true);
     }
 
+    sub_to_nearby_sondes();
     return true;
 }
 
@@ -795,6 +850,8 @@ function load() {
         zoom: 5,
         zoomControl: false,
         zoomAnimationThreshold: 0,
+        zoomAnimation: true,
+        markerZoomAnimation: false,
         center: [53.467511,-2.233894],
         layers: baseMaps[selectedLayer],
         worldCopyJump: true,
@@ -941,6 +998,7 @@ function load() {
     map.on('moveend', function (e) {
         lhash_update();
         sidebar_update();
+        sub_to_nearby_sondes();
     });
 
     map.on('baselayerchange', function (e) {
@@ -949,6 +1007,7 @@ function load() {
     });
 
     map.on('zoomend', function() {
+        sub_to_nearby_sondes();
         //do check for horizon labels
         if (offline.get("opt_hide_horizon")) {
             for (key in vehicles) {
@@ -1094,6 +1153,16 @@ function openURL(address){
 function panTo(vcallsign) {
     if(!vcallsign || vehicles[vcallsign] === undefined) return;
 
+    alwaysSub.push(vcallsign);
+
+    for (let serial in vehicles) {
+        if (!alwaysSub.includes(serial)){
+            vehicles[serial].polyline_visible = false;
+            set_polyline_visibility(serial,false);
+        }
+    }
+    vehicles[vcallsign].polyline_visible = true;
+    set_polyline_visibility(vcallsign,true);
     // update lookangles
     update_lookangles(vcallsign);
 
@@ -1122,20 +1191,19 @@ function panToRecovery(rcallsign) {
 }
 
 function sidebar_update() {
-    if (offline.get('opt_selective_sidebar')) {
-        for (let serial in vehicles) {
+    for (let serial in vehicles) {
+        var p = document.getElementById("pv"+vehicles[serial].uuid)
+        var l = document.getElementById("lv"+vehicles[serial].uuid)
+        var state = "block"
+        if (offline.get('opt_selective_sidebar')) {
             if (map.getBounds().contains(vehicles[serial].marker.getLatLng())) {
-                $("#main .vehicle"+vehicles[serial].uuid).show();
+                state = "block"
             } else {
-                if (!($("#main .vehicle"+vehicles[serial].uuid).hasClass("follow"))) {
-                    $("#main .vehicle"+vehicles[serial].uuid).hide();
-                }
+                state = "none"
             }
         }
-    } else {
-        for (let serial in vehicles) {
-            $("#main .vehicle"+vehicles[serial].uuid).show();
-        }
+        if (p) { p.style.display=state}
+        if (l) { l.style.display=state }
     }
 }
 
@@ -1288,6 +1356,15 @@ function updateAltitude(vcallsign) {
 }
 
 function updateZoom() {
+    for(x in launches._layers){launches.getLayer(x).setRadius(Math.min(map.getZoom(),8))}
+    for(x in receivers){
+        var radius = 6;
+        if (receivers[x].name in pledges){
+            radius = radius * 1.3
+        }
+        
+        receivers[x].marker.setRadius(Math.min(map.getZoom(),radius))
+    }
     for(var vcallsign in vehicles) {
         var vehicle = vehicles[vcallsign];
 
@@ -1589,7 +1666,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
                     zIndexOffset: Z_CAR,
                     icon: landing_icon,
                     title: vcallsign + " Onboard Landing Prediction",
-                }).addTo(map);
+                })//.addTo(map);
 
                 // Add the marker to the vehicle object.
                 vehicle.landing_marker = landing_marker;
@@ -1607,18 +1684,20 @@ function updateVehicleInfo(vcallsign, newPosition) {
   // if (vehicle["vehicle_type"] == "car") {
   if (elm.length === 0) {
     if (vehicle.vehicle_type!="car") {
-        $('.portrait').prepend('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
-        $('.landscape').prepend('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.portrait').prepend('<div id="pv'+vehicle.uuid+'" class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.landscape').prepend('<div id="lv'+vehicle.uuid+'" class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
     } else {
-        $('.portrait').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
-        $('.landscape').append('<div class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.portrait').append('<div id="pv'+vehicle.uuid+'" class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
+        $('.landscape').append('<div id="lv'+vehicle.uuid+'" class="row vehicle'+vehicle.uuid+'" data-vcallsign="'+vcallsign+'"></div>');
     }
 
     if (offline.get('opt_selective_sidebar')) {
         if (map.getBounds().contains(vehicles[vcallsign].marker.getLatLng())) {
-            $("#main .vehicle"+vehicle.uuid).show();
+            document.getElementById("pv"+vehicle.uuid).style.display = "block";
+            document.getElementById("lv"+vehicle.uuid).style.display = "block";
         } else {
-            $("#main .vehicle"+vehicle.uuid).hide();
+            document.getElementById("pv"+vehicle.uuid).style.display = "none";
+            document.getElementById("lv"+vehicle.uuid).style.display = "none";
         }
     }
 
@@ -1782,10 +1861,9 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<i class="arrow"></i></div>' +
            '<div class="data">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
-           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:'+(vehicle.image_src_size[1]+55)+'px">Path</span>' +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">Share</span>' : '') +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">SkewT</span>' : '') +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:'+(vehicle.image_src_size[1]+145)+'px">Plots</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+55)+'px">Share</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:'+(vehicle.image_src_size[1]+85)+'px">SkewT</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:'+(vehicle.image_src_size[1]+115)+'px">Plots</span>' : '') +
            '<div class="left">' +
            '<dl>';
   //mobile
@@ -1795,10 +1873,9 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<i class="arrow"></i></div>' +
            '<div class="data">' +
            '<img class="'+((vehicle.vehicle_type=="car")?'car':'')+'" src="'+image+'" />' +
-           '<span class="vbutton path '+((vehicle.polyline_visible) ? 'active' : '')+'" data-vcallsign="'+vcallsign+'"' + ' style="top:55px">Path</span>' +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:85px">Share</span>' : '') +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:115px">SkewT</span>' : '') +
-           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:145px">Plots</span>' : '') + 
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="shareVehicle(\'' + vcallsign + '\')" style="top:55px">Share</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="skewTdraw(\'' + vcallsign + '\')" style="top:85px">SkewT</span>' : '') +
+           ((vehicle.vehicle_type!="car") ? '<span class="sbutton" onclick="openURL(\'' + grafana_dashboard_url + '\')" style="top:115px">Plots</span>' : '') + 
            '<div class="left">' +
            '<dl>';
   var b    = '</dl>' +
@@ -2152,7 +2229,7 @@ function drawLaunchPrediction(vcallsign) {
             color: balloon_colors[vehicle.color_index],
             opacity: 0.4,
             weight: 3,
-    }).addTo(map);
+    })//.addTo(map);
 
     vehicle.prediction_launch_polyline.on('click', function (e) {
         mapInfoBox_handle_prediction_path(e);
@@ -2206,54 +2283,52 @@ function redrawPrediction(vcallsign) {
             color: balloon_colors[vehicle.color_index],
             opacity: 0.5, // Was 0.4
             weight: 3,
-        }).addTo(map);
-        vehicle.prediction_polyline.on('click', function (e) {
-            mapInfoBox_handle_prediction_path(e);
-        });
+         })//.addTo(map);
+        // vehicle.prediction_polyline.on('click', function (e) {
+        //     mapInfoBox_handle_prediction_path(e);
+        // });
     }
 
     vehicle.prediction_polyline.path_length = path_length;
 
     var image_src;
-    if(vcallsign != "wb8elk2") { // WhiteStar
-        var html = "";
-        if(vehicle.prediction_target) {
-            vehicle.prediction_target.setLatLng(latlng);
-        } else {
-            image_src = host_url + markers_url + "target-" + balloon_colors_name[vehicle.color_index] + ".png";
-            predictionIcon = new L.icon({
-                iconUrl: image_src,
-                iconSize: [20,20],
-                iconAnchor: [10, 10],
-            });
-            vehicle.prediction_target = new L.Marker(latlng, {
-                zIndexOffset: Z_SHADOW,
-                icon: predictionIcon,
-            }).addTo(map);
-            vehicle.prediction_target.on('click', function (e) {
-                mapInfoBox_handle_prediction(e);
-            });
-        }
-        vehicle.prediction_target.pdata = data[data.length-1];
 
-        if(vehicle.prediction.descent_rate == null){
-            vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Float\n";
-        } else {
-            if(vehicle.prediction.descending == 1){
-                vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Standard \n" + 
-                    "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
-            } else {
-                vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Standard \n" + 
-                    "<b>Ascent Rate:</b> " + vehicle.prediction.ascent_rate.toFixed(1) + " m/s \n" + 
-                    "<b>Burst Altitude:</b> " + vehicle.prediction.burst_altitude.toFixed(0) + " m\n" + 
-                    "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
-            }
-        }
+    var html = "";
+    if(vehicle.prediction_target) {
+        vehicle.prediction_target.setLatLng(latlng);
     } else {
-        if(vehicle.prediction_target) vehicle.prediction_target = null;
+        image_src = host_url + markers_url + "target-" + balloon_colors_name[vehicle.color_index] + ".png";
+        predictionIcon = new L.icon({
+            iconUrl: image_src,
+            iconSize: [20,20],
+            iconAnchor: [10, 10],
+        });
+        vehicle.prediction_target = new L.Marker(latlng, {
+            zIndexOffset: Z_SHADOW,
+            icon: predictionIcon,
+        })//addTo(map);
+        // vehicle.prediction_target.on('click', function (e) {
+        //     mapInfoBox_handle_prediction(e);
+        // });
     }
+    vehicle.prediction_target.pdata = data[data.length-1];
 
-    if(burst_index !== 0 && vcallsign != "wb8elk2") {
+    if(vehicle.prediction.descent_rate == null){
+        vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Float\n";
+    } else {
+        if(vehicle.prediction.descending == 1){
+            vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Standard \n" + 
+                "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
+        } else {
+            vehicle.prediction_target.pred_type = "<b>Prediction Type:</b> Standard \n" + 
+                "<b>Ascent Rate:</b> " + vehicle.prediction.ascent_rate.toFixed(1) + " m/s \n" + 
+                "<b>Burst Altitude:</b> " + vehicle.prediction.burst_altitude.toFixed(0) + " m\n" + 
+                "<b>Descent Rate:</b> " + vehicle.prediction.descent_rate.toFixed(1) + " m/s \n";
+        }
+    }
+    
+
+    if(burst_index !== 0 ) {
         if(vehicle.prediction_burst) {
             vehicle.prediction_burst.setLatLng(latlng_burst);
         } else {
@@ -3104,13 +3179,13 @@ function addPosition(position) {
                 } catch (err) {}
             });  
             
-            polyline_visible = true;
+            polyline_visible = false;
             polyline = [
                 new L.Polyline(point, {
                     color: balloon_colors[color_index],
                     opacity: 1,
                     weight: 3,
-                }).addTo(map)
+                })
             ];
         }
 
@@ -3738,10 +3813,10 @@ function liveData() {
         if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
             var topic = "sondes/" + wvar.query;
             client.subscribe(topic);
-            clientTopic = topic;
+            clientTopic = [topic];
         } else {
-            client.subscribe("batch");
-            clientTopic = "batch";
+            client.subscribe("sondes-new/#");
+            clientTopic = ["sondes-new/#"];
         }
         // Also subscribe to listener data, for listener and chase-car telemetry.
         // To revert listener-via-websockets change, comment out this line,
@@ -3783,7 +3858,14 @@ function liveData() {
         if ( document.getElementById("stTimer").classList.contains('friendly-dtime') ) {
             document.getElementById("stTimer").classList.remove('friendly-dtime');
         }
-        $("#stTimer").text(Math.round(messageRate/10) + " msg/s");
+        var tracking_sondes = clientTopic.length;
+        if (clientTopic[0] = "sondes-new/#"){ // need to subtract one if we are subbed to the slow feed
+            tracking_sondes = tracking_sondes - 1;
+        }
+
+        
+        
+        $("#stTimer").text(Math.round(messageRate/10) + " msg/s " + tracking_sondes + " sondes");
         $("#updatedText").text(" ");
         var dateNow = new Date().getTime();
         try {
@@ -4166,21 +4248,21 @@ function updateReceiverMarker(receiver) {
     if (pledges.hasOwnProperty(receiver.name)) {
         if (pledges[receiver.name].icon == "bronze") {
             receiver.marker = new L.CircleMarker(latlng, {
-                radius: 8,
+                radius: Math.min(map.getZoom(),6*1.3),
                 fillOpacity: 0.6,
                 color: "#CD7F32",
             });
             receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "bronze" }).setContent(receiver.description);
         } else if (pledges[receiver.name].icon == "silver") {
             receiver.marker = new L.CircleMarker(latlng, {
-                radius: 8,
+                radius: Math.min(map.getZoom(),6*1.3),
                 fillOpacity: 0.6,
                 color: "#C0C0C0",
             });
             receiver.infobox = new L.popup({ autoClose: false, closeOnClick: false, className: "silver" }).setContent(receiver.description);
         } else {
             receiver.marker = new L.CircleMarker(latlng, {
-                radius: 8,
+                radius: Math.min(map.getZoom(),6*1.3),
                 fillOpacity: 0.6,
                 color: "#FFD700",
             });
@@ -4188,7 +4270,7 @@ function updateReceiverMarker(receiver) {
         };
     } else {
         receiver.marker = new L.CircleMarker(latlng, {
-            radius: 6,
+            radius: Math.min(map.getZoom(),6),
             fillOpacity: 0.6,
             color: "#008000",
         });
@@ -4306,8 +4388,58 @@ function updateReceivers(r, single) {
                 receiver.lon = lon;
                 receiver.alt = alt;
                 receiver.age = age.toISOString();
-                receiver.description = "<font style='font-size: 13px'>"+receiver.name+"</font><br/><font size='-2'><BR><B>Radio: </B>" + last.software_name + "-" + last.software_version
-                + "<BR><B>Antenna: </B>" + last.uploader_antenna + "<BR><B>Last Contact: </B>" + last.ts + "Z<BR></font>";
+
+                var receiver_description_html = document.createElement("p")
+                var receiver_name = document.createElement("font")
+                receiver_name.style.fontSize = "13px"
+                receiver_name.textContent = receiver.name
+                receiver_description_html.appendChild(receiver_name)
+                receiver_description_html.appendChild(document.createElement("br"))
+
+                var subSection = document.createElement("font")
+                subSection.style.fontSize = "-2"
+                var radioSoftware = document.createElement("b")
+                radioSoftware.textContent = "Software: "
+                subSection.appendChild(radioSoftware)
+
+                var receiverSoftware = document.createTextNode(last.software_name + "-" + last.software_version)
+                subSection.appendChild(receiverSoftware)
+
+                subSection.appendChild(document.createElement("br"))
+                
+                if (last.uploader_radio){
+                    var radioHeading = document.createElement("b")
+                    radioHeading.textContent = "Radio: "
+                    subSection.appendChild(radioHeading)
+               
+                    var uploaderRadio = document.createTextNode(last.uploader_radio)
+                    subSection.appendChild(uploaderRadio)
+
+                    subSection.appendChild(document.createElement("br"))
+                }
+
+                
+                if (last.uploader_antenna){
+                    var antennaHeading = document.createElement("b")
+                    antennaHeading.textContent = "Antenna: "
+                    subSection.appendChild(antennaHeading)
+
+                    var uploaderAntenna = document.createTextNode(last.uploader_antenna)
+                    subSection.appendChild(uploaderAntenna)
+
+                    subSection.appendChild(document.createElement("br"))
+                }
+
+                var lastContactHeading = document.createElement("b")
+                lastContactHeading.textContent = "Last Contact: "
+                subSection.appendChild(lastContactHeading)
+
+                var lastContact = document.createTextNode(last.ts + "Z")
+                subSection.appendChild(lastContact)
+
+                receiver_description_html.appendChild(subSection)
+
+                receiver.description = receiver_description_html.innerHTML;
                 receiver.fresh = true;
 
                 updateReceiverMarker(receiver);
@@ -4749,6 +4881,7 @@ function update(response, none) {
     };
 
     ctx_init.run(ctx_init);
+    sub_to_nearby_sondes();
 }
 
 function zoom_on_payload() {
