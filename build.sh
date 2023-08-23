@@ -40,10 +40,10 @@ echo "{\"build_date\": \"$BUILD_DATE\", \"version\": \"$VERSION\", \"refresh\": 
 
 cd ..
 echo "Done!"
-echo -n "Generate cache.manifest..."
 
-
-sed "s/^\(# version\) .*$/\1 $VERSION `date +%s`/" cache.manifest-dev > cache.manifest
+# cache fixes
+sed -i "s/{VER}/$VERSION/" index.html
+sed -i "s/{VER}/$VERSION/" service-worker.js
 
 echo "Done!"
 
