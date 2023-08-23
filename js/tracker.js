@@ -2284,9 +2284,9 @@ function redrawPrediction(vcallsign) {
             opacity: 0.5, // Was 0.4
             weight: 3,
          })//.addTo(map);
-        // vehicle.prediction_polyline.on('click', function (e) {
-        //     mapInfoBox_handle_prediction_path(e);
-        // });
+        vehicle.prediction_polyline.on('click', function (e) {
+            mapInfoBox_handle_prediction_path(e);
+        });
     }
 
     vehicle.prediction_polyline.path_length = path_length;
@@ -2307,9 +2307,9 @@ function redrawPrediction(vcallsign) {
             zIndexOffset: Z_SHADOW,
             icon: predictionIcon,
         })//addTo(map);
-        // vehicle.prediction_target.on('click', function (e) {
-        //     mapInfoBox_handle_prediction(e);
-        // });
+        vehicle.prediction_target.on('click', function (e) {
+            mapInfoBox_handle_prediction(e);
+        });
     }
     vehicle.prediction_target.pdata = data[data.length-1];
 

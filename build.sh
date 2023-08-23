@@ -42,8 +42,8 @@ cd ..
 echo "Done!"
 
 # cache fixes
-sed -i "s/{VER}/$VERSION/" index.html
-sed -i "s/{VER}/$VERSION/" service-worker.js
+sed -i'' "s/{VER}/$VERSION/" index.html
+sed -i'' "s/{VER}/$VERSION/" service-worker.js
 
 echo "Done!"
 
