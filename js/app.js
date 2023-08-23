@@ -1018,6 +1018,7 @@ function check_version(){
         })
 }
 function update_site(){
+
     window.location.reload(true)
 }
 
