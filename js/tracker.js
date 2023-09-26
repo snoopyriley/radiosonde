@@ -52,7 +52,7 @@ var focusID = 0;
 
 var receiverCanvas = null;
 
-var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-1", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ", "MTS01", "chase"];
+var sondePrefix = ["RS92", "RS92-SGP", "RS92-NGP", "RS41", "RS41-SG", "RS41-SGP", "RS41-SGM", "DFM", "DFM06", "DFM09", "DFM17", "M10", "M20", "iMet-1", "iMet-4", "iMet-54", "LMS6", "LMS6-400", "LMS6-1680", "iMS-100", "MRZ", "MTS01", "WxR-301D", "chase"];
 var sondeCodes = {
     "07":"iMet-1", "11":"LMS6-403", "13":"RS92", "14":"RS92", "17":"DFM-09", "18":"DFM-06", "19":"MRZ-N1", "22":"RS-11G", "23":"RS41", "24":"RS41", "34":"iMet-4", "35":"iMS-100", "38":"WxR-301D", "41":"RS41", "42":"RS41", "52":"RS92-NGP", 
     "54":"DFM-17", "62":"MRZ-3MK", "63":"M20", "65":"MTS01", "77":"M10", "82":"LMS6-1680", "84":"iMet-54"
@@ -736,12 +736,16 @@ function sub_to_nearby_sondes(){
         // If zoomed in then we sub to specific sondes
         for (let vehicle in vehicles){
             let topic = "sondes/"+vehicle;
+            let prediction_topic = "prediction/"+vehicle;
+            let reverse_topic = "reverse-prediction/"+vehicle;
             inside_bounds = bounds.contains(vehicles[vehicle].marker._latlng)
             if (inside_bounds){
                 if (!clientTopic.includes(topic)){
                     if (sub_logging) console.log("Subbing to " + topic)
                     if (client.isConnected()) {
                         client.subscribe(topic);
+                        client.subscribe(prediction_topic);
+                        client.subscribe(reverse_topic);
                     }
                     clientTopic.push(topic)
                 }
@@ -752,7 +756,9 @@ function sub_to_nearby_sondes(){
                     } else {
                         if (sub_logging) console.log("unsubbing from " + topic)
                         if (client.isConnected()) {
-                            client.unsubscribe(topic)
+                            client.unsubscribe(topic);
+                            client.unsubscribe(prediction_topic);
+                            client.unsubscribe(reverse_topic);
                         }
                         var topic_index = clientTopic.indexOf(topic)
                         if (topic_index > -1) {
@@ -790,6 +796,8 @@ function clean_refresh(text, force, history_step) {
         if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
             var topic = "sondes/" + wvar.query;
             client.subscribe(topic);
+            client.subscribe("prediction/"+wvar.query);
+            client.subscribe("reverse-prediction/"+wvar.query);
             clientTopic = [topic];
         } else {
             client.subscribe("sondes-new/#");
@@ -1161,6 +1169,33 @@ function panTo(vcallsign) {
             set_polyline_visibility(serial,false);
         }
     }
+
+    // update predictions
+    $.ajax({
+        type: "GET",
+        url: predictions_url + vcallsign,
+        data: "",
+        dataType: "json",
+        serial: vcallsign,
+        success: function(response, textStatus) {
+            updatePredictions(response);
+            set_polyline_visibility(serial,true);
+        }
+    });
+
+    var data_str = "duration=" + wvar.mode + "&vehicles=" + vcallsign;
+    $.ajax({
+                type: "GET",
+                url: launch_predictions_url,
+                data: data_str,
+                dataType: "json",
+                serial: vcallsign,
+                success: function(response, textStatus) {
+                    updateLaunchPredictions(response);
+                    set_polyline_visibility(serial,true);
+                }
+    });
+
     vehicles[vcallsign].polyline_visible = true;
     set_polyline_visibility(vcallsign,true);
     // update lookangles
@@ -1802,6 +1837,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
   if($.type(newPosition.callsign) === "string"){
       // Single callsign entry, as a string (chase cars)
       callsign_list = newPosition.callsign;
+      num_callsigns = 1;
   } else {
     // Multiple callsigns, as an object
     for(var rxcall in newPosition.callsign){
@@ -1828,7 +1864,14 @@ function updateVehicleInfo(vcallsign, newPosition) {
         }
         callsign_list.push(_new_call); // catch cases where there are no fields
     }
+    num_callsigns = callsign_list.length;
     callsign_list = callsign_list.join("<br>");
+  }
+
+  if (num_callsigns > 1){
+    num_callsigns = " (" + num_callsigns + ")";
+  } else {
+    num_callsigns = "";
   }
 
   var timeNow = new Date();
@@ -1882,7 +1925,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '</div>' + // right
            '</div>' + // data
            '';
-  var c    = '<dt class="receivers">Received <i class="friendly-dtime" data-timestamp='+timeChosen+'></i> via:</dt><dd class="receivers">' +
+  var c    = '<dt class="receivers">Received <i class="friendly-dtime" data-timestamp='+timeChosen+'></i> via' + num_callsigns + ':</dt><dd class="receivers">' +
            callsign_list + '</dd>';
 
   if(!newPosition.callsign) c = '';
@@ -3813,6 +3856,8 @@ function liveData() {
         if (wvar.query && sondePrefix.indexOf(wvar.query) == -1) {
             var topic = "sondes/" + wvar.query;
             client.subscribe(topic);
+            client.subscribe("prediction/"+wvar.query);
+            client.subscribe("reverse-prediction/"+wvar.query);
             clientTopic = [topic];
         } else {
             client.subscribe("sondes-new/#");
@@ -3893,7 +3938,32 @@ function liveData() {
                     } else {
                         updateReceivers(formatted_frame, single=true);
                     }
+                } else if (message.topic.startsWith("prediction")) {
+                    var frame = JSON.parse(message.payloadString.toString());
 
+                    var pred_data = [
+                        {
+                            "vehicle": frame.serial,
+                            "time": frame.datetime,
+                            "latitude": frame.position[1],
+                            "longitude": frame.position[0],
+                            "altitude": frame.altitude,
+                            "ascent_rate": frame.ascent_rate,
+                            "descent_rate": frame.descent_rate,
+                            "burst_altitude": frame.burst_altitude,
+                            "descending": frame.descending ? 1 : 0,
+                            "landed": frame.descending ? 1 : 0,
+                            "data": JSON.stringify(frame.data)
+                        }
+                    ]
+                    updatePredictions(pred_data);
+                } else if (message.topic.startsWith("reverse-prediction")) {
+                    var frame = JSON.parse(message.payloadString.toString());
+                    var serial = frame["serial"];
+                    var pred_data = {
+                    }
+                    pred_data[serial] = frame
+                    updateLaunchPredictions(pred_data);
                 } else {
                     var frame = JSON.parse(message.payloadString.toString());
 
@@ -4129,45 +4199,45 @@ function refreshRecoveryStats() {
 
 var ajax_predictions = null;
 
-function refreshPredictions() {
-    if(ajax_inprogress) {
-      clearTimeout(periodical_predictions);
-      periodical_predictions = setTimeout(refreshPredictions, 1000);
-      return;
-    }
+// function refreshPredictions() {
+//     if(ajax_inprogress) {
+//       clearTimeout(periodical_predictions);
+//       periodical_predictions = setTimeout(refreshPredictions, 1000);
+//       return;
+//     }
 
-    ajax_predictions = $.ajax({
-        type: "GET",
-        url: predictions_url + encodeURIComponent(wvar.query),
-        data: "",
-        dataType: "json",
-        success: function(response, textStatus) {
-            updatePredictions(response);
-        },
-        error: function() {
-        },
-        complete: function(request, textStatus) {
-            clearTimeout(periodical_predictions);
-            periodical_predictions = setTimeout(refreshPredictions, 60 * 1000);
-        }
-    });
+//     ajax_predictions = $.ajax({
+//         type: "GET",
+//         url: predictions_url + encodeURIComponent(wvar.query),
+//         data: "",
+//         dataType: "json",
+//         success: function(response, textStatus) {
+//             updatePredictions(response);
+//         },
+//         error: function() {
+//         },
+//         complete: function(request, textStatus) {
+//             clearTimeout(periodical_predictions);
+//             periodical_predictions = setTimeout(refreshPredictions, 60 * 1000);
+//         }
+//     });
 
-    var data_str = "duration=" + wvar.mode + "&vehicles=" + encodeURIComponent(wvar.query);
+//     var data_str = "duration=" + wvar.mode + "&vehicles=" + encodeURIComponent(wvar.query);
 
-    ajax_predictions = $.ajax({
-        type: "GET",
-        url: launch_predictions_url,
-        data: data_str,
-        dataType: "json",
-        success: function(response, textStatus) {
-            updateLaunchPredictions(response);
-        },
-        error: function() {
-        },
-        complete: function(request, textStatus) {
-        }
-    });
-}
+//     ajax_predictions = $.ajax({
+//         type: "GET",
+//         url: launch_predictions_url,
+//         data: data_str,
+//         dataType: "json",
+//         success: function(response, textStatus) {
+//             updateLaunchPredictions(response);
+//         },
+//         error: function() {
+//         },
+//         complete: function(request, textStatus) {
+//         }
+//     });
+// }
 
 var periodical, periodical_focus, periodical_focus_new, periodical_receivers, periodical_listeners, periodical_recoveries;
 var periodical_predictions = null;
@@ -4875,7 +4945,7 @@ function update(response, none) {
 
             }
 
-            if(periodical_predictions === null) refreshPredictions();
+            //if(periodical_predictions === null) refreshPredictions();
         },
 
     };
