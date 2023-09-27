@@ -1179,7 +1179,7 @@ function panTo(vcallsign) {
         serial: vcallsign,
         success: function(response, textStatus) {
             updatePredictions(response);
-            set_polyline_visibility(serial,true);
+            set_polyline_visibility(this.serial,true);
         }
     });
 
@@ -1192,7 +1192,7 @@ function panTo(vcallsign) {
                 serial: vcallsign,
                 success: function(response, textStatus) {
                     updateLaunchPredictions(response);
-                    set_polyline_visibility(serial,true);
+                    set_polyline_visibility(this.serial,true);
                 }
     });
 
