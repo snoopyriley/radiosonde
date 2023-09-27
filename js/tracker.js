@@ -3952,7 +3952,7 @@ function liveData() {
                             "descent_rate": frame.descent_rate,
                             "burst_altitude": frame.burst_altitude,
                             "descending": frame.descending ? 1 : 0,
-                            "landed": frame.descending ? 1 : 0,
+                            "landed": frame.landed ? 1 : 0,
                             "data": JSON.stringify(frame.data)
                         }
                     ]
