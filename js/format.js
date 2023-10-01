@@ -84,6 +84,14 @@ function formatData(data, live) {
             if (data[entry].hasOwnProperty("temp")) {
                 dataTempEntry.data.temperature_external = data[entry].temp;
             }
+            // RS41 specific stuff
+            if (data[entry].hasOwnProperty("rs41_mainboard")) {
+                dataTempEntry.data.rs41_mainboard = data[entry].rs41_mainboard;
+            }
+            if (data[entry].hasOwnProperty("rs41_mainboard_fw")) {
+                dataTempEntry.data.rs41_mainboard_fw = data[entry].rs41_mainboard_fw;
+            }
+
             if (data[entry].type) {
                 dataTempEntry.data.type = data[entry].type;
                 dataTempEntry.type = data[entry].type;
