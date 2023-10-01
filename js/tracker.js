@@ -261,8 +261,8 @@ var globalKeys = {
     "pcfh_fpga_fw_date": "PCFH FPGA Firmware Date",
     "pcfh_temperature_pcb_date": "PCFH Temperature PCB Manufacture Date",
     "pcfh_main_pcb_date": "PCFH Main PCB Manufacture Date",
-    "rs41_mainboard": "RS41 Mainboard Version",
-    "rs41_mainboard_fw": "RS41 Mainboard Firmware"
+    "rs41_mainboard": "RS41 PCB Version",
+    "rs41_mainboard_fw": "RS41 PCB FW"
 };
 
 var globalSuffixes = {
@@ -1260,7 +1260,8 @@ function habitat_data(jsondata, alternative) {
   var tooltips = {
     "burst_timer": "If active, this indicates the time (HH:MM:SS) until the radiosonde will automatically power-off.",
     "xdata": "Raw auxiliary data (as hexadecimal) from an external sensor package (often an Ozone sensor).",
-    "oif411_O3_partial_pressure": "Estimated O3 partial pressure, using nominal calibration values. +/- 1 mPa."
+    "oif411_O3_partial_pressure": "Estimated O3 partial pressure, using nominal calibration values. +/- 1 mPa.",
+    "rs41_mainboard": "RSM412 = Old PCB, RSM414 = New PCB design (~2023)"
   }
 
   var hide_keys = {
