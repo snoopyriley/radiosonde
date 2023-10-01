@@ -260,7 +260,9 @@ var globalKeys = {
     "pcfh_controller_fw_date": "PCFH Controller Firmware Date",
     "pcfh_fpga_fw_date": "PCFH FPGA Firmware Date",
     "pcfh_temperature_pcb_date": "PCFH Temperature PCB Manufacture Date",
-    "pcfh_main_pcb_date": "PCFH Main PCB Manufacture Date"
+    "pcfh_main_pcb_date": "PCFH Main PCB Manufacture Date",
+    "rs41_mainboard": "RS41 Mainboard Version",
+    "rs41_mainboard_fw": "RS41 Mainboard Firmware"
 };
 
 var globalSuffixes = {
