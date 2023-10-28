@@ -1254,7 +1254,7 @@ function guess_name(key) {
   return title_case(key.replace(/_/g, " "));
 }
 
-function habitat_data(jsondata, alternative) {
+function habitat_data(jsondata, data_ages, current_timestamp, alternative) {
   var keys = globalKeys;
 
   var tooltips = {
@@ -1300,7 +1300,12 @@ function habitat_data(jsondata, alternative) {
 
     for(var key in data) {
         if ((key === "frequency" && txFreq) || (key === "xdata" && xdataFound)) {} else {
-            array.push([key, data[key]]);
+            if(data_ages.hasOwnProperty(key)){
+                key_age = data_ages[key];
+            } else {
+                key_age = current_timestamp;
+            }
+            array.push([key, data[key], key_age]);
         }
     }
 
@@ -1311,6 +1316,7 @@ function habitat_data(jsondata, alternative) {
     for(var i = 0, ii = array.length; i < ii; i++) {
       var k = array[i][0]; // key
       var v = array[i][1]; // value
+      var ka = array[i][2]; // age
       if (hide_keys[k] === true)
         continue;
 
@@ -1350,8 +1356,18 @@ function habitat_data(jsondata, alternative) {
           }
       }
 
+      // Check if data is considered to be 'old'
+      // Need to think about how to style old data.
+      // Maybe make the text grey?
+      // At what point should we consider the data to be old?
+        if (ka < (current_timestamp - 20000)){
+            ka_age = (current_timestamp - ka)/1000;
+            name += " (" + ka_age.toFixed(0) + "s old)" ;
+        }
+
       if(typeof alternative == 'boolean' && alternative) {
-          output += "<div><b>" + name + ":&nbsp;</b>" + v + suffix + "</div>";
+        // This never gets called? We never seem to pass the alternative argument...
+        output += "<div><b>" + name + ":&nbsp;</b>" + v + suffix + "</div>";
       } else {
           if (tooltip != "") {
             output += "<dt>" + v + suffix + "</dt><dd>" + name + ' <div class="tooltip">🛈<span class="tooltiptext">' + tooltip + '</span></div></dd>';
@@ -1596,7 +1612,27 @@ function formatDate(date,utc) {
 }
 
 function updateVehicleInfo(vcallsign, newPosition) {
+
+    // Note - at this point, vehicles[vcallsign].curr_position has already been set to the values in newPosition
+    // so the newPosition argument is kind of redundant, we could just extract curr_position and use that.
   var vehicle = vehicles[vcallsign];
+
+
+  // Update data fields only if they are newer than whats already in the store.
+  for (var data_field_name in newPosition.data){
+
+    if(!vehicle.data_fields_age.hasOwnProperty(data_field_name)){
+        // Haven't seen this field name before, add it to the age object.
+        vehicle.data_fields_age[data_field_name] = 0;
+    }
+
+    if(newPosition.gps_timestamp > vehicle.data_fields_age[data_field_name]){
+        vehicle.data_fields[data_field_name] = newPosition.data[data_field_name];
+        vehicle.data_fields_age[data_field_name] = newPosition.gps_timestamp;
+    }
+
+  }
+
   if (!isNaN(newPosition.gps_lat) && !isNaN(newPosition.gps_lon)){
     var latlng = new L.LatLng(newPosition.gps_lat, newPosition.gps_lon);
   }
@@ -1650,13 +1686,16 @@ function updateVehicleInfo(vcallsign, newPosition) {
     }
 
     // indicates whenever a payload has landed
+    // Ideally we'd be using some kind of ground level check for this.
+    // We might be able to pull out an estimate of landing ground level from the last position in the latest prediction?
     var landed = (
                      vehicle.max_alt > 1500 &&      // if it has gone up
                      vehicle.ascent_rate < 1.0 &&   // and has negative ascent_rate, aka is descending
                      newPosition.gps_alt < 350      // and is under 350 meters altitude
                  ) || (                             // or
                      newPosition.gps_alt < 600 &&   // under 600m and has no position update for more than 30 minutes
-                     (new Date().getTime() - convert_time(newPosition.gps_time)) > 1800000
+                     //(new Date().getTime() - convert_time(newPosition.gps_time)) > 1800000
+                     (new Date().getTime() - newPosition.gps_timestamp) > 1800000
                  );
 
     if(landed) {
@@ -1743,7 +1782,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
     elm.attr('data-vcallsign', vcallsign);
   }
 
-  // decides how to dispaly the horizonal speed
+  // decides how to display the horizonal speed
   var imp = offline.get('opt_imperial'), hrate_text;
   var ascent_text = imp ? (vehicle.ascent_rate * 196.850394).toFixed(1) + ' ft/min' : vehicle.ascent_rate.toFixed(1) + ' m/s';
   if (offline.get('opt_haxis_hours')) {
@@ -1951,7 +1990,9 @@ function updateVehicleInfo(vcallsign, newPosition) {
            '<dt>'+text_alt+' ('+text_alt_max+')</dt><dd>altitude (max)</dd>' +
            '<dt>'+formatDate(stringToDateUTC(newPosition.gps_time))+'</dt><dd>datetime (local)</dd>' +
            '<dt>'+coords_text+'</dt><dd>coordinates</dd>' +
-           habitat_data(newPosition.data) +
+           // Enabling use of the larger data store 
+           habitat_data(vehicle.data_fields, vehicle.data_fields_age, newPosition.gps_timestamp) +
+           //habitat_data(newPosition.data, vehicle.data_fields_age, newPosition.gps_timestamp) +
            c + // receivers if any
            '';
 
@@ -3245,6 +3286,7 @@ function addPosition(position) {
             title = null;
         }
 
+
         var vehicle_info = {
                             callsign: vcallsign,
                             uuid: elm_uuid++,
@@ -3267,6 +3309,8 @@ function addPosition(position) {
                             positions_alts: [],
                             path_length: 0,
                             curr_position: position,
+                            data_fields: {},
+                            data_fields_age: {},
                             line: [],
                             polyline_visible: polyline_visible,
                             polyline: polyline !== null ? polyline : [
@@ -3379,6 +3423,7 @@ function addPosition(position) {
 
     var new_latlng = new L.LatLng(position.gps_lat, position.gps_lon);
     var new_ts = convert_time(position.gps_time);
+    position.gps_timestamp = new_ts;
     var curr_ts = convert_time(vehicle.curr_position.gps_time);
     var new_alt = position.gps_alt;
     var dt = (new_ts - curr_ts) / 1000; // convert to seconds
