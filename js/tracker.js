@@ -3079,6 +3079,11 @@ function addPosition(position) {
             vehicle_type = "balloon";
             color_index = balloon_index++ % balloon_colors.length;
 
+            if(wvar.nena){
+                // All the balloon are red.
+                color_index = 0;
+            }
+
             image_src = host_url + markers_url + "balloon-" +
                         ((vcallsign == "PIE") ? "rpi" : balloon_colors_name[color_index]) + ".png";
             image_src_size = [46,84];

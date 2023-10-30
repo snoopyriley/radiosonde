@@ -40,6 +40,10 @@ function lhash_update(history_step) {
         hash += "&nyan=1";
     }
 
+    if(wvar.nena) {
+        hash += "&nena=1";
+    }
+
     hash = encodeURI(hash);
     // set state
     if(history_supported) {
@@ -64,6 +68,7 @@ var wvar = {
     zoom: true,
     query: "",
     nyan: false,
+    nena: false,
     site: 0,
 };
 
@@ -87,6 +92,7 @@ function load_hash(no_refresh) {
         focus: "",
         query: "",
         nyan: false,
+        nena: false,
     };
 
     parms.forEach(function(v) {
@@ -128,6 +134,9 @@ function load_hash(no_refresh) {
             case "nyan":
                 def[k] = !!parseInt(v);
                 break;
+            case "nena":
+                def[k] = !!parseInt(v);
+                break;
             case "site":
                 focusID = v;
                 gotoSite(v);
@@ -136,7 +145,7 @@ function load_hash(no_refresh) {
     });
 
     // check if we should force refresh
-    ['mode','query','nyan'].forEach(function(k) {
+    ['mode','query','nyan','nena'].forEach(function(k) {
         if(wvar[k] != def[k]) refresh = true;
     });
 
@@ -180,6 +189,7 @@ for(var idx in params) {
             $("header .search input[type='text']").val(wvar.query);
             break;
         case "nyan": wvar.nyan = true; break;
+        case "nena": wvar.nena = true; break;
         case "focus": wvar.focus = decodeURIComponent(line[1]); break;
         case "docid": wvar.docid = line[1]; break;
         case "mode": wvar.mode = decodeURIComponent(line[1]); break;
