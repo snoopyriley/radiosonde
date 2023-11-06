@@ -4773,7 +4773,7 @@ function updateLeaderboardPane(r){
     // create a sorted list
     top = Object.keys(top).map(function(key){return [key, top[key]]});
     top.sort(function(a, b) {
-        return a[1] < b[1]
+        return b[1] - a[1];
     });
 
     html += "<div><b>Total sondes recovered: " + recovered + "/" + total + "</b></div>";
