@@ -1261,7 +1261,7 @@ function habitat_data(jsondata, data_ages, current_timestamp, alternative) {
     "burst_timer": "If active, this indicates the time (HH:MM:SS) until the radiosonde will automatically power-off.",
     "xdata": "Raw auxiliary data (as hexadecimal) from an external sensor package (often an Ozone sensor).",
     "oif411_O3_partial_pressure": "Estimated O3 partial pressure, using nominal calibration values. +/- 1 mPa.",
-    "rs41_mainboard": "RSM412 = Old PCB, RSM414 = New PCB design (~2023)"
+    "rs41_mainboard": "A last digit of '4' may indicate this is a new (~2023) PCB."
   }
 
   var hide_keys = {
@@ -1974,7 +1974,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
 
 
   // mid for portrait
-  var p    = '<dt>'+formatDate(stringToDateUTC(newPosition.gps_time))+'</dt><dd>datetime (local)</dd>' +
+  var p    = '<dt>'+formatDate(stringToDateUTC(newPosition.gps_time))+'</dt><dd>datetime (viewer local)</dd>' +
            '<dt>'+coords_text+'</dt><dd>coordinates</dd>' +
            c +// receivers if any
            '</dl>' +
@@ -1988,7 +1988,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
   // mid for landscape
   var l    = ((vehicle.vehicle_type == "car") ? '' : '<dt>'+ascent_text+' '+hrate_text+'</dt><dd>rate v|h</dd>') +
            '<dt>'+text_alt+' ('+text_alt_max+')</dt><dd>altitude (max)</dd>' +
-           '<dt>'+formatDate(stringToDateUTC(newPosition.gps_time))+'</dt><dd>datetime (local)</dd>' +
+           '<dt>'+formatDate(stringToDateUTC(newPosition.gps_time))+'</dt><dd>datetime (viewer local)</dd>' +
            '<dt>'+coords_text+'</dt><dd>coordinates</dd>' +
            // Enabling use of the larger data store 
            habitat_data(vehicle.data_fields, vehicle.data_fields_age, newPosition.gps_timestamp) +
