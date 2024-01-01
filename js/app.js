@@ -1007,6 +1007,9 @@ $(window).ready(function() {
         wvar.zoom = true;
        }
 
+       // Insert the serial number into the recovery reporting serial number textbox
+       $("#pr_serial").val(text);
+
        clean_refresh(wvar.mode, true, true);
    });
 });

@@ -295,7 +295,7 @@
                 <span class="r"><input type="text" id="cc_callsign" style="width: 140px;"/></span>
             </div>
             <div class="row">
-                <span><b>Notice: If you enable this, your location will be uploaded to SondeHub; making it publicly visible on the map for up to 12 hours.</b></span>
+                <span><b>Notice: If you enable this, your location will be uploaded to SondeHub, making it publicly visible on the map for up to 12 hours.</b></span>
             </div>
             <hr>
             <div class="row">
@@ -326,7 +326,7 @@
             <h3>Report Recovery</h3>
             <hr>
             <div class="row">
-            <span>You can report a recovery here. Enter the serial number (no type code, e.g. 'S1234567'), tick recovered/not recovered, and add some notes. If the sonde is not on the map, type its callsign into the top-left search box and press enter to retrieve historical data. You can then mark it as recovered. Optionally, you can use your location instead of the sonde's last location.</span>
+            <span>You can report a recovery here. Enter the serial number (e.g. 'S1234567'), tick recovered/not recovered, and add some notes. If the sonde is not on the map, type its callsign into the top-left search box and press enter to retrieve historical data. You can then mark it as recovered. Optionally, you can use your location instead of the sonde's last location.</span>
             </div>
             <div class="row">
                 <span><b>Serial</b></span>
@@ -348,7 +348,12 @@
             </div>
             <div class="row">
                 <span><b>Notes</b></span>
-                <span class="r"><input type="text" id="pr_notes" style="width: 140px;"/></span>
+            </div>
+            <div class="row">
+                <span>
+                    <!--<input type="text" id="pr_notes" style="width: 140px;"/>-->
+                    <textarea name="pr_notes" id="pr_notes" style="width:280px;height:60px;"></textarea>
+                </span>
             </div>
             <div class="row">
                 <span><b>Report Result</b></span>

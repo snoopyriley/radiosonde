@@ -1568,6 +1568,8 @@ function followVehicle(vcallsign, noPan, force) {
 
         updateGraph(vcallsign, true);
         drawLOSPaths(vcallsign);
+
+        $("#pr_serial").val(vcallsign);
 	}
 
     if(should_pan) {
