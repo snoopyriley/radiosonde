@@ -261,6 +261,9 @@ var globalKeys = {
     "pcfh_fpga_fw_date": "PCFH FPGA Firmware Date",
     "pcfh_temperature_pcb_date": "PCFH Temperature PCB Manufacture Date",
     "pcfh_main_pcb_date": "PCFH Main PCB Manufacture Date",
+    "tacho_uptime": "KNMI Tachometer Uptime",
+    "tacho_delta": "KNMI Tachometer Delta",
+    "tacho_rpm": "KNMI Tachometer RPM",
     "rs41_mainboard": "RS41 PCB Version",
     "rs41_mainboard_fw": "RS41 PCB FW"
 };
@@ -321,6 +324,9 @@ var globalSuffixes = {
     "pcfh_peltier_current_02": " A",
     "pcfh_reserved_temperature": "&deg;C",
     "pcfh_thermocouple_reference_temperature": "&deg;C",
+    "tacho_uptime": " S",
+    "tacho_delta": " s/400rev",
+    "tacho_rpm": " RPM"
 };
 
 // localStorage vars
