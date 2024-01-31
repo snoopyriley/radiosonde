@@ -714,10 +714,10 @@ function parseXDATA(data, pressure, temperature){
             // POPS
             if (!_instruments.includes("POPS")) _instruments.push('POPS');
         } else if (_instrument === '80'){
-			// KNMI Tachometer
+            // KNMI Tachometer
             _xdata_temp = parseKnmiTachometer(_current_xdata);
-			_output = Object.assign(_output,_xdata_temp);
-        }else {
+            _output = Object.assign(_output,_xdata_temp);
+        } else {
             // Unknown!
 
         }
