@@ -4831,23 +4831,11 @@ function updatePredictions(r) {
         if(vcallsign == "XX") continue;
 
 		if(vehicles.hasOwnProperty(vcallsign)) {
-            var vehicle = vehicles[vcallsign];
-
-            if(vehicle.marker.mode == "landed") {
-                removePrediction(vcallsign);
-                continue;
-            }
-
-			if(vehicle.prediction && vehicle.prediction.time == r[i].time) {
-				continue;
-			}
-            vehicle.prediction = r[i];
-            if(parseInt(vehicle.prediction.landed) === 0) {
-                vehicle.prediction.data = $.parseJSON(r[i].data);
-                redrawPrediction(vcallsign);
-            } else {
-                removePrediction(vcallsign);
-            }
+        	var vehicle = vehicles[vcallsign];
+			if(vehicle.prediction && vehicle.prediction.time == r[i].time) continue;
+			vehicle.prediction = r[i];
+			vehicle.prediction.data = $.parseJSON(r[i].data);
+			redrawPrediction(vcallsign);
 	    }
 	}
 }
