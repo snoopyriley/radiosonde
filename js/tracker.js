@@ -3528,7 +3528,7 @@ function addPosition(position) {
         };
 
         // if car doesn't report heading, we calculate it from the last position
-        if(vehicle.num_positions > 1 && vehicle.vehicle_type == 'car' && 'gps_heading' in position && position.gps_heading === "") {
+        if(vehicle.num_positions > 1 && vehicle.vehicle_type == 'car') {
 
             // Source
             var startLat = toRadians(vehicle.curr_position.gps_lat);
@@ -4835,7 +4835,22 @@ function updatePredictions(r) {
 			if(vehicle.prediction && vehicle.prediction.time == r[i].time) continue;
 			vehicle.prediction = r[i];
 			vehicle.prediction.data = $.parseJSON(r[i].data);
-			redrawPrediction(vcallsign);
+
+            // Figure out local ground level.
+            if(vehicle.prediction.data.length >= 2){
+                vehicle.local_ground_asl = vehicle.prediction.data[vehicle.prediction.data.length-1]['alt'];
+            } else {
+                vehicle.local_ground_asl = 0;
+            }
+
+            // Only draw prediction if the last known position of the payload was > 100m above local ground level.
+            if( (vehicle.curr_position['gps_alt']-vehicle.local_ground_asl) > 100){
+                redrawPrediction(vcallsign);
+            } else {
+                continue;
+            }
+
+			
 	    }
 	}
 }
