@@ -74,7 +74,6 @@ var manual_pan = false;
 
 var car_index = 0;
 var car_colors = ["blue", "red", "green", "yellow", "teal", "purple"];
-var balloon_index = 0;
 var balloon_colors_name = ["red", "blue", "green", "purple", "orange", "cyan"];
 var balloon_colors = ["#f00", "blue", "green", "#c700e6", "#ff8a0f", "#0fffca"];
 
@@ -831,7 +830,6 @@ function clean_refresh(text, force, history_step) {
     }
 
     car_index = 0;
-    balloon_index = 0;
     nyan_color_index = 0;
     stopFollow(force);
 
@@ -3088,7 +3086,11 @@ function addPosition(position) {
             marker.addTo(map);
         } else {
             vehicle_type = "balloon";
-            color_index = balloon_index++ % balloon_colors.length;
+            let colorHash = 0;
+            for (let i = 0; i < vcallsign.length; i++){
+                colorHash += vcallsign.charCodeAt(i);
+            }
+            color_index = colorHash % balloon_colors.length;
 
             if(wvar.nena){
                 // All the balloon are red.
