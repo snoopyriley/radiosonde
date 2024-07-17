@@ -74,7 +74,6 @@ var manual_pan = false;
 
 var car_index = 0;
 var car_colors = ["blue", "red", "green", "yellow", "teal", "purple"];
-var balloon_index = 0;
 var balloon_colors_name = ["red", "blue", "green", "purple", "orange", "cyan"];
 var balloon_colors = ["#f00", "blue", "green", "#c700e6", "#ff8a0f", "#0fffca"];
 
@@ -831,7 +830,6 @@ function clean_refresh(text, force, history_step) {
     }
 
     car_index = 0;
-    balloon_index = 0;
     nyan_color_index = 0;
     stopFollow(force);
 
@@ -3088,7 +3086,11 @@ function addPosition(position) {
             marker.addTo(map);
         } else {
             vehicle_type = "balloon";
-            color_index = balloon_index++ % balloon_colors.length;
+            let colorHash = 0;
+            for (let i = 0; i < vcallsign.length; i++){
+                colorHash += vcallsign.charCodeAt(i);
+            }
+            color_index = colorHash % balloon_colors.length;
 
             if(wvar.nena){
                 // All the balloon are red.
@@ -3528,7 +3530,7 @@ function addPosition(position) {
         };
 
         // if car doesn't report heading, we calculate it from the last position
-        if(vehicle.num_positions > 1 && vehicle.vehicle_type == 'car' && 'gps_heading' in position && position.gps_heading === "") {
+        if(vehicle.num_positions > 1 && vehicle.vehicle_type == 'car') {
 
             // Source
             var startLat = toRadians(vehicle.curr_position.gps_lat);
@@ -4453,6 +4455,7 @@ function updateChase(r) {
                         dataTempEntry.gps_alt = last.uploader_position[2];
                         dataTempEntry.gps_lat = last.uploader_position[0];
                         dataTempEntry.gps_lon = last.uploader_position[1];
+                        dataTempEntry.gps_heading = 90;
                         var date = new Date(last.ts)
                         var userTimezoneOffset = date.getTimezoneOffset() * 60000;
                         var time = new Date(date.getTime() - userTimezoneOffset).toISOString();
@@ -4831,23 +4834,26 @@ function updatePredictions(r) {
         if(vcallsign == "XX") continue;
 
 		if(vehicles.hasOwnProperty(vcallsign)) {
-            var vehicle = vehicles[vcallsign];
+        	var vehicle = vehicles[vcallsign];
+			if(vehicle.prediction && vehicle.prediction.time == r[i].time) continue;
+			vehicle.prediction = r[i];
+			vehicle.prediction.data = $.parseJSON(r[i].data);
 
-            if(vehicle.marker.mode == "landed") {
-                removePrediction(vcallsign);
+            // Figure out local ground level.
+            if(vehicle.prediction.data.length >= 2){
+                vehicle.local_ground_asl = vehicle.prediction.data[vehicle.prediction.data.length-1]['alt'];
+            } else {
+                vehicle.local_ground_asl = 0;
+            }
+
+            // Only draw prediction if the last known position of the payload was > 100m above local ground level.
+            if( (vehicle.curr_position['gps_alt']-vehicle.local_ground_asl) > 100){
+                redrawPrediction(vcallsign);
+            } else {
                 continue;
             }
 
-			if(vehicle.prediction && vehicle.prediction.time == r[i].time) {
-				continue;
-			}
-            vehicle.prediction = r[i];
-            if(parseInt(vehicle.prediction.landed) === 0) {
-                vehicle.prediction.data = $.parseJSON(r[i].data);
-                redrawPrediction(vcallsign);
-            } else {
-                removePrediction(vcallsign);
-            }
+			
 	    }
 	}
 }
