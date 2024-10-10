@@ -207,7 +207,9 @@ function trackerInit() {
     if(is_mobile || wvar.enabled) $(".nav .wvar").hide();
 
     if(!is_mobile) {
-        $.getScript("js/init_plot.js", function() { checkSize(); if(!map) load(); });
+        $.getScript("js/_jquery.flot.js", function() {
+            $.getScript("js/plot_config.js", function() { checkSize(); if(!map) load(); });
+        });
         if(wvar.graph) $('#telemetry_graph').attr('style','');
 
         return;
@@ -445,6 +447,25 @@ var format_time_friendly = function(start, end) {
     }
 };
 
+var format_coordinates = function(lat, lon, name) {
+    var coords_text;
+    var ua =  navigator.userAgent.toLowerCase();
+  
+    // determine how to link the coordinates to a native app, if on a mobile device
+    if(ua.indexOf('iphone') > -1) {
+        coords_text = '<a href="maps://?q='+lat+','+lon+'">' +
+                      roundNumber(lat, 5) + ', ' + roundNumber(lon, 5) +'</a>';
+    } else if(ua.indexOf('android') > -1) {
+        coords_text = '<a href="geo:'+lat+','+lon+'?q='+lat+','+lon+'('+name+')">' +
+                      roundNumber(lat, 5) + ', ' + roundNumber(lon, 5) +'</a>';
+    } else {
+        coords_text = '<a href="https://www.google.com/maps/search/?api=1&query='+lat+','+lon+'" target="_blank" rel="noopener noreferrer">' +
+            roundNumber(lat, 5) + ', ' + roundNumber(lon, 5) +'</a>';
+    }
+
+    return coords_text;
+};
+
 // runs every second
 var updateTime = function(date) {
     // update timebox
@@ -466,8 +487,6 @@ var updateTime = function(date) {
     }
 };
 
-const version = "{VER}";
-
 $(window).ready(function() {
     // refresh timebox
     setInterval(function() {
@@ -475,8 +494,8 @@ $(window).ready(function() {
     }, 1000);
 
     // Update Tracker version info
-    $('#build_version').text(version);
-    $('#build_date').text("{BUILD_DATE}");
+    $('#build_version').text(document.body.dataset.version);
+    $('#build_date').text(document.body.dataset.buildDate);
 
     // resize elements if needed
     checkSize();
@@ -552,12 +571,6 @@ $(window).ready(function() {
     $("body").on("mouseup", function () {
         $("#main").removeClass("drag");
     });
-
-    // confirm dialog when launchnig a native map app with coordinates
-    //$('#main').on('click', '#launch_mapapp', function() {
-    //    var answer = confirm("Launch your maps app?");
-    //    return answer;
-    //});
 
     // follow vehicle by clicking on data
     $('#main').on('click', '.row .data', function() {
@@ -654,7 +667,7 @@ $(window).ready(function() {
             if(currentPosition && currentPosition.marker) map.addLayer(currentPosition.marker);
         // turning the switch on
         } else {
-            if(callsign.length == null || callsign.length < 3) { alert('Please enter a valid callsign, at least 3 characters'); return; }
+            if(callsign == null || callsign.length < 3) { alert('Please enter a valid callsign, at least 3 characters'); return; }
             if(!callsign.match(/^[a-zA-Z0-9\_\-]+$/)) { alert('Invalid characters in callsign (use only a-z,0-9,-,_)'); return; }
 
             field.attr('disabled','disabled');
@@ -1020,7 +1033,7 @@ function check_version(){
     fetch(updateRequest)
         .then(function(response){ return response.json()})
         .then(function(response){
-            if (response['version'] != version) {
+            if (response['version'] != document.body.dataset.version) {
                 window.clearInterval(update_check)
                 reload_timer = window.setTimeout(update_site, response['refresh']*1000)
                 reload_end_time = new Date().getTime() +response['refresh']*1000

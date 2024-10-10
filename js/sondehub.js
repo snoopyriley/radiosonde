@@ -73,9 +73,8 @@ var manual_pan = false;
 // due to complaints it was not visible enough. - 2023-06-03
 
 var car_index = 0;
-var car_colors = ["blue", "red", "green", "yellow", "teal", "purple"];
-var balloon_colors_name = ["red", "blue", "green", "purple", "orange", "cyan"];
-var balloon_colors = ["#f00", "blue", "green", "#c700e6", "#ff8a0f", "#0fffca"];
+var car_colors = ["#a6cee3", "#1f78b4", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6"];
+var balloon_colors = ["#d95f02", "#7570b3", "#e7298a", "#e6ab02", "#a6761d", "#666666", "blue", "lime", "magenta", "#ffb300", "rebeccapurple"];
 
 var nyan_color_index = 0;
 var nyan_colors = ['nyan', 'nyan-coin', 'nyan-mon', 'nyan-pirate', 'nyan-cool', 'nyan-tothemax', 'nyan-pumpkin', 'nyan-afro', 'nyan-coin', 'nyan-mummy'];
@@ -1653,7 +1652,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
   vehicle.marker.setLatLng(latlng);
 
   if(!!vehicle.marker.setCourse) {
-    if (vehicle.curr_position.gps_heading) {
+    if (vehicle.curr_position.gps_heading && vehicle.marker.rotated) {
         vehicle.marker.setCourse((vehicle.curr_position.gps_heading !== "") ? parseInt(vehicle.curr_position.gps_heading) : 90);
     }
   } 
@@ -1800,23 +1799,7 @@ function updateVehicleInfo(vcallsign, newPosition) {
           hrate_text = imp ? (vehicle.horizontal_rate * 196.850394).toFixed(1) + ' ft/min' : vehicle.horizontal_rate.toFixed(1) + ' m/s';
   }
 
-  var coords_text;
-  var ua =  navigator.userAgent.toLowerCase();
-
-  // determine how to link the vehicle coordinates to a native app, if on a mobile device
-  if(ua.indexOf('iphone') > -1) {
-      coords_text = '<a id="launch_mapapp" href="maps://?q='+newPosition.gps_lat+','+newPosition.gps_lon+'">' +
-                    roundNumber(newPosition.gps_lat, 5) + ', ' + roundNumber(newPosition.gps_lon, 5) +'</a>' +
-                    ' <i class="icon-location"></i>';
-  } else if(ua.indexOf('android') > -1) {
-      coords_text = '<a id="launch_mapapp" href="geo:'+newPosition.gps_lat+','+newPosition.gps_lon+'?q='+newPosition.gps_lat+','+newPosition.gps_lon+'('+vcallsign+')">' +
-                    roundNumber(newPosition.gps_lat, 5) + ', ' + roundNumber(newPosition.gps_lon, 5) +'</a>' +
-                    ' <i class="icon-location"></i>';
-  } else {
-      coords_text = '<a id="launch_mapapp" href="https://www.google.com/maps/search/?api=1&query='+newPosition.gps_lat+','+newPosition.gps_lon+'" target="_blank" rel="noopener noreferrer">' +
-          roundNumber(newPosition.gps_lat, 5) + ', ' + roundNumber(newPosition.gps_lon, 5) +'</a>' +
-          ' <i class="icon-location"></i>';
-  }
+  var coords_text = format_coordinates(newPosition.gps_lat, newPosition.gps_lon, vcallsign) + ' <i class="icon-location"></i>';
 
   // format altitude strings
   var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(newPosition.gps_alt)) : parseInt(newPosition.gps_alt)).toLocaleString("us");
@@ -2260,16 +2243,20 @@ function set_polyline_visibility(vcallsign, val) {
 
     if(vehicle.prediction_polyline) {
         if (val) {
-            map.addLayer(vehicle.prediction_polyline);
+            map.addLayer(vehicle.prediction_polyline[0]);
+            map.addLayer(vehicle.prediction_polyline[1]);
         } else {
-            map.removeLayer(vehicle.prediction_polyline);
+            map.removeLayer(vehicle.prediction_polyline[0]);
+            map.removeLayer(vehicle.prediction_polyline[1]);
         }
     }
     if(vehicle.prediction_launch_polyline) {
         if (val) {
-            map.addLayer(vehicle.prediction_launch_polyline);
+            map.addLayer(vehicle.prediction_launch_polyline[0]);
+            map.addLayer(vehicle.prediction_launch_polyline[1]);
         } else {
-            map.removeLayer(vehicle.prediction_launch_polyline);
+            map.removeLayer(vehicle.prediction_launch_polyline[0]);
+            map.removeLayer(vehicle.prediction_launch_polyline[1]);
         }
     }
     if(vehicle.prediction_target) {
@@ -2292,7 +2279,8 @@ function set_polyline_visibility(vcallsign, val) {
 
 function removePrediction(vcallsign) {
   if(vehicles[vcallsign].prediction_polyline) {
-    map.removeLayer(vehicles[vcallsign].prediction_polyline);
+    map.removeLayer(vehicles[vcallsign].prediction_polyline[0]);
+    map.removeLayer(vehicles[vcallsign].prediction_polyline[1]);
     vehicles[vcallsign].prediction_polyline = null;
   }
   if(vehicles[vcallsign].prediction_target) {
@@ -2321,18 +2309,41 @@ function drawLaunchPrediction(vcallsign) {
 
     vehicle.prediction_launch_path = line;
 
-    vehicle.prediction_launch_polyline = new L.Polyline(line, {
+    vehicle.prediction_launch_polyline = [new L.Polyline(line, {
             color: balloon_colors[vehicle.color_index],
-            opacity: 0.4,
+            opacity: 0.8,
             weight: 3,
-    })//.addTo(map);
+    }),
+    new L.Polyline(line, {
+        color: "#000",
+        opacity: 0.1,
+        weight: 6,
+})
+]//.addTo(map);
 
-    vehicle.prediction_launch_polyline.on('click', function (e) {
+    vehicle.prediction_launch_polyline[0].on('click', function (e) {
+        mapInfoBox_handle_prediction_path(e);
+    });
+    vehicle.prediction_launch_polyline[1].on('click', function (e) {
         mapInfoBox_handle_prediction_path(e);
     });
 
     vehicle.prediction_launch_polyline.path_length = path_length;
 }
+
+// Takes in an SVG for a balloon, parachute, target, car, etc and sets a dynamic-color
+// variable which that SVG can use to recolor any relevant elements.
+// See balloon.svg, target.svg, etc for examples
+function recolorSVG(svg_path, color) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', svg_path, false);
+    xhr.send();
+
+    const parser = new DOMParser();
+    const svgDocument = parser.parseFromString(xhr.responseText, 'image/svg+xml');
+    svgDocument.documentElement.style.setProperty("--dynamic-color", color);
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgDocument.documentElement.outerHTML);
+  }
 
 function redrawPrediction(vcallsign) {
     var vehicle = vehicles[vcallsign];
@@ -2373,16 +2384,27 @@ function redrawPrediction(vcallsign) {
     vehicle.prediction_path = line;
 
     if(vehicle.prediction_polyline !== null) {
-        vehicle.prediction_polyline.setLatLngs(line);
+        vehicle.prediction_polyline[0].setLatLngs(line);
+        vehicle.prediction_polyline[1].setLatLngs(line);
     } else {
-        vehicle.prediction_polyline = new L.Polyline(line, {
+        vehicle.prediction_polyline = [new L.Polyline(line, {
             color: balloon_colors[vehicle.color_index],
-            opacity: 0.5, // Was 0.4
+            opacity: 0.8, // Was 0.4
             weight: 3,
-         })//.addTo(map);
-        vehicle.prediction_polyline.on('click', function (e) {
+         }),
+         new L.Polyline(line, {
+            color: "#000",
+            opacity: 0.1, // Was 0.4
+            weight: 6,
+         })
+        
+        ]//.addTo(map);
+        vehicle.prediction_polyline[0].on('click', function (e) {
             mapInfoBox_handle_prediction_path(e);
         });
+        vehicle.prediction_polyline[1].on('click', function (e) {
+            mapInfoBox_handle_prediction_path(e);
+        })
     }
 
     vehicle.prediction_polyline.path_length = path_length;
@@ -2393,7 +2415,7 @@ function redrawPrediction(vcallsign) {
     if(vehicle.prediction_target) {
         vehicle.prediction_target.setLatLng(latlng);
     } else {
-        image_src = host_url + markers_url + "target-" + balloon_colors_name[vehicle.color_index] + ".png";
+        image_src = recolorSVG(host_url + markers_url + "target.svg", balloon_colors[vehicle.color_index]);
         predictionIcon = new L.icon({
             iconUrl: image_src,
             iconSize: [20,20],
@@ -2684,7 +2706,7 @@ function mapInfoBox_handle_path_old(vehicle, id) {
                     html = "<div style='line-height:16px;position:relative;'>";
                     html += "<div>"+data.serial+" <span style=''>("+data.datetime+")</span></div>";
                     html += "<hr style='margin:5px 0px'>";
-                    html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.lat, 5) + ',&nbsp;' + roundNumber(data.lon, 5)+"</div>";
+                    html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+format_coordinates(data.lat, data.lon, data.serial)+"</div>";
 
                     var imp = offline.get('opt_imperial');
                     var text_alt = Number((imp) ? Math.floor(3.2808399 * parseInt(data.alt)) : parseInt(data.alt)).toLocaleString("us");
@@ -2759,7 +2781,7 @@ function mapInfoBox_handle_path_new(data, vehicle, date) {
     html = "<div style='line-height:16px;position:relative;'>";
     html += "<div>"+data.serial+" <span style=''>("+date+")</span></div>";
     html += "<hr style='margin:5px 0px'>";
-    html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(data.lat, 5) + ',&nbsp;' + roundNumber(data.lon, 5)+"</div>";
+    html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+format_coordinates(data.lat, data.lon, data.serial)+"</div>";
 
     var imp = offline.get('opt_imperial');
     var text_alt = Number((imp) ? Math.floor(3.2808399 * parseInt(data.alt)) : parseInt(data.alt)).toLocaleString("us");
@@ -2893,20 +2915,7 @@ function mapInfoBox_handle_prediction(event) {
         altitude = Math.round(data.alt) + " m";
     }
 
-    var coords_text;
-    var ua =  navigator.userAgent.toLowerCase();
-
-    // determine how to link the vehicle coordinates to a native app, if on a mobile device
-    if(ua.indexOf('iphone') > -1) {
-        coords_text = '<a href="maps://?q='+data.lat+','+data.lon+'">' +
-                      roundNumber(data.lat, 5) + ', ' + roundNumber(data.lon, 5) + '</a>';
-    } else if(ua.indexOf('android') > -1) {
-        coords_text = '<a href="geo:'+data.lat+','+data.lon+'?q='+data.lat+','+data.lon+'(Prediction)">' +
-                      roundNumber(data.lat, 5) + ', ' + roundNumber(data.lon, 5) +'</a>';
-    } else {
-        coords_text = '<a href="https://www.google.com/maps/search/?api=1&query='+data.lat+','+data.lon+'" target="_blank" rel="noopener noreferrer">' +
-            roundNumber(data.lat, 5) + ', ' + roundNumber(data.lon, 5) +'</a>';
-    }
+    var coords_text = format_coordinates(data.lat, data.lon, "Prediction");
 
     mapInfoBox.setContent("<pre>" +
                         formatDate(new Date(parseInt(data.time) * 1000), true) + "\n\n" +
@@ -2987,10 +2996,10 @@ var marker_rotate_setup = function(marker, image_src) {
     else {
         marker.iconImg = new Image();
         icon_cache[image_src] = marker.iconImg;
-        marker.iconImg.onload = function() {
+        marker.iconImg.addEventListener("load", function() {
             if(!marker.rotated) marker.setCourse(90);
             marker.setLatLng(marker.getLatLng());
-        };
+        })
         marker.iconImg.src = image_src;
     }
 };
@@ -3023,7 +3032,7 @@ function addPosition(position) {
         if(vcallsign.search(/(chase)/i) != -1) {
             vehicle_type = "car";
             color_index = car_index++ % car_colors.length;
-            image_src = host_url + markers_url + "car-" + car_colors[color_index] + ".png";
+            image_src = recolorSVG(host_url + markers_url + "car.svg", car_colors[color_index]);
             image_src_size = [55,25];
             image_src_offset = [0,-25];
 
@@ -3064,26 +3073,6 @@ function addPosition(position) {
                     weight: 3,
                 })
             ];
-        }
-        else if(vcallsign == "XX") {
-            vehicle_type = "xmark";
-            image_src = host_url + markers_url + "balloon-xmark.png";
-            image_src_size = [48,38];
-            image_src_offset = [0,-38];
-
-            xmarkIcon = new L.icon({
-                iconUrl: image_src,
-                iconSize: image_src_size,
-                iconAnchor: [24, 18],
-            });
-
-            marker = new L.Marker(point, {
-                icon: xmarkIcon,
-                title: vcallsign,
-                zIndexOffset: Z_CAR,
-            });
-
-            marker.addTo(map);
         } else {
             vehicle_type = "balloon";
             let colorHash = 0;
@@ -3096,9 +3085,7 @@ function addPosition(position) {
                 // All the balloon are red.
                 color_index = 0;
             }
-
-            image_src = host_url + markers_url + "balloon-" +
-                        ((vcallsign == "PIE") ? "rpi" : balloon_colors_name[color_index]) + ".png";
+            image_src = recolorSVG(host_url + markers_url + "balloon.svg", balloon_colors[color_index]);
             image_src_size = [46,84];
             image_src_offset = [-35,-46];
 
@@ -3143,7 +3130,7 @@ function addPosition(position) {
             };
 
             marker.shadow = marker_shadow;
-            marker.balloonColor = (vcallsign == "PIE") ? "rpi" : balloon_colors_name[color_index];
+            marker.balloonColor = balloon_colors[color_index];
             marker.mode = 'balloon';
             marker.setMode = function(mode) {
                 if(this.mode == mode) return;
@@ -3156,9 +3143,9 @@ function addPosition(position) {
                     map.removeLayer(vehicle.subhorizon_circle);
                     map.removeLayer(vehicle.horizon_circle_title);
                     map.removeLayer(vehicle.subhorizon_circle_title);
-
+                    img_src = recolorSVG(host_url + markers_url + "payload.svg", this.balloonColor);
                     img = new L.icon ({
-                        iconUrl: host_url + markers_url + "payload-" + this.balloonColor + ".png",
+                        iconUrl: img_src,
                         iconSize: [17,18],
                         iconAnchor: [8,14],
                         tooltipAnchor: [0,-20],
@@ -3174,15 +3161,17 @@ function addPosition(position) {
                     }
 
                     if(mode == "parachute") {
+                        img_src = recolorSVG(host_url + markers_url + "parachute.svg", this.balloonColor);
                         img = new L.icon ({
-                            iconUrl: host_url + markers_url + "parachute-" + this.balloonColor + ".png",
+                            iconUrl: img_src,
                             iconSize: [46,84],
                             tooltipAnchor: [0,-98],
                             iconAnchor: [23,90],
                         });
                     } else {
+                        img_src = recolorSVG(host_url + markers_url + "balloon.svg", this.balloonColor);
                         img = new L.icon ({
-                            iconUrl: host_url + markers_url + "balloon-" + this.balloonColor + ".png",
+                            iconUrl: img_src,
                             iconSize: [46,84],
                             tooltipAnchor: [0,-98],
                             iconAnchor: [23,90],
@@ -3290,6 +3279,11 @@ function addPosition(position) {
                     color: balloon_colors[color_index],
                     opacity: 1,
                     weight: 3,
+                }),
+                new L.Polyline(point, {
+                    color: "#fff",
+                    opacity: 0.6,
+                    weight: 6,
                 })
             ];
         }
@@ -3401,11 +3395,13 @@ function addPosition(position) {
         vehicle_info.kill = function() {
             $(".vehicle"+vehicle_info.uuid).remove();
             potentialobjects = [marker, marker_shadow, landing_marker, horizon_circle, horizon_circle_title, subhorizon_circle, subhorizon_circle_title, polyline];
-            if (map.hasLayer(vehicle_info["prediction_polyline"])) { 
-                map.removeLayer(vehicle_info["prediction_polyline"]);
+            if (vehicle_info["prediction_polyline"] && map.hasLayer(vehicle_info["prediction_polyline"][0])) { 
+                map.removeLayer(vehicle_info["prediction_polyline"][0]);
+                map.removeLayer(vehicle_info["prediction_polyline"][1]);
             }
-            if (map.hasLayer(vehicle_info["prediction_launch_polyline"])) { 
-                map.removeLayer(vehicle_info["prediction_launch_polyline"]);
+            if (vehicle_info["prediction_launch_polyline"] && map.hasLayer(vehicle_info["prediction_launch_polyline"][0])) { 
+                map.removeLayer(vehicle_info["prediction_launch_polyline"][0]);
+                map.removeLayer(vehicle_info["prediction_launch_polyline"][1]);
             }
             if (map.hasLayer(vehicle_info["prediction_target"])) { 
                 map.removeLayer(vehicle_info["prediction_target"]);
@@ -4640,7 +4636,7 @@ function updateRecoveryMarker(recovery) {
       html = "<div style='line-height:16px;position:relative;'>";
       html += "<div><b>"+recovery.serial+(recovery.recovered ? " Recovered" : " Not Recovered")+"</b></div>";
       html += "<hr style='margin:5px 0px'>";
-      html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+roundNumber(recovery.lat, 5) + ',&nbsp;' + roundNumber(recovery.lon, 5)+"</div>";
+      html += "<div style='margin-bottom:5px;'><b><i class='icon-location'></i>&nbsp;</b>"+format_coordinates(recovery.lat, recovery.lon, recovery.serial)+"</div>";
 
       var imp = offline.get('opt_imperial');
       var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(recovery.alt)) : parseInt(recovery.alt)).toLocaleString("us");
@@ -4752,7 +4748,7 @@ function updateRecoveryPane(r){
 
             html += "<div style='line-height:16px;position:relative;'>";
             html += "<div><b><u>"+r[i].serial+(r[i].recovered ? " Recovered by " : " Not Recovered by ")+r[i].recovered_by+"</u></b></div>";
-            html += "<div style='margin-bottom:5px;'><b><button style='margin-bottom:0px;' onclick='panToRecovery(\"" + r[i].serial + "\")'><i class='icon-location'></i></button>&nbsp;</b>"+roundNumber(lat, 5) + ',&nbsp;' + roundNumber(lon, 5)+"</div>";
+            html += "<div style='margin-bottom:5px;'><b><button style='margin-bottom:0px;' onclick='panToRecovery(\"" + r[i].serial + "\")'><i class='icon-location'></i></button>&nbsp;</b>"+format_coordinates(lat, lon, r[i].serial)+"</div>";
     
             var imp = offline.get('opt_imperial');
             var text_alt      = Number((imp) ? Math.floor(3.2808399 * parseInt(alt)) : parseInt(alt)).toLocaleString("us");
