@@ -165,17 +165,15 @@ function load_hash(no_refresh) {
 
     $.extend(true, wvar, def);
     if(map){
-        if (wvar["box"] != def["box"]){
-            if(!def["box"]){
-                $(".flatpage").hide()
-            } else {
-                $(".flatpage").hide()
-                $("#"+def["box"]).show()
-            }
-            checkSize();
-            wvar["box"]= def["box"];
-            
+        if (!def["box"]){
+            $(".flatpage").hide()
+        } else {
+            $(".flatpage").hide()
+            $("#"+def["box"]).show()
         }
+        checkSize();
+        wvar["box"]= def["box"];
+
         // force refresh
         if(!no_refresh) {
         if(refresh) {
@@ -686,6 +684,9 @@ $(window).ready(function() {
         } else {
             wvar.box = null
         }
+        console.log("aaa")
+        console.log(wvar.box)
+        console.log("bbbb")
         lhash_update(true);
         checkSize();
     });
