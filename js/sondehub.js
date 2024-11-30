@@ -1792,12 +1792,14 @@ function updateVehicleInfo(vcallsign, newPosition) {
   }
 
   if (offline.get('opt_selective_sidebar')) {
-    if (map.getBounds().contains(vehicles[vcallsign].marker.getLatLng())) {
-        document.getElementById("pv"+vehicle.uuid).style.display = "block";
-        document.getElementById("lv"+vehicle.uuid).style.display = "block";
-    } else {
-        document.getElementById("pv"+vehicle.uuid).style.display = "none";
-        document.getElementById("lv"+vehicle.uuid).style.display = "none";
+    if (document.getElementById("pv"+vehicle.uuid) && document.getElementById("lv"+vehicle.uuid)){
+        if (map.getBounds().contains(vehicles[vcallsign].marker.getLatLng())) {
+            document.getElementById("pv"+vehicle.uuid).style.display = "block";
+            document.getElementById("lv"+vehicle.uuid).style.display = "block";
+        } else {
+            document.getElementById("pv"+vehicle.uuid).style.display = "none";
+            document.getElementById("lv"+vehicle.uuid).style.display = "none";
+        }
     }
 }
 
