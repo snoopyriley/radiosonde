@@ -833,8 +833,8 @@ function clean_refresh(text, force, history_step) {
 
     // add loading spinner in the vehicle list
     $('#main .empty').parent().remove();
-    $("#main .portrait,#main .landscape").append(
-        '<div class="row vehicle'+elm_uuid+'"><div class="header empty">' +
+    $(".scrollwrapper").append(
+        '<div class="row" id="spinner"><div class="header empty">' +
         '<img style="width:90px;height:30px" src="img/hab-spinner.gif"/></div></div>'
     );
     listScroll.refresh();
@@ -5074,7 +5074,7 @@ function update(response, none) {
         },
 
     };
-
+    document.getElementById("spinner")?.remove();
     ctx_init.run(ctx_init);
     sub_to_nearby_sondes();
 }
