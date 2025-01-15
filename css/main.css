@@ -238,7 +238,7 @@ header .search form {
 }
 header .search form input {
     position: absolute;
-    border-radius: 100px;
+    border-radius: 10px;
 }
 header .search form input[type='text'] {
     left: 0;
@@ -279,7 +279,7 @@ header .search form input[type='submit'] {
     float: left;
     height: 40px;
     width: 35px;
-    border-right: 1px solid #33b5e5;
+    border-right: 1px solid #222222;
     cursor: pointer;
     color: #fff;
     line-height: 45px;
