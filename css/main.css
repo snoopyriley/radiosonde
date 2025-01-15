@@ -279,7 +279,7 @@ header .search form input[type='submit'] {
     float: left;
     height: 40px;
     width: 35px;
-    border-right: 1px solid #222;
+    border-right: 1px solid #222222;
     cursor: pointer;
     color: #fff;
     line-height: 45px;
